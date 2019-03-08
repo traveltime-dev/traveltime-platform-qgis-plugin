@@ -1,0 +1,21 @@
+#Mandatory items
+[general]
+name=Travel Time Platform
+qgisMinimumVersion=2.99
+qgisMaximumVersion=3.99
+description=TTP Platform
+about=TTP Platform
+category=Vector
+version=0.1-alpha
+author=Olivier Dalang
+email=olivier.dalang@gmail.com
+
+# Optional items:
+changelog=- 2019-08-12 : version 0.1-alpha
+tags=travel,time,platform,api,distance
+homepage=https://github.com/olivierdalang/TravelTimePlatformPlugin
+tracker=https://github.com/olivierdalang/TravelTimePlatformPlugin/issues
+repository=https://github.com/olivierdalang/TravelTimePlatformPlugin
+icon=resources/ttp_icon.svg
+experimental=True
+deprecated=False
