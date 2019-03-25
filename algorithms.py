@@ -2,6 +2,7 @@ import requests
 import time
 import json
 import os
+import math
 
 from qgis.PyQt.QtCore import QVariant, QSettings
 from qgis.PyQt.QtWidgets import QMessageBox
@@ -193,130 +194,152 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
             expressions[PARAM] = expression
             expressions_contexts[PARAM] = expression_context
 
-        # Prepare data
-        data = {}
-
-        if compute_union:
-            data['unions'] = [{'id': 'union_all', 'search_ids': []}]
-        if compute_inter:
-            data['intersections'] = [{'id': 'intersection_all', 'search_ids': []}]
-
         def eval_expr(key):
             return expressions[key].evaluate(expressions_contexts[key])
 
-        for DEPARR, source in [('DEPARTURE', source_departure), ('ARRIVAL', source_arrival)]:
-            deparr = DEPARR.lower()
-            if source:
-                feedback.pushDebugInfo('Loading {} searches features...'.format(deparr))
-                data[deparr+'_searches'] = []
-                xform = QgsCoordinateTransform(source.sourceCrs(), EPSG4326, context.transformContext())
-                for feature in source.getFeatures():
-                    # Stop the algorithm if cancel button has been clicked
-                    # if feedback.isCanceled():
-                    #     break
+        source_departure_count = source_departure.featureCount() if source_departure else 0
+        source_arrival_count = source_arrival.featureCount() if source_arrival else 0
 
-                    # Set feature for expression context
-                    for exp_ctx in expressions_contexts.values():
-                        exp_ctx.setFeature(feature)
+        slicing_size = 10
+        slicing_count = math.ceil(max(source_departure_count, source_arrival_count) / slicing_size)
 
-                    # Reproject to WGS84
-                    geometry = feature.geometry()
-                    geometry.transform(xform)
+        if slicing_count > 1:
+            feedback.pushInfo(tr('Input layers have more than {} features. The query will be executed in {} queries. Keep an eye on your API usage !').format(slicing_size, slicing_count))
 
-                    data[deparr+'_searches'].append({
-                        "id": eval_expr('INPUT_'+DEPARR+'_ID'),
-                        "coords": {
-                            "lat": geometry.asPoint().y(),
-                            "lng": geometry.asPoint().x(),
-                        },
-                        "transportation": {
-                            "type": eval_expr('INPUT_'+DEPARR+'_TRNSPT_TYPE'),
-                            "pt_change_delay": eval_expr('INPUT_'+DEPARR+'_TRNSPT_PT_CHANGE_DELAY'),
-                            "walking_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_WALKING_TIME'),
-                            "driving_time_to_station": eval_expr('INPUT_'+DEPARR+'_TRNSPT_DRIVING_TIME_TO_STATION'),
-                            "parking_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_PARKING_TIME'),
-                            "boarding_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_BOARDING_TIME'),
-                        },
-                        "departure_time": eval_expr('INPUT_'+DEPARR+'_TIME'),
-                        "travel_time": eval_expr('INPUT_'+DEPARR+'_TRAVEL_TIME'),
-                    })
+            if compute_union or compute_inter:
+                feedback.pushInfo(tr('Union or intersection will be returned per query. If you need union or interesection on the whole dataset, you will need to do so in an additional step, using QGIS vectors algorithms.'))
 
-                    # Add to aggregation if needed
-                    if compute_union:
-                        data['unions'][0]['search_ids'].append(eval_expr('INPUT_'+DEPARR+'_ID'))
-                    if compute_inter:
-                        data['intersections'][0]['search_ids'].append(eval_expr('INPUT_'+DEPARR+'_ID'))
+        results = []
 
-                    # # Update the progress bar
-                    # feedback.setProgress(int(current * total))
+        for slicing_i in range(slicing_count):
+            slicing_start = slicing_i * slicing_size
+            slicing_end = (slicing_i + 1) * slicing_size
 
-        url = 'https://api.traveltimeapp.com/v4/time-map'
-        headers = {
-            'Content-type': 'application/json',
-            'Accept': 'application/vnd.wkt+json',
-            'X-Application-Id': APP_ID,
-            'X-Api-Key': API_KEY,
-        }
-        data = json.dumps(data)
+            # Prepare data
+            data = {}
 
-        feedback.pushDebugInfo('Checking API limit warnings...')
-        s = QSettings()
-        retries = 10
-        for i in range(retries):
-            enabled = bool(s.value('travel_time_platform/warning_enabled', True))
-            count = int(s.value('travel_time_platform/current_count', 0)) + 1
-            limit = int(s.value('travel_time_platform/warning_limit', 10)) + 1
-            if enabled and count >= limit:
-                if i == 0:
-                    feedback.reportError(tr('WARNING : API usage warning limit reached !'))
-                    feedback.reportError(tr('To continue, disable or increase the limit in the plugin settings, or reset the queries counter. Now is your chance to do the changes.'))
-                feedback.reportError(tr('Execution will resume in 10 seconds (retry {} out of {})').format(i+1, retries))
-                time.sleep(10)
-            else:
-                if enabled:
-                    feedback.pushInfo(tr('API usage warning limit not reached yet ({} queries remaining)...').format(limit-count))
+            if compute_union:
+                data['unions'] = [{'id': 'union_all', 'search_ids': []}]
+            if compute_inter:
+                data['intersections'] = [{'id': 'intersection_all', 'search_ids': []}]
+
+            for DEPARR, source in [('DEPARTURE', source_departure), ('ARRIVAL', source_arrival)]:
+                deparr = DEPARR.lower()
+                if source:
+                    feedback.pushDebugInfo('Loading {} searches features...'.format(deparr))
+                    data[deparr+'_searches'] = []
+                    xform = QgsCoordinateTransform(source.sourceCrs(), EPSG4326, context.transformContext())
+                    for i, feature in enumerate(source.getFeatures()):
+                        # Stop the algorithm if cancel button has been clicked
+                        # if feedback.isCanceled():
+                        #     break
+
+                        if i < slicing_start or i >= slicing_end:
+                            continue
+
+                        # Set feature for expression context
+                        for exp_ctx in expressions_contexts.values():
+                            exp_ctx.setFeature(feature)
+
+                        # Reproject to WGS84
+                        geometry = feature.geometry()
+                        geometry.transform(xform)
+
+                        data[deparr+'_searches'].append({
+                            "id": eval_expr('INPUT_'+DEPARR+'_ID'),
+                            "coords": {
+                                "lat": geometry.asPoint().y(),
+                                "lng": geometry.asPoint().x(),
+                            },
+                            "transportation": {
+                                "type": eval_expr('INPUT_'+DEPARR+'_TRNSPT_TYPE'),
+                                "pt_change_delay": eval_expr('INPUT_'+DEPARR+'_TRNSPT_PT_CHANGE_DELAY'),
+                                "walking_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_WALKING_TIME'),
+                                "driving_time_to_station": eval_expr('INPUT_'+DEPARR+'_TRNSPT_DRIVING_TIME_TO_STATION'),
+                                "parking_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_PARKING_TIME'),
+                                "boarding_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_BOARDING_TIME'),
+                            },
+                            "departure_time": eval_expr('INPUT_'+DEPARR+'_TIME'),
+                            "travel_time": eval_expr('INPUT_'+DEPARR+'_TRAVEL_TIME'),
+                        })
+
+                        # Add to aggregation if needed
+                        if compute_union:
+                            data['unions'][0]['search_ids'].append(eval_expr('INPUT_'+DEPARR+'_ID'))
+                        if compute_inter:
+                            data['intersections'][0]['search_ids'].append(eval_expr('INPUT_'+DEPARR+'_ID'))
+
+                        # # Update the progress bar
+                        # feedback.setProgress(int(current * total))
+
+            url = 'https://api.traveltimeapp.com/v4/time-map'
+            headers = {
+                'Content-type': 'application/json',
+                'Accept': 'application/vnd.wkt+json',
+                'X-Application-Id': APP_ID,
+                'X-Api-Key': API_KEY,
+            }
+            data = json.dumps(data)
+
+            feedback.pushDebugInfo('Checking API limit warnings...')
+            s = QSettings()
+            retries = 10
+            for i in range(retries):
+                enabled = bool(s.value('travel_time_platform/warning_enabled', True))
+                count = int(s.value('travel_time_platform/current_count', 0)) + 1
+                limit = int(s.value('travel_time_platform/warning_limit', 10)) + 1
+                if enabled and count >= limit:
+                    if i == 0:
+                        feedback.reportError(tr('WARNING : API usage warning limit reached !'))
+                        feedback.reportError(tr('To continue, disable or increase the limit in the plugin settings, or reset the queries counter. Now is your chance to do the changes.'))
+                    feedback.reportError(tr('Execution will resume in 10 seconds (retry {} out of {})').format(i+1, retries))
+                    time.sleep(10)
                 else:
-                    feedback.pushInfo(tr('API usage warning limit disabled...'))
-                s.setValue('travel_time_platform/current_count', count)
-                break
-        else:
-            feedback.reportError(tr('Execution canceled because of API limit warning.'), fatalError=True)
-            raise QgsProcessingException('API usage limit warning')
+                    if enabled:
+                        feedback.pushInfo(tr('API usage warning limit not reached yet ({} queries remaining)...').format(limit-count))
+                    else:
+                        feedback.pushInfo(tr('API usage warning limit disabled...'))
+                    s.setValue('travel_time_platform/current_count', count)
+                    break
+            else:
+                feedback.reportError(tr('Execution canceled because of API limit warning.'), fatalError=True)
+                raise QgsProcessingException('API usage limit warning')
 
-        feedback.pushDebugInfo('Making request to API endpoint...')
-        print_query = bool(s.value('travel_time_platform/log_calls', False))
-        if print_query:
-            QgsMessageLog.logMessage("Making request", 'TimeTravelPlatform')
-            QgsMessageLog.logMessage("url: {}".format(url), 'TimeTravelPlatform')
-            QgsMessageLog.logMessage("headers: {}".format(headers), 'TimeTravelPlatform')
-            QgsMessageLog.logMessage("data: {}".format(data), 'TimeTravelPlatform')
-
-        try:
-            response = requests.post(url, data=data, headers=headers)
-
-            feedback.pushDebugInfo('Got response from API endpoint...')
+            feedback.pushDebugInfo('Making request to API endpoint...')
+            print_query = bool(s.value('travel_time_platform/log_calls', False))
             if print_query:
-                QgsMessageLog.logMessage("Got response", 'TimeTravelPlatform')
-                QgsMessageLog.logMessage("status: {}".format(response.status_code), 'TimeTravelPlatform')
-                QgsMessageLog.logMessage("reason: {}".format(response.reason), 'TimeTravelPlatform')
-                QgsMessageLog.logMessage("text: {}".format(response.text), 'TimeTravelPlatform')
+                QgsMessageLog.logMessage("Making request", 'TimeTravelPlatform')
+                QgsMessageLog.logMessage("url: {}".format(url), 'TimeTravelPlatform')
+                QgsMessageLog.logMessage("headers: {}".format(headers), 'TimeTravelPlatform')
+                QgsMessageLog.logMessage("data: {}".format(data), 'TimeTravelPlatform')
 
-            response_data = json.loads(response.text)
+            try:
+                response = requests.post(url, data=data, headers=headers)
 
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            feedback.reportError(tr('Recieved error from the API.\nError code : {}\nDescription : {}\nSee : {}').format(response_data['error_code'],response_data['description'],response_data['documentation_link']), fatalError=True)
-            feedback.reportError(tr('See log for more details.'), fatalError=True)
-            QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-            raise QgsProcessingException('Got error {} form API'.format(response.status_code))
-        except requests.exceptions.RequestException as e:
-            feedback.reportError(tr('Could not connect to the API. See log for more details.'), fatalError=True)
-            QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-            raise QgsProcessingException('Could not connect to API')
-        except ValueError as e:
-            feedback.reportError(tr('Could not decode response. See log for more details.'), fatalError=True)
-            QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-            raise QgsProcessingException('Could not decode response')
+                feedback.pushDebugInfo('Got response from API endpoint...')
+                if print_query:
+                    QgsMessageLog.logMessage("Got response", 'TimeTravelPlatform')
+                    QgsMessageLog.logMessage("status: {}".format(response.status_code), 'TimeTravelPlatform')
+                    QgsMessageLog.logMessage("reason: {}".format(response.reason), 'TimeTravelPlatform')
+                    QgsMessageLog.logMessage("text: {}".format(response.text), 'TimeTravelPlatform')
+
+                response_data = json.loads(response.text)
+                results += response_data['results']
+
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                feedback.reportError(tr('Recieved error from the API.\nError code : {}\nDescription : {}\nSee : {}').format(response_data['error_code'],response_data['description'],response_data['documentation_link']), fatalError=True)
+                feedback.reportError(tr('See log for more details.'), fatalError=True)
+                QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
+                raise QgsProcessingException('Got error {} form API'.format(response.status_code))
+            except requests.exceptions.RequestException as e:
+                feedback.reportError(tr('Could not connect to the API. See log for more details.'), fatalError=True)
+                QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
+                raise QgsProcessingException('Could not connect to API')
+            except ValueError as e:
+                feedback.reportError(tr('Could not decode response. See log for more details.'), fatalError=True)
+                QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
+                raise QgsProcessingException('Could not decode response')
 
         feedback.pushDebugInfo('Loading response to layer...')
 
@@ -329,7 +352,7 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
         (sink_union, sink_union_id) = self.parameterAsSink(parameters, 'OUTPUT_UNION', context, output_fields, QgsWkbTypes.MultiPolygon, EPSG4326)
         (sink_inter, sink_inter_id) = self.parameterAsSink(parameters, 'OUTPUT_INTER', context, output_fields, QgsWkbTypes.MultiPolygon, EPSG4326)
 
-        for result in response_data['results']:
+        for result in results:
             feature = QgsFeature(output_fields)
             feature.setAttribute(0, result['search_id'])
             feature.setAttribute(1, json.dumps(result['properties']))
