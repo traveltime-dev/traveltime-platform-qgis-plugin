@@ -4,77 +4,77 @@
 <context>
     <name>@default</name>
     <message>
-        <location filename="../main.py" line="47"/>
+        <location filename="../main.py" line="48"/>
         <source>Show the toolbox</source>
         <translation>Afficher la boîte à outils</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="436"/>
+        <location filename="../algorithms.py" line="466"/>
         <source>Output layer</source>
         <translation>Couche de sortie</translation>
     </message>
     <message>
-        <location filename="../main.py" line="54"/>
+        <location filename="../main.py" line="55"/>
         <source>Configure Travel Time Platform plugin</source>
         <translation>Configuration du plugin Travel Time Platform</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="129"/>
+        <location filename="../algorithms.py" line="138"/>
         <source>Compute union aggregation</source>
-        <translation>Calculer l&apos;union es résultats</translation>
+        <translation>Calculer l&apos;union des résultats</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="135"/>
+        <location filename="../algorithms.py" line="144"/>
         <source>Compute intersection aggregation</source>
         <translation>Calculer l&apos;intersection des résultats</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="142"/>
+        <location filename="../algorithms.py" line="151"/>
         <source>Output - searches layer</source>
         <translation>Couche de sortie - recherche</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="147"/>
+        <location filename="../algorithms.py" line="156"/>
         <source>Output - union layer</source>
         <translation>Couche de sortie - union</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="152"/>
+        <location filename="../algorithms.py" line="161"/>
         <source>Output - intersection layer</source>
         <translation>Couche de sortie - intersection</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="165"/>
+        <location filename="../algorithms.py" line="174"/>
         <source>You need a Travel Time Platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin&apos;s setting dialog.</source>
         <translation>Vous avez besoin d&apos;un clé pour l&apos;API Travel Time Platform avant de pouvoir faire des requêtes. Rendez-vous sur {} pour en obtenir une, puis saisissez la dans le dialog de configuration.</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="271"/>
+        <location filename="../algorithms.py" line="301"/>
         <source>WARNING : API usage warning limit reached !</source>
         <translation>ATTENTION : alerte limite d&apos;utilisation de l&apos;API atteinte !</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="272"/>
+        <location filename="../algorithms.py" line="302"/>
         <source>To continue, disable or increase the limit in the plugin settings, or reset the queries counter. Now is your chance to do the changes.</source>
         <translation>Pour continuer, désactivez ou augmentez la limite dans les réglages du plugin, ou réinitialisez le compteur de requêtes. Vous disposez de quelques secondes pour le faire maintenant.</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="273"/>
+        <location filename="../algorithms.py" line="303"/>
         <source>Execution will resume in 10 seconds (retry {} out of {})</source>
         <translation>L&apos;execution va reprendre dans 10 secondes (essai {} sur {})</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="277"/>
+        <location filename="../algorithms.py" line="307"/>
         <source>API usage warning limit not reached yet ({} queries remaining)...</source>
         <translation>La limite d&apos;alerte  d&apos;utilisation de l&apos;API n&apos;est pas encore atteinte ({} requêtes restantes)...</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="279"/>
+        <location filename="../algorithms.py" line="309"/>
         <source>API usage warning limit disabled...</source>
         <translation>Alerte d&apos;utilisation de l&apos;API désactivée...</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="388"/>
+        <location filename="../algorithms.py" line="419"/>
         <source>This algorithms allows to use the time-map endpoint from the Travel Time Platform API.
 
 It matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.
@@ -87,42 +87,42 @@ Il correspond de près à la structure de données de l&apos;API. Veuillez vous 
 Il est probablement préférable d&apos;utiliser les autres algorithmes qui sont plus faciles d&apos;utilisation.</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="401"/>
+        <location filename="../algorithms.py" line="432"/>
         <source>Searches</source>
         <translation>Recherches</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="406"/>
+        <location filename="../algorithms.py" line="437"/>
         <source>Search type</source>
         <translation>Type de recherche</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="411"/>
+        <location filename="../algorithms.py" line="442"/>
         <source>Transportation type</source>
         <translation>Moyens de transport</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="416"/>
+        <location filename="../algorithms.py" line="439"/>
         <source>Departure/Arrival time (ISO format)</source>
-        <translation>Heure de départ/d&apos;arrivée (format ISO)</translation>
+        <translation type="obsolete">Heure de départ/d&apos;arrivée (format ISO)</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="421"/>
+        <location filename="../algorithms.py" line="451"/>
         <source>Travel time (in seconds)</source>
         <translation>Temps de trajet (en secondes)</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="429"/>
+        <location filename="../algorithms.py" line="459"/>
         <source>Result aggregation</source>
         <translation>Aggregation des résultats</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="511"/>
+        <location filename="../algorithms.py" line="542"/>
         <source>Time Map - Simple</source>
         <translation>Time Map - Simplifié</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="526"/>
+        <location filename="../algorithms.py" line="557"/>
         <source>This algorithms provides a simpified access to the time-map endpoint.
 
 Please see the help on {url} for more details on how to use it.</source>
@@ -131,12 +131,12 @@ Please see the help on {url} for more details on how to use it.</source>
 Rendez vous sur {url} pour plus de détails sur son utilisation.</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="283"/>
+        <location filename="../algorithms.py" line="313"/>
         <source>Execution canceled because of API limit warning.</source>
         <translation>Execution annulée en raison de l&apos;alerte de limite d&apos;usagede l&apos;API.</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="308"/>
+        <location filename="../algorithms.py" line="339"/>
         <source>Recieved error from the API.
 Error code : {}
 Description : {}
@@ -147,19 +147,34 @@ Description : {}
 Voir : {}</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="309"/>
+        <location filename="../algorithms.py" line="340"/>
         <source>See log for more details.</source>
         <translation>Veuillez vous référer au journal des messages pour plus d&apos;infomations.</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="313"/>
+        <location filename="../algorithms.py" line="344"/>
         <source>Could not connect to the API. See log for more details.</source>
         <translation>Echec de la connection à l&apos;API. Veuillez vous référer au journal des messages pour plus d&apos;infomations.</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="317"/>
+        <location filename="../algorithms.py" line="348"/>
         <source>Could not decode response. See log for more details.</source>
         <translation>Impossible de décoder la réponse. Veuillez vous référer au journal des messages pour plus d&apos;infomations.</translation>
+    </message>
+    <message>
+        <location filename="../algorithms.py" line="215"/>
+        <source>Input layers have more than {} features. The query will be executed in {} queries. Keep an eye on your API usage !</source>
+        <translation>La couche d&apos;entrée à plus de {} entités. {} requêtes seront executées. Gardez un oeil sur votre utilisation de l&apos;API !</translation>
+    </message>
+    <message>
+        <location filename="../algorithms.py" line="218"/>
+        <source>Union or intersection will be returned per query. If you need union or interesection on the whole dataset, you will need to do so in an additional step, using QGIS vectors algorithms.</source>
+        <translation>L&apos;union ou l&apos;intersection sera calculée par reqête. Si vous avez besoin de l&apos;union ou de l&apos;intersection sur l&apos;entier du jeu de données, vous devrez le faire dans une étape additionnelle, en utilisation les algorithmes natifs de QGIS.</translation>
+    </message>
+    <message>
+        <location filename="../algorithms.py" line="447"/>
+        <source>Departure/Arrival time (UTC)</source>
+        <translation>Heure de départ/d&apos;arrivée (en temps universel)</translation>
     </message>
 </context>
 <context>
@@ -240,20 +255,20 @@ Voir : {}</translation>
     <message>
         <location filename="../ui/SplashScreen.ui" line="70"/>
         <source>Travel Time Platform plugin for QGIS</source>
-        <translation>Travel Time Platform pour QGIS</translation>
+        <translation type="obsolete">Travel Time Platform pour QGIS</translation>
     </message>
     <message>
         <location filename="../ui/SplashScreen.ui" line="84"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The TravelTime API helps users find locations by journey time rather than using &lt;span style=&quot; font-style:italic;&quot;&gt;as the crow flies&lt;/span&gt; distance. Time-based searching gives users more opportunities for personalisation and delivers a more relevant search.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;L&apos;API Travel Time permet aux utilisateurs de trouver des localisations en fonction des temps de trajets plutôt qu&apos;avec des distances à vol d&apos;oiseau. Ce genre de recherche offre plus d&apos;opportunités de personalisation et permet des résultats plus pertinents.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation type="obsolete">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;L&apos;API Travel Time permet aux utilisateurs de trouver des localisations en fonction des temps de trajets plutôt qu&apos;avec des distances à vol d&apos;oiseau. Ce genre de recherche offre plus d&apos;opportunités de personalisation et permet des résultats plus pertinents.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../ui/SplashScreen.ui" line="98"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;Please visit our website to &lt;/span&gt;&lt;a href=&quot;https://www.traveltimeplatform.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ffffff;&quot;&gt;learn more about the platform&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt; or to &lt;/span&gt;&lt;a href=&quot;http://docs.traveltimeplatform.com/overview/introduction&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ffffff;&quot;&gt;learn more about the API&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;Visitez  notre site pour &lt;/span&gt;&lt;a href=&quot;https://www.traveltimeplatform.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ffffff;&quot;&gt;en savoir plus sur la platforme&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt; ou pour &lt;/span&gt;&lt;a href=&quot;http://docs.traveltimeplatform.com/overview/introduction&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ffffff;&quot;&gt;en savoir plus sur l&apos;API&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation type="obsolete">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;Visitez  notre site pour &lt;/span&gt;&lt;a href=&quot;https://www.traveltimeplatform.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ffffff;&quot;&gt;en savoir plus sur la platforme&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt; ou pour &lt;/span&gt;&lt;a href=&quot;http://docs.traveltimeplatform.com/overview/introduction&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ffffff;&quot;&gt;en savoir plus sur l&apos;API&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../ui/SplashScreen.ui" line="127"/>
+        <location filename="../ui/SplashScreen.ui" line="57"/>
         <source>Don&apos;t show again</source>
         <translation>Ne plus afficher</translation>
     </message>
