@@ -6,12 +6,15 @@ qgisMaximumVersion=3.99
 description=TTP Platform
 about=TTP Platform
 category=Vector
-version=0.1-alpha
+version=0.2-alpha
 author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
 # Optional items:
-changelog=- 2019-08-12 : version 0.1-alpha
+changelog=- 2019-02-12 : version 0.1-alpha
+    - 2019-XX-XX : version 0.2-alpha
+        - feature : batch mode
+        - feature : documentation
 tags=travel,time,platform,api,distance
 homepage=https://github.com/olivierdalang/TravelTimePlatformPlugin
 tracker=https://github.com/olivierdalang/TravelTimePlatformPlugin/issues
