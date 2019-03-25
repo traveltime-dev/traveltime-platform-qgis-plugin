@@ -22,6 +22,7 @@ from qgis.core import (QgsMessageLog,
                        QgsProcessingParameterMatrix,
                        QgsProcessingParameterBoolean,
                        QgsProcessingException,
+                       QgsProcessingParameterDefinition,
                        QgsWkbTypes,
                        QgsCoordinateReferenceSystem,
                        QgsFields,
@@ -38,13 +39,20 @@ from . import resources
 from . import auth
 from . import utils
 from .utils import tr
+from .ui import IsoDateTimeWidgetWrapper
 
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
 TRANSPORTATION_TYPES = ['cycling', 'driving', 'driving+train', 'public_transport', 'walking', 'coach', 'bus', 'train', 'ferry', 'driving+ferry', 'cycling+ferry']
 
 
+
+
 class TimeMapAlgorithm(QgsProcessingAlgorithm):
+
+    def addAdvancedParamter(self, parameter, *args, **kwargs):
+        parameter.setFlags(parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        return self.addParameter(parameter, *args, **kwargs)
 
     def initAlgorithm(self, config):
 
@@ -71,42 +79,42 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                                                  defaultValue="'walking'",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
-            self.addParameter(
+            self.addAdvancedParamter(
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_PT_CHANGE_DELAY',
                                                  'Transportation / change delay ({})'.format(DEPARR.lower()),
                                                  optional=True,
                                                  defaultValue="0",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
-            self.addParameter(
+            self.addAdvancedParamter(
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_WALKING_TIME',
                                                  'Transportation / walking time ({})'.format(DEPARR.lower()),
                                                  optional=True,
                                                  defaultValue="900",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
-            self.addParameter(
+            self.addAdvancedParamter(
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_DRIVING_TIME_TO_STATION',
                                                  'Transportation / driving time to station ({})'.format(DEPARR.lower()),
                                                  optional=True,
                                                  defaultValue="1800",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
-            self.addParameter(
+            self.addAdvancedParamter(
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_PARKING_TIME',
                                                  'Transportation / parking time ({})'.format(DEPARR.lower()),
                                                  optional=True,
                                                  defaultValue="300",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
-            self.addParameter(
+            self.addAdvancedParamter(
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_BOARDING_TIME',
                                                  'Transportation / boarding time ({})'.format(DEPARR.lower()),
                                                  optional=True,
                                                  defaultValue="0",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
-            self.addParameter(
+            self.addAdvancedParamter(
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_RANGE_WIDTH',
                                                  'Search range width ({})'.format(DEPARR.lower()),
                                                  optional=True,
@@ -437,9 +445,8 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
                                        options=TRANSPORTATION_TYPES)
         )
         self.addParameter(
-            QgsProcessingParameterString('INPUT_TIME',
-                                         tr('Departure/Arrival time (ISO format)'),
-                                         defaultValue=utils.now_iso())
+            ParameterIsoDateTime('INPUT_TIME',
+                                 tr('Departure/Arrival time (UTC)'))
         )
         self.addParameter(
             QgsProcessingParameterNumber('INPUT_TRAVEL_TIME',
@@ -550,3 +557,20 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return self.__class__()
+
+
+# Custom parameter types
+
+class ParameterIsoDateTime(QgsProcessingParameterString):
+
+    def __init__(self, name='', description=''):
+        super().__init__(name, description)
+        self.setMetadata({
+            'widget_wrapper': IsoDateTimeWidgetWrapper
+        })
+
+    def type(self):
+        return 'ttp_datetime'
+
+    def clone(self):
+        return ParameterIsoDateTime(self.name(), self.description())

@@ -1,11 +1,12 @@
 import os
 import webbrowser
-from qgis.PyQt.QtCore import QSettings
-from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtCore import Qt, QSettings, QDateTime
+from qgis.PyQt.QtWidgets import QDialog, QDateTimeEdit
 from qgis.PyQt import uic
 
+from processing.gui.wrappers import WidgetWrapper
+
 from . import auth
-from .utils import tr
 
 
 class ConfigDialog(QDialog):
@@ -91,3 +92,18 @@ class SplashScreen(QDialog):
         # warning enabled
         s.setValue('travel_time_platform/spashscreen_dontshowagain', self.dontShowAgainCheckBox.isChecked())
         super().accept(*args, **kwargs)
+
+
+class IsoDateTimeWidgetWrapper(WidgetWrapper):
+
+    def createWidget(self):
+        dateEdit = QDateTimeEdit(QDateTime.currentDateTimeUtc())
+        dateEdit.setDisplayFormat("yyyy-MM-dd HH:mm")
+        dateEdit.setTimeSpec(Qt.TimeZone)
+        return dateEdit
+
+    def setValue(self, value):
+        return self.widget.setDateTime(QDateTime().fromString(value, Qt.ISODate))
+
+    def value(self):
+        return self.widget.dateTime().toString(Qt.ISODate)
