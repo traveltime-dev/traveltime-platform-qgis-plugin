@@ -15,6 +15,7 @@ changelog=- 2019-02-12 : version 0.1-alpha
     - 2019-XX-XX : version 0.2-alpha
         - feature : batch mode
         - feature : documentation
+        - fix : simplified algorithm bug when short travel time
 tags=travel,time,platform,api,distance
 homepage=https://github.com/olivierdalang/TravelTimePlatformPlugin
 tracker=https://github.com/olivierdalang/TravelTimePlatformPlugin/issues

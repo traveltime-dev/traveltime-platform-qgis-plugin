@@ -484,6 +484,7 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
             'INPUT_{}_TRNSPT_TYPE'.format(mode): "'"+trnspt_type+"'",
             'INPUT_{}_TIME'.format(mode): "'"+self.parameterAsString(parameters, 'INPUT_TIME', context)+"'",
             'INPUT_{}_TRAVEL_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context)),
+            'INPUT_{}_TRNSPT_WALKING_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context)),
             'INPUT_CALC_UNION': (result_type == 'UNION'),
             'INPUT_CALC_INTER': (result_type == 'INTERSECTION'),
             'OUTPUT_SEARCHES': 'memory:results',
