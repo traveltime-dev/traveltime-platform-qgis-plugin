@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>545</width>
-    <height>332</height>
+    <width>671</width>
+    <height>564</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Travel Time Platform</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
     <number>0</number>
    </property>
@@ -30,92 +30,22 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QWidget" name="widget_2" native="true">
+    <widget class="QTabWidget" name="tabWidget">
      <property name="styleSheet">
-      <string notr="true">background-color: rgba(19,28,76);</string>
+      <string notr="true">QTabWidget::pane { border: 0; background-color: rgba(19,28,76)}; </string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <property name="spacing">
-       <number>18</number>
-      </property>
-      <property name="leftMargin">
-       <number>18</number>
-      </property>
-      <property name="topMargin">
-       <number>18</number>
-      </property>
-      <property name="rightMargin">
-       <number>18</number>
-      </property>
-      <property name="bottomMargin">
-       <number>18</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="pixmap">
-         <pixmap>../resources/ttp_banner.svg</pixmap>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_2">
-        <property name="styleSheet">
-         <string notr="true">font: bold 14pt &quot;SansSerif&quot;;
-color: rgb(255, 255, 255)</string>
-        </property>
-        <property name="text">
-         <string>Travel Time Platform plugin for QGIS</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="styleSheet">
-         <string notr="true">font: 0 11pt &quot;SansSerif&quot;;
-color: rgb(255, 255, 255)</string>
-        </property>
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The TravelTime API helps users find locations by journey time rather than using &lt;span style=&quot; font-style:italic;&quot;&gt;as the crow flies&lt;/span&gt; distance. Time-based searching gives users more opportunities for personalisation and delivers a more relevant search.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="clickableText">
-        <property name="styleSheet">
-         <string notr="true">font: 0 11pt &quot;SansSerif&quot;;
-color: rgb(255, 255, 255)</string>
-        </property>
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;Please visit our website to &lt;/span&gt;&lt;a href=&quot;https://www.traveltimeplatform.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ffffff;&quot;&gt;learn more about the platform&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt; or to &lt;/span&gt;&lt;a href=&quot;http://docs.traveltimeplatform.com/overview/introduction&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ffffff;&quot;&gt;learn more about the API&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
+     <property name="tabPosition">
+      <enum>QTabWidget::South</enum>
+     </property>
+     <property name="tabShape">
+      <enum>QTabWidget::Rounded</enum>
+     </property>
+     <property name="currentIndex">
+      <number>-1</number>
+     </property>
+     <property name="usesScrollButtons">
+      <bool>false</bool>
+     </property>
     </widget>
    </item>
    <item>

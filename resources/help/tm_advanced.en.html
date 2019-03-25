@@ -1,0 +1,15 @@
+<h1>TimeMap - Advanced</h1>
+
+<p>The advanced algorithm maps as closely as possible with the TimeMap endpoint from the Travel Time Platform API. Thus, it allows maximum flexibility, but requires a good understanding of the API to use correctly.</p>
+
+<p>It is a good idea to get familiar with the simplified algorithm first, as it already covers most of the simple use cases.</p>
+
+<p>Once you feel confident enough to dig deeper, you will find an extensive explanation of all inputs on <a href="http://docs.traveltimeplatform.com/reference/time-map/">the API documentation page</a>. </p>
+
+<p>
+    There are two main differences with the API :
+    <ul>
+        <li>The API limits queries to 10 searches at a time. The plugin therefore runs multiple queries if the input dataset is bigger than 10 points.</li>
+        <li>You cannot provide a list of searches for which to compute union/intersection ; instead, they are computed on ALL results</li>
+    </ul>
+</p>

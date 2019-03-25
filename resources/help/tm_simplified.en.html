@@ -1,0 +1,40 @@
+<h1>TimeMap - Simplified</h1>
+
+<p>The TimeMap feature allows to find shapes of zones reachable within corresponding travel time using different transportation methods.</p>
+
+<p>The simplified algorithm is easier to work with than the advanced one, and covers most of the use cases.</p>
+
+<p>Here are all the parameters you need to set :</p>
+
+<p>
+    <table>
+        <tr>
+            <th>Searches</th>
+            <td>A point layer representing the coordinates. You can check "restrict to selected features" if you want to use only some of the points of the layer.</td>
+        </tr>
+        <tr>
+            <th>Search type</th>
+            <td>Choose "departure" or "arrival" depending on if you want to search according to departure or arrival time.</td>
+        </tr>
+        <tr>
+            <th>Means of transport</th>
+            <td>Choose which transportation mode to consider.</td>
+        </tr>
+        <tr>
+            <th>Departure/Arrival time</th>
+            <td>The departure or arrival time. Be careful, this must be specified in universal time (UTC) !</td>
+        </tr>
+        <tr>
+            <th>Travel time</th>
+            <td>The duration of the travel in seconds.</td>
+        </tr>
+        <tr>
+            <th>Result aggregation</th>
+            <td>Choose "union" to return the union of all polygons, or "intersection" to return the intersection.</td>
+        </tr>
+        <tr>
+            <th>Output layer</th>
+            <td>Where to save the results. If you leave this empty, the results will be loaded as a temporary layer</td>
+        </tr>
+    </table>
+</p>

@@ -1,0 +1,22 @@
+body{
+    font-family: sans-serif;
+    font-size: 11pt;
+    color: white;
+}
+h1{
+    font-size: 14pt;
+    font-weight: bold;
+}
+a{
+    color: #f5a623;
+    text-decoration: none;
+}
+table{
+
+}
+th{
+    text-align: left;
+}
+th, td{
+    padding: 4px;
+}

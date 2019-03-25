@@ -28,11 +28,12 @@ class Main:
             QCoreApplication.installTranslator(self.translator)
 
         self.provider = Provider()
-        self.splash_screen = ui.SplashScreen()
-        self.config_dialog = ui.ConfigDialog()
 
     def initGui(self):
         # Add GUI elements
+        self.splash_screen = ui.SplashScreen(self)
+        self.config_dialog = ui.ConfigDialog()
+
         self.toolbar = self.iface.addToolBar("Travel Time Platform Toolbar")
 
         # Logo
@@ -85,5 +86,5 @@ class Main:
         self.config_dialog.exec_()
 
     def show_splash(self):
-        self.splash_screen.setWindowFlags(Qt.WindowStaysOnTopHint)
+        self.splash_screen.raise_()
         self.splash_screen.show()
