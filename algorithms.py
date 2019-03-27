@@ -548,7 +548,7 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
         return 'time_map'
 
     def icon(self):
-        return resources.icon
+        return resources.icon_simplified
 
     def helpUrl(self):
         return 'http://docs.traveltimeplatform.com/reference/time-map/'
