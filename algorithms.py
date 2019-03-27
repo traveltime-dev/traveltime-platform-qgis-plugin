@@ -450,11 +450,11 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
         )
         self.addParameter(
             QgsProcessingParameterNumber('INPUT_TRAVEL_TIME',
-                                         tr('Travel time (in seconds)'),
+                                         tr('Travel time (in minutes)'),
                                          type=0,
-                                         defaultValue=900,
+                                         defaultValue=15,
                                          minValue=0,
-                                         maxValue=14400)
+                                         maxValue=240)
         )
         self.addParameter(
             QgsProcessingParameterEnum('INPUT_RESULT_TYPE',
@@ -483,7 +483,7 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
             'INPUT_{}_SEARCHES'.format(mode): search_layer,
             'INPUT_{}_TRNSPT_TYPE'.format(mode): "'"+trnspt_type+"'",
             'INPUT_{}_TIME'.format(mode): "'"+self.parameterAsString(parameters, 'INPUT_TIME', context)+"'",
-            'INPUT_{}_TRAVEL_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context)),
+            'INPUT_{}_TRAVEL_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context) * 60),
             'INPUT_{}_TRNSPT_WALKING_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context)),
             'INPUT_CALC_UNION': (result_type == 'UNION'),
             'INPUT_CALC_INTER': (result_type == 'INTERSECTION'),
