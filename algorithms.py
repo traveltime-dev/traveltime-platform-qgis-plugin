@@ -83,42 +83,42 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_PT_CHANGE_DELAY',
                                                  '{} / Transportation / change delay (default : 0)'.format(DEPARR.title()),
                                                  optional=True,
-                                                 defaultValue="",
+                                                 defaultValue="null",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
             self.addAdvancedParamter(
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_WALKING_TIME',
                                                  '{} / Transportation / walking time (default : 900)'.format(DEPARR.title()),
                                                  optional=True,
-                                                 defaultValue="",
+                                                 defaultValue="null",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
             self.addAdvancedParamter(
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_DRIVING_TIME_TO_STATION',
                                                  '{} / Transportation / driving time to station (default : 1800)'.format(DEPARR.title()),
                                                  optional=True,
-                                                 defaultValue="",
+                                                 defaultValue="null",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
             self.addAdvancedParamter(
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_PARKING_TIME',
                                                  '{} / Transportation / parking time (default : 300)'.format(DEPARR.title()),
                                                  optional=True,
-                                                 defaultValue="",
+                                                 defaultValue="null",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
             self.addAdvancedParamter(
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_BOARDING_TIME',
                                                  '{} / Transportation / boarding time (default : 0)'.format(DEPARR.title()),
                                                  optional=True,
-                                                 defaultValue="",
+                                                 defaultValue="null",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
             self.addAdvancedParamter(
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_RANGE_WIDTH',
                                                  '{} / Search range width '.format(DEPARR.title()),
                                                  optional=True,
-                                                 defaultValue="",
+                                                 defaultValue="null",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
             self.addParameter(
