@@ -332,9 +332,9 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                     QgsMessageLog.logMessage("text: {}".format(response.text), 'TimeTravelPlatform')
 
                 response_data = json.loads(response.text)
+                response.raise_for_status()
                 results += response_data['results']
 
-                response.raise_for_status()
             except requests.exceptions.HTTPError as e:
                 feedback.reportError(tr('Recieved error from the API.\nError code : {}\nDescription : {}\nSee : {}').format(response_data['error_code'],response_data['description'],response_data['documentation_link']), fatalError=True)
                 feedback.reportError(tr('See log for more details.'), fatalError=True)
