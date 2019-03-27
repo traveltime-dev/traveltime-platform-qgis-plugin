@@ -336,18 +336,19 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                 results += response_data['results']
 
             except requests.exceptions.HTTPError as e:
-                feedback.reportError(tr('Recieved error from the API.\nError code : {}\nDescription : {}\nSee : {}').format(response_data['error_code'],response_data['description'],response_data['documentation_link']), fatalError=True)
+                nice_info = '\n'.join('\t{}:\t{}'.format(k,v) for k,v in response_data['additional_info'].items())
+                feedback.reportError(tr('Recieved error from the API.\nError code : {}\nDescription : {}\nSee : {}\nAddtionnal info :\n{}').format(response_data['error_code'],response_data['description'],response_data['documentation_link'],nice_info), fatalError=True)
                 feedback.reportError(tr('See log for more details.'), fatalError=True)
                 QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-                raise QgsProcessingException('Got error {} form API'.format(response.status_code))
+                raise QgsProcessingException('Got error {} form API'.format(response.status_code)) from None
             except requests.exceptions.RequestException as e:
                 feedback.reportError(tr('Could not connect to the API. See log for more details.'), fatalError=True)
                 QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-                raise QgsProcessingException('Could not connect to API')
+                raise QgsProcessingException('Could not connect to API') from None
             except ValueError as e:
                 feedback.reportError(tr('Could not decode response. See log for more details.'), fatalError=True)
                 QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-                raise QgsProcessingException('Could not decode response')
+                raise QgsProcessingException('Could not decode response') from None
 
         feedback.pushDebugInfo('Loading response to layer...')
 
