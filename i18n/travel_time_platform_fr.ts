@@ -9,12 +9,12 @@
         <translation>Afficher la boîte à outils</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="466"/>
+        <location filename="../algorithms.py" line="467"/>
         <source>Output layer</source>
         <translation>Couche de sortie</translation>
     </message>
     <message>
-        <location filename="../main.py" line="55"/>
+        <location filename="../main.py" line="61"/>
         <source>Configure Travel Time Platform plugin</source>
         <translation>Configuration du plugin Travel Time Platform</translation>
     </message>
@@ -74,7 +74,7 @@
         <translation>Alerte d&apos;utilisation de l&apos;API désactivée...</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="419"/>
+        <location filename="../algorithms.py" line="420"/>
         <source>This algorithms allows to use the time-map endpoint from the Travel Time Platform API.
 
 It matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.
@@ -87,17 +87,17 @@ Il correspond de près à la structure de données de l&apos;API. Veuillez vous 
 Il est probablement préférable d&apos;utiliser les autres algorithmes qui sont plus faciles d&apos;utilisation.</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="432"/>
+        <location filename="../algorithms.py" line="433"/>
         <source>Searches</source>
         <translation>Recherches</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="437"/>
+        <location filename="../algorithms.py" line="438"/>
         <source>Search type</source>
         <translation>Type de recherche</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="442"/>
+        <location filename="../algorithms.py" line="443"/>
         <source>Transportation type</source>
         <translation>Moyens de transport</translation>
     </message>
@@ -109,20 +109,20 @@ Il est probablement préférable d&apos;utiliser les autres algorithmes qui sont
     <message>
         <location filename="../algorithms.py" line="451"/>
         <source>Travel time (in seconds)</source>
-        <translation>Temps de trajet (en secondes)</translation>
+        <translation type="obsolete">Temps de trajet (en secondes)</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="459"/>
+        <location filename="../algorithms.py" line="460"/>
         <source>Result aggregation</source>
         <translation>Aggregation des résultats</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="542"/>
+        <location filename="../algorithms.py" line="543"/>
         <source>Time Map - Simple</source>
         <translation>Time Map - Simplifié</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="557"/>
+        <location filename="../algorithms.py" line="558"/>
         <source>This algorithms provides a simpified access to the time-map endpoint.
 
 Please see the help on {url} for more details on how to use it.</source>
@@ -141,23 +141,23 @@ Rendez vous sur {url} pour plus de détails sur son utilisation.</translation>
 Error code : {}
 Description : {}
 See : {}</source>
-        <translation>Reçu une erreur de l&apos;API.
+        <translation type="obsolete">Reçu une erreur de l&apos;API.
 Code d&apos;erreur : {}
 Description : {}
 Voir : {}</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="340"/>
+        <location filename="../algorithms.py" line="341"/>
         <source>See log for more details.</source>
         <translation>Veuillez vous référer au journal des messages pour plus d&apos;infomations.</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="344"/>
+        <location filename="../algorithms.py" line="345"/>
         <source>Could not connect to the API. See log for more details.</source>
         <translation>Echec de la connection à l&apos;API. Veuillez vous référer au journal des messages pour plus d&apos;infomations.</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="348"/>
+        <location filename="../algorithms.py" line="349"/>
         <source>Could not decode response. See log for more details.</source>
         <translation>Impossible de décoder la réponse. Veuillez vous référer au journal des messages pour plus d&apos;infomations.</translation>
     </message>
@@ -172,9 +172,34 @@ Voir : {}</translation>
         <translation>L&apos;union ou l&apos;intersection sera calculée par reqête. Si vous avez besoin de l&apos;union ou de l&apos;intersection sur l&apos;entier du jeu de données, vous devrez le faire dans une étape additionnelle, en utilisation les algorithmes natifs de QGIS.</translation>
     </message>
     <message>
-        <location filename="../algorithms.py" line="447"/>
+        <location filename="../algorithms.py" line="448"/>
         <source>Departure/Arrival time (UTC)</source>
         <translation>Heure de départ/d&apos;arrivée (en temps universel)</translation>
+    </message>
+    <message>
+        <location filename="../main.py" line="55"/>
+        <source>Help</source>
+        <translation>Aide</translation>
+    </message>
+    <message>
+        <location filename="../algorithms.py" line="340"/>
+        <source>Recieved error from the API.
+Error code : {}
+Description : {}
+See : {}
+Addtionnal info :
+{}</source>
+        <translation>Reçu une erreur de l&apos;API.
+Code d&apos;erreur : {}
+Description : {}
+Voir : {}
+Plus d&apos;informations :
+{}</translation>
+    </message>
+    <message>
+        <location filename="../algorithms.py" line="452"/>
+        <source>Travel time (in minutes)</source>
+        <translation>Temps de trajet (en minutes)</translation>
     </message>
 </context>
 <context>
