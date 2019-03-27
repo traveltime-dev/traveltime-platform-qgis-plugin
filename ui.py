@@ -80,11 +80,12 @@ class SplashScreen(QDialog):
         self.main = main
 
         # Load html files
-        plugin_dir = os.path.dirname(__file__)
-        html_path = os.path.join(plugin_dir, 'resources', 'help', '{tab}.{locale}.html')
+        help_dir = os.path.join(os.path.dirname(__file__), 'help')
+
+        html_path = os.path.join(help_dir, '{tab}.{locale}.html')
         locale = QSettings().value('locale/userLocale')[0:2]
 
-        css_path = os.path.join(plugin_dir, 'resources', 'help', 'help.css')
+        css_path = os.path.join(help_dir, 'help.css')
         css = open(css_path).read()
 
         for tab_key, tab_name in [('about', tr('About')), ('apikey', tr('API key')), ('start', tr('Getting started')),
@@ -128,9 +129,7 @@ class HelpWidget(QWidget):
         self.main = main
         self.htmlWidget.anchorClicked.connect(self.open_link)
         self.htmlWidget.setText(html)
-
-        plugin_dir = os.path.dirname(__file__)
-        self.htmlWidget.setSearchPaths([os.path.join(plugin_dir, 'resources', 'help')])
+        self.htmlWidget.setSearchPaths(help_dir)
 
     def open_link(self, url):
 
