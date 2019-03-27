@@ -6,8 +6,10 @@ from qgis.PyQt import uic
 
 from qgis.core import QgsMessageLog
 
+from processing.gui.AlgorithmDialog import AlgorithmDialog
 from processing.gui.wrappers import WidgetWrapper
 
+from . import algorithms
 from . import auth
 from .utils import tr
 
@@ -140,6 +142,14 @@ class HelpWidget(QWidget):
             self.main.show_config()
         elif url.url() == '#show_toolbox':
             self.main.show_toolbox()
+        elif url.url() == '#run_simple':
+            # See https://github.com/qgis/QGIS/blob/final-3_6_1/python/plugins/processing/gui/ProcessingToolbox.py#L240-L270
+            alg = algorithms.TimeMapSimpleAlgorithm().create()
+            dlg = alg.createCustomParametersWidget(self.main.iface.mainWindow())
+            if not dlg:
+                dlg = AlgorithmDialog(alg, False, self.main.iface.mainWindow())
+            dlg.show()
+            dlg.exec_()
         elif url.url()[0:4] == 'http':
             webbrowser.open(url.url())
         else:
