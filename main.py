@@ -51,6 +51,12 @@ class Main:
         self.iface.addPluginToMenu(u"&Travel Time Platform", self.action_show_toolbox)
         self.toolbar.addSeparator()
 
+        # Show help actions
+        self.action_show_help = QAction(resources.icon_help, tr("Help"), self.iface.mainWindow())
+        self.action_show_help.triggered.connect(self.show_splash)
+        self.toolbar.addAction(self.action_show_help)
+        self.iface.addPluginToMenu(u"&Travel Time Platform", self.action_show_help)
+
         # Show config actions
         self.action_show_config = QAction(resources.icon_config, tr("Configure Travel Time Platform plugin"), self.iface.mainWindow())
         self.action_show_config.triggered.connect(self.show_config)
