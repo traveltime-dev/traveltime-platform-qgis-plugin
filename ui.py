@@ -14,7 +14,7 @@ from . import auth
 from .utils import tr
 
 
-HELP_DIR = os.path.join(os.path.dirname(__file__), 'help')
+HELP_DIR = os.path.join(os.path.dirname(__file__), 'docs')
 
 
 class ConfigDialog(QDialog):
@@ -91,9 +91,9 @@ class SplashScreen(QDialog):
         css_path = os.path.join(HELP_DIR, 'help.css')
         css = open(css_path).read()
 
-        for tab_key, tab_name in [('about', tr('About')), ('apikey', tr('API key')), ('start', tr('Getting started')),
-                                  ('tm_simplified', tr('TimeMap - Simplified')), ('tm_advanced', tr('TimeMap - Advanced')),
-                                  ('issues', tr('Report issues'))]:
+        for tab_key, tab_name in [('01.about', tr('About')), ('02.apikey', tr('API key')), ('03.start', tr('Getting started')),
+                                  ('04.simplified', tr('TimeMap - Simplified')), ('05.advanced', tr('TimeMap - Advanced')),
+                                  ('06.issues', tr('Troubleshooting'))]:
 
             path = html_path.format(tab=tab_key, locale=locale)
             if not os.path.isfile(path):

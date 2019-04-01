@@ -1,10 +1,14 @@
-<h1>Troubleshooting</h1>
+<h2>Troubleshooting</h2>
 
-<h2>I chose union/intersection, but I still got multiple resulting polygons.</h2>
+<h3>I can't find the toolbar anymore.</h3>
+
+<p>Make sure the toolbar is not hidden. You can unhide it from the View>Toolbar menu by checking "Travel Time Platform toolbar".</p>
+
+<h3>I chose union/intersection, but I still got multiple resulting polygons.</h3>
 
 <p>You probably have more than 10 points. The API is limited to 10 searches per query, so that when you have more than 10 points, multiple calls will be made to the endpoint. You will need to run QGIS's union/intersection algorithm as an additional step.</p>
 
-<h2>The execution hangs with a warning message about API usage.</h2>
+<h3>The execution hangs with a warning message about API usage.</h3>
 
 <p>Each API key has a quota of queries. As the plugin can run queries in batch, it is very easy to reach that quota, after which it is not possible to use the API anymore during a cool down period.</p>
 
@@ -12,6 +16,6 @@
 
 <p>If this behaviour is problematic, you can disable the API warning altogether in the plugin settings.</p>
 
-<h2>I have a problem that is not documented here.</h2>
+<h3>I have a problem that is not documented here.</h3>
 
 <p>The plugin is quite new, meaning that is very likely that you will run into bugs or issues. If this happens, please look if the issue is already listed on <a href="https://github.com/olivierdalang/travel_time_platform_plugin/issues">the bug tracker</a> (there may be a solution already), and if not, please <a href="https://github.com/olivierdalang/travel_time_platform_plugin/issues/new">report a new issue</a>.</p>
