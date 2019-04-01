@@ -12,9 +12,7 @@ In the meantime, you need to download the repository as zip a file and install i
 
 ## Usage
 
-To use the plugin, you first need to [get an API key](http://docs.traveltimeplatform.com/overview/getting-keys/). Enter the app ID and your API key in the configuration dialog.
-
-Once this is done, you can use the algorithms from the processing toolbox. Please refer to [the API documentation](http://docs.traveltimeplatform.com/reference/time-map/) for detailed instructions.
+Please read the plugin documentation, available both from the plugin itself or [online](https://olivierdalang.github.io/travel_time_platform_plugin/index.html).
 
 ## Bug reports
 
