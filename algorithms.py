@@ -65,15 +65,33 @@ cached_requests = requests_cache.core.CachedSession(
 # )
 
 
-class TimeMapAlgorithm(QgsProcessingAlgorithm):
+class AlgorithmBase(QgsProcessingAlgorithm):
+    """Base class for Processing algorithms"""
 
     def addAdvancedParamter(self, parameter, *args, **kwargs):
+        """Helper to add advanced parameters"""
         parameter.setFlags(parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
         return self.addParameter(parameter, *args, **kwargs)
 
     def initAlgorithm(self, config):
+        """Base setup of the algorithm.
 
-        # DEPARTURE and ARRIVAL parameters
+        This will setup parameters corresponding to departure_searches and arrival_searches,
+        since they are common to all main algorithms.
+
+        Subclasses should call this and then define their own parameters.
+
+        Note that there are slight differences on the API side on the departure_searches and
+        arrival_searches parameters: for the time-map endpoint, the coords are included in these
+        parameters, while for the time-filter and routes endpoints, the coords are all defined
+        in a list of locations.
+
+        Here we will implement everything as it is for the time-map endpoint, as it maps better
+        to normal GIS workflow, where you usually have the list to filter and the inputs points
+        as different datasets. The mapping to the different API data model will be done in the
+        processing algorithm by the time-filter and routes subclasses.
+        """
+
         for DEPARR in ['DEPARTURE', 'ARRIVAL']:
             self.addParameter(
                 QgsProcessingParameterFeatureSource('INPUT_'+DEPARR+'_SEARCHES',
@@ -152,34 +170,13 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                                                  defaultValue="900",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
-        self.addParameter(
-            QgsProcessingParameterBoolean('INPUT_CALC_UNION',
-                                          tr('Compute union aggregation'),
-                                          optional=True,
-                                          defaultValue=False)
-        )
-        self.addParameter(
-            QgsProcessingParameterBoolean('INPUT_CALC_INTER',
-                                          tr('Compute intersection aggregation'),
-                                          optional=True,
-                                          defaultValue=False)
-        )
-        # OUTPUT
-        self.addParameter(
-            QgsProcessingParameterFeatureSink('OUTPUT_SEARCHES',
-                                              tr('Output - searches layer'),
-                                              type=QgsProcessing.TypeVectorPolygon, )
-        )
-        self.addParameter(
-            QgsProcessingParameterFeatureSink('OUTPUT_UNION',
-                                              tr('Output - union layer'),
-                                              type=QgsProcessing.TypeVectorPolygon, )
-        )
-        self.addParameter(
-            QgsProcessingParameterFeatureSink('OUTPUT_INTER',
-                                              tr('Output - intersection layer'),
-                                              type=QgsProcessing.TypeVectorPolygon, )
-        )
+
+    def eval_expr(self, key):
+        """Helper to evaluate an expression from the input.
+
+        Do not forget to call self.expressions_context.setFeature(feature) before using this."""
+
+        return self.expressions[key].evaluate(self.expressions_context)
 
     def processAlgorithm(self, parameters, context, feedback):
 
@@ -191,36 +188,16 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
             feedback.reportError(tr('You need a Travel Time Platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin\'s setting dialog.').format('http://docs.traveltimeplatform.com/overview/getting-keys/'), fatalError=True)
             raise QgsProcessingException('App ID or api key not set')
 
-
-        # Configure inputs
+        # Configure common inputs
         source_departure = self.parameterAsSource(parameters, 'INPUT_DEPARTURE_SEARCHES', context)
         source_arrival = self.parameterAsSource(parameters, 'INPUT_ARRIVAL_SEARCHES', context)
 
-        compute_union = self.parameterAsBool(parameters, 'INPUT_CALC_UNION', context)
-        compute_inter = self.parameterAsBool(parameters, 'INPUT_CALC_INTER', context)
-
-        # Configure expressions inputs
-        expressions = {}
-        expressions_contexts = {}
-        for PARAM in ['INPUT_DEPARTURE_ID', 'INPUT_ARRIVAL_ID',
-                      'INPUT_DEPARTURE_TRNSPT_TYPE', 'INPUT_ARRIVAL_TRNSPT_TYPE',
-                      'INPUT_DEPARTURE_TRNSPT_PT_CHANGE_DELAY', 'INPUT_ARRIVAL_TRNSPT_PT_CHANGE_DELAY',
-                      'INPUT_DEPARTURE_TRNSPT_WALKING_TIME', 'INPUT_ARRIVAL_TRNSPT_WALKING_TIME',
-                      'INPUT_DEPARTURE_TRNSPT_DRIVING_TIME_TO_STATION', 'INPUT_ARRIVAL_TRNSPT_DRIVING_TIME_TO_STATION',
-                      'INPUT_DEPARTURE_TRNSPT_PARKING_TIME', 'INPUT_ARRIVAL_TRNSPT_PARKING_TIME',
-                      'INPUT_DEPARTURE_TRNSPT_BOARDING_TIME', 'INPUT_ARRIVAL_TRNSPT_BOARDING_TIME',
-                      'INPUT_DEPARTURE_RANGE_WIDTH', 'INPUT_ARRIVAL_RANGE_WIDTH',
-                      'INPUT_DEPARTURE_TIME', 'INPUT_ARRIVAL_TIME',
-                      'INPUT_DEPARTURE_TRAVEL_TIME', 'INPUT_ARRIVAL_TRAVEL_TIME']:
-
-            expression = QgsExpression(self.parameterAsExpression(parameters, PARAM, context))
-            expression_context = self.createExpressionContext(parameters, context)
-            expression.prepare(expression_context)
-            expressions[PARAM] = expression
-            expressions_contexts[PARAM] = expression_context
-
-        def eval_expr(key):
-            return expressions[key].evaluate(expressions_contexts[key])
+        # Configure common expressions inputs
+        self.expressions_context = self.createExpressionContext(parameters, context)
+        self.expressions = {}
+        for PARAM in [p.name() for p in self.parameterDefinitions() if p.type() == 'expression']:
+            self.expressions[PARAM] = QgsExpression(self.parameterAsExpression(parameters, PARAM, context))
+            self.expressions[PARAM].prepare(self.expressions_context)
 
         source_departure_count = source_departure.featureCount() if source_departure else 0
         source_arrival_count = source_arrival.featureCount() if source_arrival else 0
@@ -229,10 +206,7 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
         slicing_count = math.ceil(max(source_departure_count, source_arrival_count) / slicing_size)
 
         if slicing_count > 1:
-            feedback.pushInfo(tr('Input layers have more than {} features. The query will be executed in {} queries. Keep an eye on your API usage !').format(slicing_size, slicing_count))
-
-            if compute_union or compute_inter:
-                feedback.pushInfo(tr('Union or intersection will be returned per query. If you need union or interesection on the whole dataset, you will need to do so in an additional step, using QGIS vectors algorithms.'))
+            feedback.pushInfo(tr('Input layers have more than {} features. The query will be executed in {} queries. This may have unexpected consequences on some parameters. Keep an eye on your API usage !').format(slicing_size, slicing_count))
 
         results = []
 
@@ -242,11 +216,6 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
 
             # Prepare data
             data = {}
-
-            if compute_union:
-                data['unions'] = [{'id': 'union_all', 'search_ids': []}]
-            if compute_inter:
-                data['intersections'] = [{'id': 'intersection_all', 'search_ids': []}]
 
             for DEPARR, source in [('DEPARTURE', source_departure), ('ARRIVAL', source_arrival)]:
                 deparr = DEPARR.lower()
@@ -263,48 +232,44 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                             continue
 
                         # Set feature for expression context
-                        for exp_ctx in expressions_contexts.values():
-                            exp_ctx.setFeature(feature)
+                        self.expressions_context.setFeature(feature)
 
                         # Reproject to WGS84
                         geometry = feature.geometry()
                         geometry.transform(xform)
 
                         data[deparr+'_searches'].append({
-                            "id": eval_expr('INPUT_'+DEPARR+'_ID'),
+                            "id": self.eval_expr('INPUT_'+DEPARR+'_ID'),
                             "coords": {
                                 "lat": geometry.asPoint().y(),
                                 "lng": geometry.asPoint().x(),
                             },
                             "transportation": {
-                                "type": eval_expr('INPUT_'+DEPARR+'_TRNSPT_TYPE'),
-                                "pt_change_delay": eval_expr('INPUT_'+DEPARR+'_TRNSPT_PT_CHANGE_DELAY'),
-                                "walking_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_WALKING_TIME'),
-                                "driving_time_to_station": eval_expr('INPUT_'+DEPARR+'_TRNSPT_DRIVING_TIME_TO_STATION'),
-                                "parking_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_PARKING_TIME'),
-                                "boarding_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_BOARDING_TIME'),
+                                "type": self.eval_expr('INPUT_'+DEPARR+'_TRNSPT_TYPE'),
+                                "pt_change_delay": self.eval_expr('INPUT_'+DEPARR+'_TRNSPT_PT_CHANGE_DELAY'),
+                                "walking_time": self.eval_expr('INPUT_'+DEPARR+'_TRNSPT_WALKING_TIME'),
+                                "driving_time_to_station": self.eval_expr('INPUT_'+DEPARR+'_TRNSPT_DRIVING_TIME_TO_STATION'),
+                                "parking_time": self.eval_expr('INPUT_'+DEPARR+'_TRNSPT_PARKING_TIME'),
+                                "boarding_time": self.eval_expr('INPUT_'+DEPARR+'_TRNSPT_BOARDING_TIME'),
                             },
-                            deparr+'_time': eval_expr('INPUT_'+DEPARR+'_TIME'),
-                            "travel_time": eval_expr('INPUT_'+DEPARR+'_TRAVEL_TIME'),
+                            deparr+'_time': self.eval_expr('INPUT_'+DEPARR+'_TIME'),
+                            "travel_time": self.eval_expr('INPUT_'+DEPARR+'_TRAVEL_TIME'),
+                            # TODO : allow to edit properties
+                            'properties': []
                         })
-
-                        # Add to aggregation if needed
-                        if compute_union:
-                            data['unions'][0]['search_ids'].append(eval_expr('INPUT_'+DEPARR+'_ID'))
-                        if compute_inter:
-                            data['intersections'][0]['search_ids'].append(eval_expr('INPUT_'+DEPARR+'_ID'))
 
                         # # Update the progress bar
                         # feedback.setProgress(int(current * total))
 
-            url = 'https://api.traveltimeapp.com/v4/time-map'
+            url = self.url
             headers = {
                 'Content-type': 'application/json',
-                'Accept': 'application/vnd.wkt+json',
+                'Accept': self.accept_header,
                 'X-Application-Id': APP_ID,
                 'X-Api-Key': API_KEY,
             }
-            data = json.dumps(data)
+
+            data = json.dumps(self.processAlgorithmRemixData(data, parameters, context, feedback))
 
             feedback.pushDebugInfo('Checking API limit warnings...')
             s = QSettings()
@@ -375,6 +340,77 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
         feedback.pushDebugInfo('Loading response to layer...')
 
         # Configure output
+        return self.processAlgorithmOutput(results, parameters, context, feedback)
+
+    def processAlgorithmRemixData(self, data, parameters, context, feedback):
+        """To be overriden by subclasses : allow to edit the data object before sending to the API"""
+        return data
+
+    def processAlgorithmOutput(self, results, parameters, context, feedback):
+        """To be overriden by subclasses : manages the output"""
+        return None
+
+
+class TimeMapAlgorithm(AlgorithmBase):
+    url = 'https://api.traveltimeapp.com/v4/time-map'
+    accept_header = 'application/vnd.wkt+json'
+
+    def initAlgorithm(self, config):
+
+        # Define all common DEPARTURE and ARRIVAL parameters
+        super().initAlgorithm(config)
+
+        # Define additional input parameters
+        self.addParameter(
+            QgsProcessingParameterBoolean('INPUT_CALC_UNION',
+                                          tr('Compute union aggregation'),
+                                          optional=True,
+                                          defaultValue=False)
+        )
+        self.addParameter(
+            QgsProcessingParameterBoolean('INPUT_CALC_INTER',
+                                          tr('Compute intersection aggregation'),
+                                          optional=True,
+                                          defaultValue=False)
+        )
+
+        # Define output parameters
+        self.addParameter(
+            QgsProcessingParameterFeatureSink('OUTPUT_SEARCHES',
+                                              tr('Output - searches layer'),
+                                              type=QgsProcessing.TypeVectorPolygon, )
+        )
+        self.addParameter(
+            QgsProcessingParameterFeatureSink('OUTPUT_UNION',
+                                              tr('Output - union layer'),
+                                              type=QgsProcessing.TypeVectorPolygon, )
+        )
+        self.addParameter(
+            QgsProcessingParameterFeatureSink('OUTPUT_INTER',
+                                              tr('Output - intersection layer'),
+                                              type=QgsProcessing.TypeVectorPolygon, )
+        )
+
+    def processAlgorithmRemixData(self, data, parameters, context, feedback):
+        """To be overriden by subclasses : allow to edit the data object before sending to the API"""
+
+        compute_union = self.parameterAsBool(parameters, 'INPUT_CALC_UNION', context)
+        compute_inter = self.parameterAsBool(parameters, 'INPUT_CALC_INTER', context)
+
+        if compute_union or compute_inter:
+            search_ids = []
+            for deparr in ['departure','arrival']:
+                if deparr+'_searches' in data:
+                    for d in data[deparr+'_searches']:
+                        search_ids.append(d['id'])
+            if compute_union:
+                data['unions'] = [{'id': 'union_all', 'search_ids': search_ids}]
+            if compute_inter:
+                data['intersections'] = [{'id': 'intersection_all', 'search_ids': search_ids}]
+
+        return data
+
+    def processAlgorithmOutput(self, results, parameters, context, feedback):
         output_fields = QgsFields()
         output_fields.append(QgsField('id', QVariant.String, 'text', 255))
         output_fields.append(QgsField('properties', QVariant.String, 'text', 255))
@@ -583,93 +619,16 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
         return self.__class__()
 
 
-class TimeFilterAlgorithm(QgsProcessingAlgorithm):
-
-    def addAdvancedParamter(self, parameter, *args, **kwargs):
-        parameter.setFlags(parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
-        return self.addParameter(parameter, *args, **kwargs)
+class TimeFilterAlgorithm(AlgorithmBase):
+    url = 'https://api.traveltimeapp.com/v4/time-filter'
+    accept_header = 'application/json'
 
     def initAlgorithm(self, config):
 
-        # DEPARTURE and ARRIVAL parameters
-        for DEPARR in ['DEPARTURE', 'ARRIVAL']:
-            self.addParameter(
-                QgsProcessingParameterFeatureSource('INPUT_'+DEPARR+'_SEARCHES',
-                                                    '{} / Searches'.format(DEPARR.title()),
-                                                    [QgsProcessing.TypeVectorPoint],
-                                                    optional=True, )
-            )
-            self.addParameter(
-                QgsProcessingParameterExpression('INPUT_'+DEPARR+'_ID',
-                                                 '{} / ID'.format(DEPARR.title()),
-                                                 optional=True,
-                                                 defaultValue="'"+DEPARR.lower()+"_searches_' || $id",
-                                                 parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
-            )
-            # Transportation
-            self.addParameter(
-                QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_TYPE',
-                                                 '{} / Transportation / type'.format(DEPARR.title()),
-                                                 optional=True,
-                                                 defaultValue="'walking'",
-                                                 parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
-            )
-            self.addAdvancedParamter(
-                QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_PT_CHANGE_DELAY',
-                                                 '{} / Transportation / change delay'.format(DEPARR.title()),
-                                                 optional=True,
-                                                 defaultValue="0",
-                                                 parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
-            )
-            self.addAdvancedParamter(
-                QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_WALKING_TIME',
-                                                 '{} / Transportation / walking time'.format(DEPARR.title()),
-                                                 optional=True,
-                                                 defaultValue="900",
-                                                 parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
-            )
-            self.addAdvancedParamter(
-                QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_DRIVING_TIME_TO_STATION',
-                                                 '{} / Transportation / driving time to station'.format(DEPARR.title()),
-                                                 optional=True,
-                                                 defaultValue="1800",
-                                                 parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
-            )
-            self.addAdvancedParamter(
-                QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_PARKING_TIME',
-                                                 '{} / Transportation / parking time'.format(DEPARR.title()),
-                                                 optional=True,
-                                                 defaultValue="300",
-                                                 parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
-            )
-            self.addAdvancedParamter(
-                QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_BOARDING_TIME',
-                                                 '{} / Transportation / boarding time'.format(DEPARR.title()),
-                                                 optional=True,
-                                                 defaultValue="0",
-                                                 parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
-            )
-            self.addAdvancedParamter(
-                QgsProcessingParameterExpression('INPUT_'+DEPARR+'_RANGE_WIDTH',
-                                                 '{} / Search range width '.format(DEPARR.title()),
-                                                 optional=True,
-                                                 defaultValue="null",
-                                                 parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
-            )
-            self.addParameter(
-                QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TIME',
-                                                 '{} / Time'.format(DEPARR.title()),
-                                                 optional=True,
-                                                 defaultValue="'{}'".format(utils.now_iso()),
-                                                 parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
-            )
-            self.addParameter(
-                QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRAVEL_TIME',
-                                                 '{} / Travel time'.format(DEPARR.title()),
-                                                 optional=True,
-                                                 defaultValue="900",
-                                                 parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
-            )
+        # Define all common DEPARTURE and ARRIVAL parameters
+        super().initAlgorithm(config)
+
+        # Define additional input parameters
         self.addParameter(
             QgsProcessingParameterFeatureSource('INPUT_LOCATIONS',
                                                 tr('Locations'),
@@ -678,12 +637,13 @@ class TimeFilterAlgorithm(QgsProcessingAlgorithm):
         )
         self.addParameter(
             QgsProcessingParameterExpression('INPUT_LOCATIONS_ID',
-                                             'Locations ID'.format(DEPARR.title()),
+                                             'Locations ID',
                                              optional=True,
                                              defaultValue="'locations_' || $id",
                                              parentLayerParameterName='INPUT_LOCATIONS',)
         )
-        # OUTPUT
+
+        # Define output parameters
         self.addParameter(
             QgsProcessingParameterFeatureSink('RESULTS',
                                               tr('Results'),
@@ -695,226 +655,51 @@ class TimeFilterAlgorithm(QgsProcessingAlgorithm):
                                               type=QgsProcessing.TypeVectorAnyGeometry, )
         )
 
-    def processAlgorithm(self, parameters, context, feedback):
-
-        feedback.pushDebugInfo('Starting TimeFilterAlgorithm...')
-
-        # Get API key
-        APP_ID, API_KEY = auth.get_app_id_and_api_key()
-        if not APP_ID or not API_KEY:
-            feedback.reportError(tr('You need a Travel Time Platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin\'s setting dialog.').format('http://docs.traveltimeplatform.com/overview/getting-keys/'), fatalError=True)
-            raise QgsProcessingException('App ID or api key not set')
-
-
-        # Configure inputs
-        source_departure = self.parameterAsSource(parameters, 'INPUT_DEPARTURE_SEARCHES', context)
-        source_arrival = self.parameterAsSource(parameters, 'INPUT_ARRIVAL_SEARCHES', context)
+    def processAlgorithmRemixData(self, data, parameters, context, feedback):
         locations = self.parameterAsSource(parameters, 'INPUT_LOCATIONS', context)
 
-        # Configure expressions inputs
-        expressions = {}
-        expressions_contexts = {}
-        for PARAM in ['INPUT_DEPARTURE_ID', 'INPUT_ARRIVAL_ID',
-                      'INPUT_DEPARTURE_TRNSPT_TYPE', 'INPUT_ARRIVAL_TRNSPT_TYPE',
-                      'INPUT_DEPARTURE_TRNSPT_PT_CHANGE_DELAY', 'INPUT_ARRIVAL_TRNSPT_PT_CHANGE_DELAY',
-                      'INPUT_DEPARTURE_TRNSPT_WALKING_TIME', 'INPUT_ARRIVAL_TRNSPT_WALKING_TIME',
-                      'INPUT_DEPARTURE_TRNSPT_DRIVING_TIME_TO_STATION', 'INPUT_ARRIVAL_TRNSPT_DRIVING_TIME_TO_STATION',
-                      'INPUT_DEPARTURE_TRNSPT_PARKING_TIME', 'INPUT_ARRIVAL_TRNSPT_PARKING_TIME',
-                      'INPUT_DEPARTURE_TRNSPT_BOARDING_TIME', 'INPUT_ARRIVAL_TRNSPT_BOARDING_TIME',
-                      'INPUT_DEPARTURE_RANGE_WIDTH', 'INPUT_ARRIVAL_RANGE_WIDTH',
-                      'INPUT_DEPARTURE_TIME', 'INPUT_ARRIVAL_TIME',
-                      'INPUT_DEPARTURE_TRAVEL_TIME', 'INPUT_ARRIVAL_TRAVEL_TIME',
-                      'INPUT_LOCATIONS_ID']:
-
-            expression = QgsExpression(self.parameterAsExpression(parameters, PARAM, context))
-            expression_context = self.createExpressionContext(parameters, context)
-            expression.prepare(expression_context)
-            expressions[PARAM] = expression
-            expressions_contexts[PARAM] = expression_context
-
-        def eval_expr(key):
-            return expressions[key].evaluate(expressions_contexts[key])
-
-        source_departure_count = source_departure.featureCount() if source_departure else 0
-        source_arrival_count = source_arrival.featureCount() if source_arrival else 0
-
-        slicing_size = 10
-        slicing_count = math.ceil(max(source_departure_count, source_arrival_count) / slicing_size)
-
-        if slicing_count > 1:
-            feedback.pushInfo(tr('Input layers have more than {} features. The query will be executed in {} queries. Keep an eye on your API usage !').format(slicing_size, slicing_count))
-
-        results = []
-
         # Prepare location data (this is the same for all the slices)
-        data_locations = []
+        data['locations'] = []
         xform = QgsCoordinateTransform(locations.sourceCrs(), EPSG4326, context.transformContext())
         for feature in locations.getFeatures():
             # Set feature for expression context
-            expressions_contexts['INPUT_LOCATIONS_ID'].setFeature(feature)
+            self.expressions_context.setFeature(feature)
             geometry = feature.geometry()
             geometry.transform(xform)
-            data_locations.append({
-                'id': eval_expr('INPUT_LOCATIONS_ID'),
+            data['locations'].append({
+                'id': self.eval_expr('INPUT_LOCATIONS_ID'),
                 'coords': {"lat": geometry.asPoint().y(), "lng": geometry.asPoint().x(), }
             })
 
-        for slicing_i in range(slicing_count):
-            slicing_start = slicing_i * slicing_size
-            slicing_end = (slicing_i + 1) * slicing_size
+        # Currently, the API requires all geoms to be passed in the locations parameter
+        # and refers to them using departure_location_id and arrival_location_ids in the
+        # departure_searches definition.
+        # Here we remix the data array to conform to this data model.
+        all_locations_ids = [l['id'] for l in data['locations']]
+        if 'departure_searches' in data:
+            for departure_search in data['departure_searches']:
+                data['locations'].append({
+                    'id': departure_search['id'],
+                    'coords': departure_search['coords'],
+                })
+                del departure_search['coords']
+                departure_search['departure_location_id'] = departure_search['id']
+                departure_search['arrival_location_ids'] = all_locations_ids
+        if 'arrival_searches' in data:
+            for arrival_search in data['arrival_searches']:
+                data['locations'].append({
+                    'id': arrival_search['id'],
+                    'coords': arrival_search['coords'],
+                })
+                del arrival_search['coords']
+                arrival_search['arrival_location_id'] = arrival_search['id']
+                arrival_search['departure_location_ids'] = all_locations_ids
 
-            # Prepare data
-            data = {
-                'locations': data_locations
-            }
+        return data
 
-            for DEPARR, source in [('DEPARTURE', source_departure), ('ARRIVAL', source_arrival)]:
-                deparr = DEPARR.lower()
-                if source:
-                    feedback.pushDebugInfo('Loading {} searches features...'.format(deparr))
-                    data[deparr+'_searches'] = []
-                    xform = QgsCoordinateTransform(source.sourceCrs(), EPSG4326, context.transformContext())
-                    for i, feature in enumerate(source.getFeatures()):
-                        # Stop the algorithm if cancel button has been clicked
-                        # if feedback.isCanceled():
-                        #     break
+    def processAlgorithmOutput(self, results, parameters, context, feedback):
+        locations = self.parameterAsSource(parameters, 'INPUT_LOCATIONS', context)
 
-                        if i < slicing_start or i >= slicing_end:
-                            continue
-
-                        # Set feature for expression context
-                        for exp_ctx in expressions_contexts.values():
-                            exp_ctx.setFeature(feature)
-
-                        # Reproject to WGS84
-                        geometry = feature.geometry()
-                        geometry.transform(xform)
-
-                        data[deparr+'_searches'].append({
-                            "id": eval_expr('INPUT_'+DEPARR+'_ID'),
-                            "coords": {
-                                "lat": geometry.asPoint().y(),
-                                "lng": geometry.asPoint().x(),
-                            },
-                            "transportation": {
-                                "type": eval_expr('INPUT_'+DEPARR+'_TRNSPT_TYPE'),
-                                "pt_change_delay": eval_expr('INPUT_'+DEPARR+'_TRNSPT_PT_CHANGE_DELAY'),
-                                "walking_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_WALKING_TIME'),
-                                "driving_time_to_station": eval_expr('INPUT_'+DEPARR+'_TRNSPT_DRIVING_TIME_TO_STATION'),
-                                "parking_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_PARKING_TIME'),
-                                "boarding_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_BOARDING_TIME'),
-                            },
-                            deparr+'_time': eval_expr('INPUT_'+DEPARR+'_TIME'),
-                            "travel_time": eval_expr('INPUT_'+DEPARR+'_TRAVEL_TIME'),
-                            # TODO : add parameters for this
-                            "properties": ['travel_time', 'distance', 'distance_breakdown', 'route']
-                        })
-
-                        # # Update the progress bar
-                        # feedback.setProgress(int(current * total))
-
-            url = 'https://api.traveltimeapp.com/v4/time-filter'
-            headers = {
-                'Content-type': 'application/json',
-                'Accept': 'application/json',
-                'X-Application-Id': APP_ID,
-                'X-Api-Key': API_KEY,
-            }
-
-            # Currently, the API requires all geoms to be passed in the locations parameter
-            # and refers to them using departure_location_id and arrival_location_ids in the
-            # departure_searches definition.
-            # Here we remix the data array to conform to this data model.
-            all_locations_ids = [l['id'] for l in data['locations']]
-            if 'departure_searches' in data:
-                for departure_search in data['departure_searches']:
-                    data['locations'].append({
-                        'id': departure_search['id'],
-                        'coords': departure_search['coords'],
-                    })
-                    del departure_search['coords']
-                    departure_search['departure_location_id'] = departure_search['id']
-                    departure_search['arrival_location_ids'] = all_locations_ids
-            if 'arrival_searches' in data:
-                for arrival_search in data['arrival_searches']:
-                    data['locations'].append({
-                        'id': arrival_search['id'],
-                        'coords': arrival_search['coords'],
-                    })
-                    del arrival_search['coords']
-                    arrival_search['arrival_location_id'] = arrival_search['id']
-                    arrival_search['departure_location_ids'] = all_locations_ids
-            data = json.dumps(data)
-
-            feedback.pushDebugInfo('Checking API limit warnings...')
-            s = QSettings()
-            retries = 10
-            for i in range(retries):
-                enabled = bool(s.value('travel_time_platform/warning_enabled', True))
-                count = int(s.value('travel_time_platform/current_count', 0)) + 1
-                limit = int(s.value('travel_time_platform/warning_limit', 10)) + 1
-                if enabled and count >= limit:
-                    if i == 0:
-                        feedback.reportError(tr('WARNING : API usage warning limit reached !'))
-                        feedback.reportError(tr('To continue, disable or increase the limit in the plugin settings, or reset the queries counter. Now is your chance to do the changes.'))
-                    feedback.reportError(tr('Execution will resume in 10 seconds (retry {} out of {})').format(i+1, retries))
-                    time.sleep(10)
-                else:
-                    if enabled:
-                        feedback.pushInfo(tr('API usage warning limit not reached yet ({} queries remaining)...').format(limit-count))
-                    else:
-                        feedback.pushInfo(tr('API usage warning limit disabled...'))
-                    break
-            else:
-                feedback.reportError(tr('Execution canceled because of API limit warning.'), fatalError=True)
-                raise QgsProcessingException('API usage limit warning')
-
-            feedback.pushDebugInfo('Making request to API endpoint...')
-            print_query = bool(s.value('travel_time_platform/log_calls', False))
-            if print_query:
-                QgsMessageLog.logMessage("Making request", 'TimeTravelPlatform')
-                QgsMessageLog.logMessage("url: {}".format(url), 'TimeTravelPlatform')
-                QgsMessageLog.logMessage("headers: {}".format(headers), 'TimeTravelPlatform')
-                QgsMessageLog.logMessage("data: {}".format(data), 'TimeTravelPlatform')
-
-            try:
-
-                response = cached_requests.post(url, data=data, headers=headers)
-
-                if response.from_cache:
-                    feedback.pushDebugInfo('Got response from cache...')
-                else:
-                    feedback.pushDebugInfo('Got response from API endpoint...')
-                    s.setValue('travel_time_platform/current_count', int(s.value('travel_time_platform/current_count', 0)) + 1)
-
-                if print_query:
-                    QgsMessageLog.logMessage("Got response", 'TimeTravelPlatform')
-                    QgsMessageLog.logMessage("status: {}".format(response.status_code), 'TimeTravelPlatform')
-                    QgsMessageLog.logMessage("reason: {}".format(response.reason), 'TimeTravelPlatform')
-                    QgsMessageLog.logMessage("text: {}".format(response.text), 'TimeTravelPlatform')
-
-                response_data = json.loads(response.text)
-                response.raise_for_status()
-                results += response_data['results']
-
-            except requests.exceptions.HTTPError as e:
-                nice_info = '\n'.join('\t{}:\t{}'.format(k,v) for k,v in response_data['additional_info'].items())
-                feedback.reportError(tr('Recieved error from the API.\nError code : {}\nDescription : {}\nSee : {}\nAddtionnal info :\n{}').format(response_data['error_code'],response_data['description'],response_data['documentation_link'],nice_info), fatalError=True)
-                feedback.reportError(tr('See log for more details.'), fatalError=True)
-                QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-                raise QgsProcessingException('Got error {} form API'.format(response.status_code)) from None
-            except requests.exceptions.RequestException as e:
-                feedback.reportError(tr('Could not connect to the API. See log for more details.'), fatalError=True)
-                QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-                raise QgsProcessingException('Could not connect to API') from None
-            except ValueError as e:
-                feedback.reportError(tr('Could not decode response. See log for more details.'), fatalError=True)
-                QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-                raise QgsProcessingException('Could not decode response') from None
-
-        feedback.pushDebugInfo('Loading response to layer...')
-
-        # Configure output
         output_rslts_fields = locations.fields()
         output_rslts_fields.append(QgsField('search_id', QVariant.String, 'text', 255))
         output_rslts_fields.append(QgsField('properties', QVariant.String, 'text', 255))
@@ -947,7 +732,6 @@ class TimeFilterAlgorithm(QgsProcessingAlgorithm):
                 assert(base_ft is not None)
                 feature.setGeometry(QgsGeometry(base_ft.geometry()))
                 for i in range(len(locations.fields())):
-                    QgsMessageLog.logMessage("Setting attribute {} to {}".format(i, base_ft.attribute(i)))
                     feature.setAttribute(i, base_ft.attribute(i))
                 feature.setAttribute(len(output_rslts_fields)-2, result['search_id'])
                 feature.setAttribute(len(output_rslts_fields)-1, json.dumps(location['properties']))
@@ -958,7 +742,6 @@ class TimeFilterAlgorithm(QgsProcessingAlgorithm):
                 assert(base_ft is not None)
                 feature.setGeometry(QgsGeometry(base_ft.geometry()))
                 for i in range(len(locations.fields())):
-                    QgsMessageLog.logMessage("Setting attribute {} to {}".format(i, base_ft.attribute(i)))
                     feature.setAttribute(i, base_ft.attribute(i))
                 feature.setAttribute(len(output_unrch_fields)-1, result['search_id'])
                 unreachable_sink.addFeature(feature, QgsFeatureSink.FastInsert)
