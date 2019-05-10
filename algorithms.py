@@ -66,7 +66,35 @@ cached_requests = requests_cache.core.CachedSession(
 
 
 class AlgorithmBase(QgsProcessingAlgorithm):
-    """Base class for Processing algorithms"""
+    """Base class for all processing algorithms"""
+
+    def name(self):
+        return self._name
+
+    def displayName(self):
+        return self._displayName
+
+    def group(self):
+        return self._group
+
+    def groupId(self):
+        return self._groupId
+
+    def icon(self):
+        return self._icon
+
+    def helpUrl(self):
+        return self._helpUrl
+
+    def shortHelpString(self):
+        return self._shortHelpString
+
+    def createInstance(self):
+        return self.__class__()
+
+
+class AdvancedAlgorithmBase(AlgorithmBase):
+    """Base class for advanced processing algorithms"""
 
     def addAdvancedParamter(self, parameter, *args, **kwargs):
         """Helper to add advanced parameters"""
@@ -351,9 +379,17 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         return None
 
 
-class TimeMapAlgorithm(AlgorithmBase):
+class TimeMapAlgorithm(AdvancedAlgorithmBase):
     url = 'https://api.traveltimeapp.com/v4/time-map'
     accept_header = 'application/vnd.wkt+json'
+
+    _name = 'time_map'
+    _displayName = 'Time Map'
+    _group = 'Advanced'
+    _groupId = 'advanced'
+    _icon = resources.icon
+    _helpUrl = 'http://docs.traveltimeplatform.com/reference/time-map/'
+    _shortHelpString = tr("This algorithms allows to use the time-map endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with.").format(url=_helpUrl)
 
     def initAlgorithm(self, config):
 
@@ -456,32 +492,15 @@ class TimeMapAlgorithm(AlgorithmBase):
         QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(style_path)
         return retval
 
-    def name(self):
-        return 'time_map'
 
-    def displayName(self):
-        return 'Time Map'
-
-    def group(self):
-        return 'Advanced'
-
-    def groupId(self):
-        return 'advanced'
-
-    def icon(self):
-        return resources.icon
-
-    def helpUrl(self):
-        return 'http://docs.traveltimeplatform.com/reference/time-map/'
-
-    def shortHelpString(self):
-        return tr("This algorithms allows to use the time-map endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with.").format(url=self.helpUrl())
-
-    def createInstance(self):
-        return self.__class__()
-
-
-class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
+class TimeMapSimpleAlgorithm(AlgorithmBase):
+    _name = 'time_map_simple'
+    _displayName = tr('Time Map - Simple')
+    _group = 'Simplified'
+    _groupId = 'simple'
+    _icon = resources.icon_simplified
+    _helpUrl = 'http://docs.traveltimeplatform.com/reference/time-map/'
+    _shortHelpString = tr("This algorithms provides a simpified access to the time-map endpoint.\n\nPlease see the help on {url} for more details on how to use it.").format(url=_helpUrl)
 
     SEARCH_TYPES = ['DEPARTURE', 'ARRIVAL']
     RESULT_TYPE = ['NORMAL', 'UNION', 'INTERSECTION']
@@ -594,34 +613,18 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
         QgsProcessingUtils.mapLayerFromString(self.dest_id, context).loadNamedStyle(style_path)
         return retval
 
-    def name(self):
-        return 'time_map_simple'
 
-    def displayName(self):
-        return tr('Time Map - Simple')
-
-    def group(self):
-        return 'Simplified'
-
-    def groupId(self):
-        return 'simple'
-
-    def icon(self):
-        return resources.icon_simplified
-
-    def helpUrl(self):
-        return 'http://docs.traveltimeplatform.com/reference/time-map/'
-
-    def shortHelpString(self):
-        return tr("This algorithms provides a simpified access to the time-map endpoint.\n\nPlease see the help on {url} for more details on how to use it.").format(url=self.helpUrl())
-
-    def createInstance(self):
-        return self.__class__()
-
-
-class TimeFilterAlgorithm(AlgorithmBase):
+class TimeFilterAlgorithm(AdvancedAlgorithmBase):
     url = 'https://api.traveltimeapp.com/v4/time-filter'
     accept_header = 'application/json'
+
+    _name = 'time_filter'
+    _displayName = 'Time Filter'
+    _group = 'Advanced'
+    _groupId = 'advanced'
+    _icon = resources.icon
+    _helpUrl = 'http://docs.traveltimeplatform.com/reference/time-filter/'
+    _shortHelpString = tr("This algorithms allows to use the time-filter endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with.").format(url=_helpUrl)
 
     def initAlgorithm(self, config):
 
@@ -756,27 +759,3 @@ class TimeFilterAlgorithm(AlgorithmBase):
             'RESULTS': sink_id,
             'UNREACHABLE': unreachable_sink_id,
         }
-
-    def name(self):
-        return 'time_filter'
-
-    def displayName(self):
-        return 'Time Filter'
-
-    def group(self):
-        return 'Advanced'
-
-    def groupId(self):
-        return 'advanced'
-
-    def icon(self):
-        return resources.icon
-
-    def helpUrl(self):
-        return 'http://docs.traveltimeplatform.com/reference/time-filter/'
-
-    def shortHelpString(self):
-        return tr("This algorithms allows to use the time-filter endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with.").format(url=self.helpUrl())
-
-    def createInstance(self):
-        return self.__class__()
