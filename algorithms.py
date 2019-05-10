@@ -267,7 +267,7 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                                 "parking_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_PARKING_TIME'),
                                 "boarding_time": eval_expr('INPUT_'+DEPARR+'_TRNSPT_BOARDING_TIME'),
                             },
-                            "departure_time": eval_expr('INPUT_'+DEPARR+'_TIME'),
+                            deparr+'_time': eval_expr('INPUT_'+DEPARR+'_TIME'),
                             "travel_time": eval_expr('INPUT_'+DEPARR+'_TRAVEL_TIME'),
                         })
 
