@@ -12,6 +12,7 @@ class Provider(QgsProcessingProvider):
 
     def loadAlgorithms(self):
         self.addAlgorithm(algorithms.TimeMapSimpleAlgorithm())
+        self.addAlgorithm(algorithms.TimeFilterSimpleAlgorithm())
         self.addAlgorithm(algorithms.TimeMapAlgorithm())
         self.addAlgorithm(algorithms.TimeFilterAlgorithm())
 
