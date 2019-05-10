@@ -12,10 +12,12 @@ email=olivier.dalang@gmail.com
 
 # Optional items:
 changelog=- 2019-02-12 : version 0.1-alpha
-    - 2019-XX-XX : version 0.2-beta
+    - 2019-04-01 : version 0.2-alpha
         - feature : batch mode
         - feature : documentation
         - fix : simplified algorithm bug when short travel time
+    - 2019-05-10 : version 0.2.1-alpha
+        - fix : bug on arrival searches
     - 2019-XX-XX : version 0.3-alpha
         - feature : time filter endpoint
         - feature : queries are now cached to avoid hitting API for identical queries
