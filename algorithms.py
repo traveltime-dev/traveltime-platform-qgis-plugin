@@ -35,6 +35,8 @@ from qgis.core import (QgsMessageLog,
 
 import processing
 
+from . import requests_cache
+
 from . import resources
 from . import auth
 from . import utils
@@ -45,7 +47,7 @@ from .utils import tr
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
 TRANSPORTATION_TYPES = ['cycling', 'driving', 'driving+train', 'public_transport', 'walking', 'coach', 'bus', 'train', 'ferry', 'driving+ferry', 'cycling+ferry']
 
-
+cached_requests = requests_cache.core.CachedSession(cache_name='ttp_cache', backend="memory", expire_after=86400, allowable_methods=('GET', 'POST' ))
 
 
 class TimeMapAlgorithm(QgsProcessingAlgorithm):
@@ -307,7 +309,6 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                         feedback.pushInfo(tr('API usage warning limit not reached yet ({} queries remaining)...').format(limit-count))
                     else:
                         feedback.pushInfo(tr('API usage warning limit disabled...'))
-                    s.setValue('travel_time_platform/current_count', count)
                     break
             else:
                 feedback.reportError(tr('Execution canceled because of API limit warning.'), fatalError=True)
@@ -322,9 +323,15 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                 QgsMessageLog.logMessage("data: {}".format(data), 'TimeTravelPlatform')
 
             try:
-                response = requests.post(url, data=data, headers=headers)
 
-                feedback.pushDebugInfo('Got response from API endpoint...')
+                response = cached_requests.post(url, data=data, headers=headers)
+
+                if response.from_cache:
+                    feedback.pushDebugInfo('Got response from cache...')
+                else:
+                    feedback.pushDebugInfo('Got response from API endpoint...')
+                    s.setValue('travel_time_platform/current_count', int(s.value('travel_time_platform/current_count', 0)) + 1)
+
                 if print_query:
                     QgsMessageLog.logMessage("Got response", 'TimeTravelPlatform')
                     QgsMessageLog.logMessage("status: {}".format(response.status_code), 'TimeTravelPlatform')
