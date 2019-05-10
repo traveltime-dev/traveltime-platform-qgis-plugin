@@ -38,8 +38,8 @@ import processing
 from . import resources
 from . import auth
 from . import utils
+from . import parameters
 from .utils import tr
-from .ui import IsoDateTimeWidgetWrapper
 
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
@@ -446,7 +446,7 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
                                        options=TRANSPORTATION_TYPES)
         )
         self.addParameter(
-            ParameterIsoDateTime('INPUT_TIME',
+            parameters.ParameterIsoDateTime('INPUT_TIME',
                                  tr('Departure/Arrival time (UTC)'))
         )
         self.addParameter(
@@ -560,19 +560,3 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
     def createInstance(self):
         return self.__class__()
 
-
-# Custom parameter types
-
-class ParameterIsoDateTime(QgsProcessingParameterString):
-
-    def __init__(self, name='', description=''):
-        super().__init__(name, description)
-        self.setMetadata({
-            'widget_wrapper': IsoDateTimeWidgetWrapper
-        })
-
-    def type(self):
-        return 'ttp_datetime'
-
-    def clone(self):
-        return ParameterIsoDateTime(self.name(), self.description())
