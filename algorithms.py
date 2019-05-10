@@ -493,127 +493,6 @@ class TimeMapAlgorithm(AdvancedAlgorithmBase):
         return retval
 
 
-class TimeMapSimpleAlgorithm(AlgorithmBase):
-    _name = 'time_map_simple'
-    _displayName = tr('Time Map - Simple')
-    _group = 'Simplified'
-    _groupId = 'simple'
-    _icon = resources.icon_simplified
-    _helpUrl = 'http://docs.traveltimeplatform.com/reference/time-map/'
-    _shortHelpString = tr("This algorithms provides a simpified access to the time-map endpoint.\n\nPlease see the help on {url} for more details on how to use it.").format(url=_helpUrl)
-
-    SEARCH_TYPES = ['DEPARTURE', 'ARRIVAL']
-    RESULT_TYPE = ['NORMAL', 'UNION', 'INTERSECTION']
-
-    def initAlgorithm(self, config):
-
-        self.addParameter(
-            QgsProcessingParameterFeatureSource('INPUT_SEARCHES',
-                                                tr('Searches'),
-                                                [QgsProcessing.TypeVectorPoint],)
-        )
-        self.addParameter(
-            QgsProcessingParameterEnum('INPUT_SEARCH_TYPE',
-                                       tr('Search type'),
-                                       options=['departure', 'arrival'])
-        )
-        self.addParameter(
-            QgsProcessingParameterEnum('INPUT_TRNSPT_TYPE',
-                                       tr('Transportation type'),
-                                       options=TRANSPORTATION_TYPES)
-        )
-        self.addParameter(
-            parameters.ParameterIsoDateTime('INPUT_TIME',
-                                 tr('Departure/Arrival time (UTC)'))
-        )
-        self.addParameter(
-            QgsProcessingParameterNumber('INPUT_TRAVEL_TIME',
-                                         tr('Travel time (in minutes)'),
-                                         type=0,
-                                         defaultValue=15,
-                                         minValue=0,
-                                         maxValue=240)
-        )
-        self.addParameter(
-            QgsProcessingParameterEnum('INPUT_RESULT_TYPE',
-                                       tr('Result aggregation'),
-                                       options=self.RESULT_TYPE)
-        )
-
-        # OUTPUT
-        self.addParameter(
-            QgsProcessingParameterFeatureSink('OUTPUT',
-                                              tr('Output layer'),
-                                              type=QgsProcessing.TypeVectorPolygon, )
-        )
-
-    def processAlgorithm(self, parameters, context, feedback):
-
-        feedback.pushDebugInfo('Starting TimeMapSimpleAlgorithm...')
-
-        mode = self.SEARCH_TYPES[self.parameterAsEnum(parameters, 'INPUT_SEARCH_TYPE', context)]
-        trnspt_type = TRANSPORTATION_TYPES[self.parameterAsEnum(parameters, 'INPUT_TRNSPT_TYPE', context)]
-        result_type = self.RESULT_TYPE[self.parameterAsEnum(parameters, 'INPUT_RESULT_TYPE', context)]
-
-        search_layer = self.parameterAsSource(parameters, 'INPUT_SEARCHES', context).materialize(QgsFeatureRequest())
-
-        sub_parameters = {
-            'INPUT_{}_SEARCHES'.format(mode): search_layer,
-            'INPUT_{}_TRNSPT_TYPE'.format(mode): "'"+trnspt_type+"'",
-            'INPUT_{}_TIME'.format(mode): "'"+self.parameterAsString(parameters, 'INPUT_TIME', context)+"'",
-            'INPUT_{}_TRAVEL_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context) * 60),
-            'INPUT_{}_TRNSPT_WALKING_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context) * 60),
-            'INPUT_CALC_UNION': (result_type == 'UNION'),
-            'INPUT_CALC_INTER': (result_type == 'INTERSECTION'),
-            'OUTPUT_SEARCHES': 'memory:results',
-            'OUTPUT_UNION': 'memory:union',
-            'OUTPUT_INTER': 'memory:inter',
-        }
-
-        feedback.pushDebugInfo('Calling subcommand with following parameters...')
-        feedback.pushDebugInfo(str(sub_parameters))
-
-        results = processing.run("ttp_v4:time_map", sub_parameters, context=context, feedback=feedback)
-
-        feedback.pushDebugInfo('Got results fom subcommand...')
-
-        if result_type == 'UNION':
-            result_layer = results['OUTPUT_UNION']
-        elif result_type == 'INTERSECTION':
-            result_layer = results['OUTPUT_INTER']
-        else:
-            result_layer = results['OUTPUT_SEARCHES']
-
-        # Configure output
-        (sink, dest_id) = self.parameterAsSink(
-            parameters, 'OUTPUT', context, result_layer.fields(), result_layer.wkbType(), result_layer.sourceCrs()
-        )
-        # Copy results to output
-        feedback.pushDebugInfo('Copying results to layer...')
-        for f in result_layer.getFeatures():
-            sink.addFeature(QgsFeature(f))
-
-        feedback.pushDebugInfo('TimeMapSimpleAlgorithm done !')
-
-        # to get hold of the layer in post processing
-        self.dest_id = dest_id
-        self.result_type = result_type
-
-        return {'OUTPUT': dest_id}
-
-    def postProcessAlgorithm(self, context, feedback):
-        retval = super().postProcessAlgorithm(context, feedback)
-        if self.result_type == 'UNION':
-            style_file = 'style_union.qml'
-        elif self.result_type == 'INTERSECTION':
-            style_file = 'style_intersection.qml'
-        else:
-            style_file = 'style.qml'
-        style_path = os.path.join(os.path.dirname(__file__), 'resources', style_file)
-        QgsProcessingUtils.mapLayerFromString(self.dest_id, context).loadNamedStyle(style_path)
-        return retval
-
-
 class TimeFilterAlgorithm(AdvancedAlgorithmBase):
     url = 'https://api.traveltimeapp.com/v4/time-filter'
     accept_header = 'application/json'
@@ -759,3 +638,124 @@ class TimeFilterAlgorithm(AdvancedAlgorithmBase):
             'RESULTS': sink_id,
             'UNREACHABLE': unreachable_sink_id,
         }
+
+
+class TimeMapSimpleAlgorithm(AlgorithmBase):
+    _name = 'time_map_simple'
+    _displayName = tr('Time Map - Simple')
+    _group = 'Simplified'
+    _groupId = 'simple'
+    _icon = resources.icon_simplified
+    _helpUrl = 'http://docs.traveltimeplatform.com/reference/time-map/'
+    _shortHelpString = tr("This algorithms provides a simpified access to the time-map endpoint.\n\nPlease see the help on {url} for more details on how to use it.").format(url=_helpUrl)
+
+    SEARCH_TYPES = ['DEPARTURE', 'ARRIVAL']
+    RESULT_TYPE = ['NORMAL', 'UNION', 'INTERSECTION']
+
+    def initAlgorithm(self, config):
+
+        self.addParameter(
+            QgsProcessingParameterFeatureSource('INPUT_SEARCHES',
+                                                tr('Searches'),
+                                                [QgsProcessing.TypeVectorPoint],)
+        )
+        self.addParameter(
+            QgsProcessingParameterEnum('INPUT_SEARCH_TYPE',
+                                       tr('Search type'),
+                                       options=['departure', 'arrival'])
+        )
+        self.addParameter(
+            QgsProcessingParameterEnum('INPUT_TRNSPT_TYPE',
+                                       tr('Transportation type'),
+                                       options=TRANSPORTATION_TYPES)
+        )
+        self.addParameter(
+            parameters.ParameterIsoDateTime('INPUT_TIME',
+                                 tr('Departure/Arrival time (UTC)'))
+        )
+        self.addParameter(
+            QgsProcessingParameterNumber('INPUT_TRAVEL_TIME',
+                                         tr('Travel time (in minutes)'),
+                                         type=0,
+                                         defaultValue=15,
+                                         minValue=0,
+                                         maxValue=240)
+        )
+        self.addParameter(
+            QgsProcessingParameterEnum('INPUT_RESULT_TYPE',
+                                       tr('Result aggregation'),
+                                       options=self.RESULT_TYPE)
+        )
+
+        # OUTPUT
+        self.addParameter(
+            QgsProcessingParameterFeatureSink('OUTPUT',
+                                              tr('Output layer'),
+                                              type=QgsProcessing.TypeVectorPolygon, )
+        )
+
+    def processAlgorithm(self, parameters, context, feedback):
+
+        feedback.pushDebugInfo('Starting TimeMapSimpleAlgorithm...')
+
+        mode = self.SEARCH_TYPES[self.parameterAsEnum(parameters, 'INPUT_SEARCH_TYPE', context)]
+        trnspt_type = TRANSPORTATION_TYPES[self.parameterAsEnum(parameters, 'INPUT_TRNSPT_TYPE', context)]
+        result_type = self.RESULT_TYPE[self.parameterAsEnum(parameters, 'INPUT_RESULT_TYPE', context)]
+
+        search_layer = self.parameterAsSource(parameters, 'INPUT_SEARCHES', context).materialize(QgsFeatureRequest())
+
+        sub_parameters = {
+            'INPUT_{}_SEARCHES'.format(mode): search_layer,
+            'INPUT_{}_TRNSPT_TYPE'.format(mode): "'"+trnspt_type+"'",
+            'INPUT_{}_TIME'.format(mode): "'"+self.parameterAsString(parameters, 'INPUT_TIME', context)+"'",
+            'INPUT_{}_TRAVEL_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context) * 60),
+            'INPUT_{}_TRNSPT_WALKING_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context) * 60),
+            'INPUT_CALC_UNION': (result_type == 'UNION'),
+            'INPUT_CALC_INTER': (result_type == 'INTERSECTION'),
+            'OUTPUT_SEARCHES': 'memory:results',
+            'OUTPUT_UNION': 'memory:union',
+            'OUTPUT_INTER': 'memory:inter',
+        }
+
+        feedback.pushDebugInfo('Calling subcommand with following parameters...')
+        feedback.pushDebugInfo(str(sub_parameters))
+
+        results = processing.run("ttp_v4:time_map", sub_parameters, context=context, feedback=feedback)
+
+        feedback.pushDebugInfo('Got results fom subcommand...')
+
+        if result_type == 'UNION':
+            result_layer = results['OUTPUT_UNION']
+        elif result_type == 'INTERSECTION':
+            result_layer = results['OUTPUT_INTER']
+        else:
+            result_layer = results['OUTPUT_SEARCHES']
+
+        # Configure output
+        (sink, dest_id) = self.parameterAsSink(
+            parameters, 'OUTPUT', context, result_layer.fields(), result_layer.wkbType(), result_layer.sourceCrs()
+        )
+        # Copy results to output
+        feedback.pushDebugInfo('Copying results to layer...')
+        for f in result_layer.getFeatures():
+            sink.addFeature(QgsFeature(f))
+
+        feedback.pushDebugInfo('TimeMapSimpleAlgorithm done !')
+
+        # to get hold of the layer in post processing
+        self.dest_id = dest_id
+        self.result_type = result_type
+
+        return {'OUTPUT': dest_id}
+
+    def postProcessAlgorithm(self, context, feedback):
+        retval = super().postProcessAlgorithm(context, feedback)
+        if self.result_type == 'UNION':
+            style_file = 'style_union.qml'
+        elif self.result_type == 'INTERSECTION':
+            style_file = 'style_intersection.qml'
+        else:
+            style_file = 'style.qml'
+        style_path = os.path.join(os.path.dirname(__file__), 'resources', style_file)
+        QgsProcessingUtils.mapLayerFromString(self.dest_id, context).loadNamedStyle(style_path)
+        return retval
