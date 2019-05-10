@@ -568,7 +568,7 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
         return self.__class__()
 
 
-class TimeMapAlgorithm(QgsProcessingAlgorithm):
+class TimeFilterAlgorithm(QgsProcessingAlgorithm):
 
     def addAdvancedParamter(self, parameter, *args, **kwargs):
         parameter.setFlags(parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
@@ -656,37 +656,33 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
         self.addParameter(
-            QgsProcessingParameterBoolean('INPUT_CALC_UNION',
-                                          tr('Compute union aggregation'),
-                                          optional=True,
-                                          defaultValue=False)
+            QgsProcessingParameterFeatureSource('INPUT_LOCATIONS',
+                                                tr('Locations'),
+                                                [QgsProcessing.TypeVectorPoint],
+                                                optional=False, )
         )
         self.addParameter(
-            QgsProcessingParameterBoolean('INPUT_CALC_INTER',
-                                          tr('Compute intersection aggregation'),
-                                          optional=True,
-                                          defaultValue=False)
+            QgsProcessingParameterExpression('INPUT_LOCATIONS_ID',
+                                             'Locations ID'.format(DEPARR.title()),
+                                             optional=True,
+                                             defaultValue="'locations_' || $id",
+                                             parentLayerParameterName='INPUT_LOCATIONS',)
         )
         # OUTPUT
         self.addParameter(
-            QgsProcessingParameterFeatureSink('OUTPUT_SEARCHES',
-                                              tr('Output - searches layer'),
-                                              type=QgsProcessing.TypeVectorPolygon, )
+            QgsProcessingParameterFeatureSink('RESULTS',
+                                              tr('Results'),
+                                              type=QgsProcessing.TypeVectorPoint, )
         )
         self.addParameter(
-            QgsProcessingParameterFeatureSink('OUTPUT_UNION',
-                                              tr('Output - union layer'),
-                                              type=QgsProcessing.TypeVectorPolygon, )
-        )
-        self.addParameter(
-            QgsProcessingParameterFeatureSink('OUTPUT_INTER',
-                                              tr('Output - intersection layer'),
-                                              type=QgsProcessing.TypeVectorPolygon, )
+            QgsProcessingParameterFeatureSink('UNREACHABLE',
+                                              tr('Unreachable'),
+                                              type=QgsProcessing.TypeVectorAnyGeometry, )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
 
-        feedback.pushDebugInfo('Starting TimeMapAlgorithm...')
+        feedback.pushDebugInfo('Starting TimeFilterAlgorithm...')
 
         # Get API key
         APP_ID, API_KEY = auth.get_app_id_and_api_key()
@@ -698,9 +694,7 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
         # Configure inputs
         source_departure = self.parameterAsSource(parameters, 'INPUT_DEPARTURE_SEARCHES', context)
         source_arrival = self.parameterAsSource(parameters, 'INPUT_ARRIVAL_SEARCHES', context)
-
-        compute_union = self.parameterAsBool(parameters, 'INPUT_CALC_UNION', context)
-        compute_inter = self.parameterAsBool(parameters, 'INPUT_CALC_INTER', context)
+        locations = self.parameterAsSource(parameters, 'INPUT_LOCATIONS', context)
 
         # Configure expressions inputs
         expressions = {}
@@ -714,7 +708,8 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                       'INPUT_DEPARTURE_TRNSPT_BOARDING_TIME', 'INPUT_ARRIVAL_TRNSPT_BOARDING_TIME',
                       'INPUT_DEPARTURE_RANGE_WIDTH', 'INPUT_ARRIVAL_RANGE_WIDTH',
                       'INPUT_DEPARTURE_TIME', 'INPUT_ARRIVAL_TIME',
-                      'INPUT_DEPARTURE_TRAVEL_TIME', 'INPUT_ARRIVAL_TRAVEL_TIME']:
+                      'INPUT_DEPARTURE_TRAVEL_TIME', 'INPUT_ARRIVAL_TRAVEL_TIME',
+                      'INPUT_LOCATIONS_ID']:
 
             expression = QgsExpression(self.parameterAsExpression(parameters, PARAM, context))
             expression_context = self.createExpressionContext(parameters, context)
@@ -734,22 +729,29 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
         if slicing_count > 1:
             feedback.pushInfo(tr('Input layers have more than {} features. The query will be executed in {} queries. Keep an eye on your API usage !').format(slicing_size, slicing_count))
 
-            if compute_union or compute_inter:
-                feedback.pushInfo(tr('Union or intersection will be returned per query. If you need union or interesection on the whole dataset, you will need to do so in an additional step, using QGIS vectors algorithms.'))
-
         results = []
+
+        # Prepare location data (this is the same for all the slices)
+        data_locations = []
+        xform = QgsCoordinateTransform(locations.sourceCrs(), EPSG4326, context.transformContext())
+        for feature in locations.getFeatures():
+            # Set feature for expression context
+            expressions_contexts['INPUT_LOCATIONS_ID'].setFeature(feature)
+            geometry = feature.geometry()
+            geometry.transform(xform)
+            data_locations.append({
+                'id': eval_expr('INPUT_LOCATIONS_ID'),
+                'coords': {"lat": geometry.asPoint().y(), "lng": geometry.asPoint().x(), }
+            })
 
         for slicing_i in range(slicing_count):
             slicing_start = slicing_i * slicing_size
             slicing_end = (slicing_i + 1) * slicing_size
 
             # Prepare data
-            data = {}
-
-            if compute_union:
-                data['unions'] = [{'id': 'union_all', 'search_ids': []}]
-            if compute_inter:
-                data['intersections'] = [{'id': 'intersection_all', 'search_ids': []}]
+            data = {
+                'locations': data_locations
+            }
 
             for DEPARR, source in [('DEPARTURE', source_departure), ('ARRIVAL', source_arrival)]:
                 deparr = DEPARR.lower()
@@ -789,24 +791,44 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                             },
                             "departure_time": eval_expr('INPUT_'+DEPARR+'_TIME'),
                             "travel_time": eval_expr('INPUT_'+DEPARR+'_TRAVEL_TIME'),
+                            # TODO : add parameters for this
+                            "properties": ['travel_time', 'distance', 'distance_breakdown', 'route']
                         })
-
-                        # Add to aggregation if needed
-                        if compute_union:
-                            data['unions'][0]['search_ids'].append(eval_expr('INPUT_'+DEPARR+'_ID'))
-                        if compute_inter:
-                            data['intersections'][0]['search_ids'].append(eval_expr('INPUT_'+DEPARR+'_ID'))
 
                         # # Update the progress bar
                         # feedback.setProgress(int(current * total))
 
-            url = 'https://api.traveltimeapp.com/v4/time-map'
+            url = 'https://api.traveltimeapp.com/v4/time-filter'
             headers = {
                 'Content-type': 'application/json',
-                'Accept': 'application/vnd.wkt+json',
+                'Accept': 'application/json',
                 'X-Application-Id': APP_ID,
                 'X-Api-Key': API_KEY,
             }
+
+            # Currently, the API requires all geoms to be passed in the locations parameter
+            # and refers to them using departure_location_id and arrival_location_ids in the
+            # departure_searches definition.
+            # Here we remix the data array to conform to this data model.
+            all_locations_ids = [l['id'] for l in data['locations']]
+            if 'departure_searches' in data:
+                for departure_search in data['departure_searches']:
+                    data['locations'].append({
+                        'id': departure_search['id'],
+                        'coords': departure_search['coords'],
+                    })
+                    del departure_search['coords']
+                    departure_search['departure_location_id'] = departure_search['id']
+                    departure_search['arrival_location_ids'] = all_locations_ids
+            if 'arrival_searches' in data:
+                for arrival_search in data['arrival_searches']:
+                    data['locations'].append({
+                        'id': arrival_search['id'],
+                        'coords': arrival_search['coords'],
+                    })
+                    del arrival_search['coords']
+                    arrival_search['arrival_location_id'] = arrival_search['id']
+                    arrival_search['departure_location_ids'] = all_locations_ids
             data = json.dumps(data)
 
             feedback.pushDebugInfo('Checking API limit warnings...')
@@ -878,56 +900,70 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
         feedback.pushDebugInfo('Loading response to layer...')
 
         # Configure output
-        output_fields = QgsFields()
-        output_fields.append(QgsField('id', QVariant.String, 'text', 255))
-        output_fields.append(QgsField('properties', QVariant.String, 'text', 255))
+        output_rslts_fields = locations.fields()
+        output_rslts_fields.append(QgsField('search_id', QVariant.String, 'text', 255))
+        output_rslts_fields.append(QgsField('properties', QVariant.String, 'text', 255))
 
-        (sink, sink_id) = self.parameterAsSink(parameters, 'OUTPUT_SEARCHES', context, output_fields, QgsWkbTypes.MultiPolygon, EPSG4326)
-        (sink_union, sink_union_id) = self.parameterAsSink(parameters, 'OUTPUT_UNION', context, output_fields, QgsWkbTypes.MultiPolygon, EPSG4326)
-        (sink_inter, sink_inter_id) = self.parameterAsSink(parameters, 'OUTPUT_INTER', context, output_fields, QgsWkbTypes.MultiPolygon, EPSG4326)
+        output_unrch_fields = locations.fields()
+        output_unrch_fields.append(QgsField('search_id', QVariant.String, 'text', 255))
+
+        output_crs = locations.sourceCrs()
+        output_type = QgsWkbTypes.Point
+        # output_type = locations.wkbType() # uncomment if we accept more input types
+
+        QgsWkbTypes.MultiPolygon
+
+        (sink, sink_id) = self.parameterAsSink(parameters, 'RESULTS', context, output_rslts_fields, output_type, output_crs)
+        (unreachable_sink, unreachable_sink_id) = self.parameterAsSink(parameters, 'UNREACHABLE', context, output_unrch_fields, output_type, output_crs)
+
+        def get_location_feature(id_):
+            """Returns a feature from the locations layer"""
+            id_expr = self.parameterAsString(parameters, 'INPUT_LOCATIONS_ID', context)
+            expression_ctx = self.createExpressionContext(parameters, context)
+            expression = QgsExpression("{} = '{}'".format(id_expr, id_))
+            for f in locations.getFeatures(QgsFeatureRequest(expression, expression_ctx)):
+                # Return the first one
+                return f
 
         for result in results:
-            feature = QgsFeature(output_fields)
-            feature.setAttribute(0, result['search_id'])
-            feature.setAttribute(1, json.dumps(result['properties']))
-            feature.setGeometry(QgsGeometry.fromWkt(result['shape']))
-
-            # Add a feature in the sink
-            if result['search_id'] == 'union_all':
-                sink_union.addFeature(feature, QgsFeatureSink.FastInsert)
-            elif result['search_id'] == 'intersection_all':
-                sink_inter.addFeature(feature, QgsFeatureSink.FastInsert)
-            else:
+            for location in result['locations']:
+                feature = QgsFeature(output_rslts_fields)
+                base_ft = get_location_feature(location['id'])
+                assert(base_ft is not None)
+                feature.setGeometry(QgsGeometry(base_ft.geometry()))
+                for i in range(len(locations.fields())):
+                    QgsMessageLog.logMessage("Setting attribute {} to {}".format(i, base_ft.attribute(i)))
+                    feature.setAttribute(i, base_ft.attribute(i))
+                feature.setAttribute(len(output_rslts_fields)-2, result['search_id'])
+                feature.setAttribute(len(output_rslts_fields)-1, json.dumps(location['properties']))
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
+            for id_ in result['unreachable']:
+                feature = QgsFeature(output_unrch_fields)
+                base_ft = get_location_feature(id_)
+                assert(base_ft is not None)
+                feature.setGeometry(QgsGeometry(base_ft.geometry()))
+                for i in range(len(locations.fields())):
+                    QgsMessageLog.logMessage("Setting attribute {} to {}".format(i, base_ft.attribute(i)))
+                    feature.setAttribute(i, base_ft.attribute(i))
+                feature.setAttribute(len(output_unrch_fields)-1, result['search_id'])
+                unreachable_sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
-        feedback.pushDebugInfo('TimeMapAlgorithm done !')
+        feedback.pushDebugInfo('TimeFilterAlgorithm done !')
 
         # to get hold of the layer in post processing
         self.sink_id = sink_id
-        self.sink_union_id = sink_union_id
-        self.sink_inter_id = sink_inter_id
+        self.unreachable_sink_id = unreachable_sink_id
 
         return {
-            'OUTPUT_SEARCHES': sink_id,
-            'OUTPUT_UNION': sink_union_id,
-            'OUTPUT_INTER': sink_inter_id,
+            'RESULTS': sink_id,
+            'UNREACHABLE': unreachable_sink_id,
         }
 
-    def postProcessAlgorithm(self, context, feedback):
-        retval = super().postProcessAlgorithm(context, feedback)
-        style_path = os.path.join(os.path.dirname(__file__), 'resources', 'style_union.qml')
-        QgsProcessingUtils.mapLayerFromString(self.sink_union_id, context).loadNamedStyle(style_path)
-        style_path = os.path.join(os.path.dirname(__file__), 'resources', 'style_intersection.qml')
-        QgsProcessingUtils.mapLayerFromString(self.sink_inter_id, context).loadNamedStyle(style_path)
-        style_path = os.path.join(os.path.dirname(__file__), 'resources', 'style.qml')
-        QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(style_path)
-        return retval
-
     def name(self):
-        return 'time_map'
+        return 'time_filter'
 
     def displayName(self):
-        return 'Time Map'
+        return 'Time Filter'
 
     def group(self):
         return 'Advanced'
@@ -939,10 +975,10 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
         return resources.icon
 
     def helpUrl(self):
-        return 'http://docs.traveltimeplatform.com/reference/time-map/'
+        return 'http://docs.traveltimeplatform.com/reference/time-filter/'
 
     def shortHelpString(self):
-        return tr("This algorithms allows to use the time-map endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with.").format(url=self.helpUrl())
+        return tr("This algorithms allows to use the time-filter endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with.").format(url=self.helpUrl())
 
     def createInstance(self):
         return self.__class__()
