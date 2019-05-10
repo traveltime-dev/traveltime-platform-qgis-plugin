@@ -1,6 +1,6 @@
 import os
 import webbrowser
-from qgis.PyQt.QtCore import Qt, QSettings, QDateTime
+from qgis.PyQt.QtCore import Qt, QSettings, QDateTime, QDate, QTime
 from qgis.PyQt.QtWidgets import QDialog, QDateTimeEdit, QWidget
 from qgis.PyQt import uic
 
@@ -159,7 +159,9 @@ class HelpWidget(QWidget):
 class IsoDateTimeWidgetWrapper(WidgetWrapper):
 
     def createWidget(self):
-        dateEdit = QDateTimeEdit(QDateTime.currentDateTimeUtc())
+        now = QTime.currentTime()
+        curdate = QDateTime(QDate.currentDate(), QTime(now.hour(), 0))
+        dateEdit = QDateTimeEdit(curdate.toUTC())
         dateEdit.setDisplayFormat("yyyy-MM-dd HH:mm")
         dateEdit.setTimeSpec(Qt.TimeZone)
         return dateEdit

@@ -10,7 +10,8 @@ def now_iso():
 
     utc_offset_sec = time.altzone if time.localtime().tm_isdst else time.timezone
     utc_offset = datetime.timedelta(seconds=-utc_offset_sec)
-    return datetime.datetime.now().replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat()
+    now = datetime.datetime.now()
+    return datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour).replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat()
 
 def tr(string):
     return QCoreApplication.translate('@default', string)
