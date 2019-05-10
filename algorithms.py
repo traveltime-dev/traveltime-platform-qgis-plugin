@@ -405,10 +405,10 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
         return 'Time Map'
 
     def group(self):
-        return 'Time Map'
+        return 'Advanced'
 
     def groupId(self):
-        return 'time_map'
+        return 'advanced'
 
     def icon(self):
         return resources.icon
@@ -543,10 +543,10 @@ class TimeMapSimpleAlgorithm(QgsProcessingAlgorithm):
         return tr('Time Map - Simple')
 
     def group(self):
-        return 'Time Map'
+        return 'Simplified'
 
     def groupId(self):
-        return 'time_map'
+        return 'simple'
 
     def icon(self):
         return resources.icon_simplified

@@ -1,6 +1,6 @@
 from qgis.core import QgsProcessingProvider
 
-from .algorithms import TimeMapAlgorithm, TimeMapSimpleAlgorithm
+from . import algorithms
 from .utils import tr
 from . import resources
 
@@ -11,8 +11,8 @@ class Provider(QgsProcessingProvider):
         pass
 
     def loadAlgorithms(self):
-        self.addAlgorithm(TimeMapSimpleAlgorithm())
-        self.addAlgorithm(TimeMapAlgorithm())
+        self.addAlgorithm(algorithms.TimeMapSimpleAlgorithm())
+        self.addAlgorithm(algorithms.TimeMapAlgorithm())
 
     def id(self):
         return 'ttp_v4'
