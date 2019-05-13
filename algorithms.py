@@ -666,6 +666,10 @@ class RoutesAlgorithm(AdvancedAlgorithmBase):
         # Define all common DEPARTURE and ARRIVAL parameters
         super().initAlgorithm(config)
 
+        # Remove unused parameters
+        self.removeParameter('INPUT_DEPARTURE_TRAVEL_TIME')
+        self.removeParameter('INPUT_ARRIVAL_TRAVEL_TIME')
+
         # Define additional input parameters
         self.addParameter(
             QgsProcessingParameterFeatureSource('INPUT_LOCATIONS',
@@ -1057,14 +1061,6 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
                                  tr('Departure/Arrival time (UTC)'))
         )
         self.addParameter(
-            QgsProcessingParameterNumber('INPUT_TRAVEL_TIME',
-                                         tr('Travel time (in minutes)'),
-                                         type=0,
-                                         defaultValue=15,
-                                         minValue=0,
-                                         maxValue=240)
-        )
-        self.addParameter(
             QgsProcessingParameterFeatureSource('INPUT_LOCATIONS',
                                                 tr('Locations'),
                                                 [QgsProcessing.TypeVectorPoint],)
@@ -1097,7 +1093,6 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
             'INPUT_{}_SEARCHES'.format(mode): search_layer,
             'INPUT_{}_TRNSPT_TYPE'.format(mode): "'"+trnspt_type+"'",
             'INPUT_{}_TIME'.format(mode): "'"+self.parameterAsString(parameters, 'INPUT_TIME', context)+"'",
-            'INPUT_{}_TRAVEL_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context) * 60),
             'INPUT_{}_TRNSPT_WALKING_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context) * 60),
             'INPUT_LOCATIONS'.format(mode): locations_layer,
             'OUTPUT_NORMAL': 'memory:output_normal',
