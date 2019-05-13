@@ -501,6 +501,8 @@ class TimeMapAlgorithm(AdvancedAlgorithmBase):
 class TimeFilterAlgorithm(AdvancedAlgorithmBase):
     url = 'https://api.traveltimeapp.com/v4/time-filter'
     accept_header = 'application/json'
+    # search_properties = ["travel_time", "distance", "distance_breakdown", "fares", "route"]
+    search_properties = ["travel_time", "distance", "distance_breakdown", "route"]
 
     _name = 'time_filter'
     _displayName = 'Time Filter'
