@@ -144,7 +144,7 @@ class AdvancedAlgorithmBase(AlgorithmBase):
                 QgsProcessingParameterExpression('INPUT_'+DEPARR+'_TRNSPT_TYPE',
                                                  '{} / Transportation / type'.format(DEPARR.title()),
                                                  optional=True,
-                                                 defaultValue="'walking'",
+                                                 defaultValue="'public_transport'",
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
             self.addAdvancedParamter(
