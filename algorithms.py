@@ -25,6 +25,8 @@ from qgis.core import (QgsMessageLog,
                        QgsProcessingParameterDefinition,
                        QgsWkbTypes,
                        QgsCoordinateReferenceSystem,
+                       QgsPoint,
+                       QgsLineString,
                        QgsFields,
                        QgsField,
                        QgsFeature,
@@ -65,6 +67,7 @@ cached_requests = requests_cache.core.CachedSession(
 # )
 
 
+
 class AlgorithmBase(QgsProcessingAlgorithm):
     """Base class for all processing algorithms"""
 
@@ -95,6 +98,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
 class AdvancedAlgorithmBase(AlgorithmBase):
     """Base class for advanced processing algorithms"""
+
+    search_properties = []
 
     def addAdvancedParamter(self, parameter, *args, **kwargs):
         """Helper to add advanced parameters"""
@@ -283,7 +288,7 @@ class AdvancedAlgorithmBase(AlgorithmBase):
                             deparr+'_time': self.eval_expr('INPUT_'+DEPARR+'_TIME'),
                             "travel_time": self.eval_expr('INPUT_'+DEPARR+'_TRAVEL_TIME'),
                             # TODO : allow to edit properties
-                            'properties': []
+                            'properties': self.search_properties
                         })
 
                         # # Update the progress bar
@@ -640,17 +645,19 @@ class TimeFilterAlgorithm(AdvancedAlgorithmBase):
         }
 
 
-class TimeFilterAlgorithm(AdvancedAlgorithmBase):
-    url = 'https://api.traveltimeapp.com/v4/time-filter'
+class RoutesAlgorithm(AdvancedAlgorithmBase):
+    url = 'https://api.traveltimeapp.com/v4/routes'
     accept_header = 'application/json'
+    # search_properties = ["travel_time", "distance", "route", "fares"]
+    search_properties = ["travel_time", "distance", "route"]
 
-    _name = 'time_filter'
-    _displayName = 'Time Filter'
+    _name = 'routes'
+    _displayName = 'Routes'
     _group = 'Advanced'
     _groupId = 'advanced'
     _icon = resources.icon
-    _helpUrl = 'http://docs.traveltimeplatform.com/reference/time-filter/'
-    _shortHelpString = tr("This algorithms allows to use the time-filter endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with.").format(url=_helpUrl)
+    _helpUrl = 'http://docs.traveltimeplatform.com/reference/routes/'
+    _shortHelpString = tr("This algorithms allows to use the routes endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with.").format(url=_helpUrl)
 
     def initAlgorithm(self, config):
 
@@ -674,14 +681,14 @@ class TimeFilterAlgorithm(AdvancedAlgorithmBase):
 
         # Define output parameters
         self.addParameter(
-            QgsProcessingParameterFeatureSink('OUTPUT_RESULTS',
-                                              tr('Results'),
-                                              type=QgsProcessing.TypeVectorPoint, )
+            QgsProcessingParameterFeatureSink('OUTPUT_NORMAL',
+                                              tr('Routes'),
+                                              type=QgsProcessing.TypeVectorLine, )
         )
         self.addParameter(
-            QgsProcessingParameterFeatureSink('OUTPUT_UNREACHABLE',
-                                              tr('Unreachable'),
-                                              type=QgsProcessing.TypeVectorAnyGeometry, )
+            QgsProcessingParameterFeatureSink('OUTPUT_DETAILED',
+                                              tr('Detailed route'),
+                                              type=QgsProcessing.TypeVectorLine, )
         )
 
     def processAlgorithmRemixData(self, data, parameters, context, feedback):
@@ -727,64 +734,73 @@ class TimeFilterAlgorithm(AdvancedAlgorithmBase):
         return data
 
     def processAlgorithmOutput(self, results, parameters, context, feedback):
-        locations = self.parameterAsSource(parameters, 'INPUT_LOCATIONS', context)
+        output_normal_fields = QgsFields()
+        output_normal_fields.append(QgsField('search_id', QVariant.String, 'text', 255))
+        output_normal_fields.append(QgsField('location_id', QVariant.String, 'text', 255))
+        output_normal_fields.append(QgsField('travel_time', QVariant.Double, 'text', 255))
+        output_normal_fields.append(QgsField('distance', QVariant.Double, 'text', 255))
+        output_normal_fields.append(QgsField('departure_time', QVariant.String, 'text', 255))
+        output_normal_fields.append(QgsField('arrival_time', QVariant.String, 'text', 255))
 
-        output_rslts_fields = locations.fields()
-        output_rslts_fields.append(QgsField('search_id', QVariant.String, 'text', 255))
-        output_rslts_fields.append(QgsField('properties', QVariant.String, 'text', 255))
+        output_detailed_fields = QgsFields()
+        output_detailed_fields.append(QgsField('type', QVariant.String, 'text', 255))
+        output_detailed_fields.append(QgsField('mode', QVariant.String, 'text', 255))
+        output_detailed_fields.append(QgsField('directions', QVariant.String, 'text', 255))
 
-        output_unrch_fields = locations.fields()
-        output_unrch_fields.append(QgsField('search_id', QVariant.String, 'text', 255))
+        output_crs = EPSG4326
+        output_type = QgsWkbTypes.LineString
 
-        output_crs = locations.sourceCrs()
-        output_type = QgsWkbTypes.Point
-        # output_type = locations.wkbType() # uncomment if we accept more input types
-
-        QgsWkbTypes.MultiPolygon
-
-        (sink, sink_id) = self.parameterAsSink(parameters, 'OUTPUT_RESULTS', context, output_rslts_fields, output_type, output_crs)
-        (unreachable_sink, unreachable_sink_id) = self.parameterAsSink(parameters, 'OUTPUT_UNREACHABLE', context, output_unrch_fields, output_type, output_crs)
-
-        def get_location_feature(id_):
-            """Returns a feature from the locations layer"""
-            id_expr = self.parameterAsString(parameters, 'INPUT_LOCATIONS_ID', context)
-            expression_ctx = self.createExpressionContext(parameters, context)
-            expression = QgsExpression("{} = '{}'".format(id_expr, id_))
-            for f in locations.getFeatures(QgsFeatureRequest(expression, expression_ctx)):
-                # Return the first one
-                return f
+        (sink_normal, sink_normal_id) = self.parameterAsSink(parameters, 'OUTPUT_NORMAL', context, output_normal_fields, output_type, output_crs)
+        (sink_detailed, sink_detailed_id) = self.parameterAsSink(parameters, 'OUTPUT_DETAILED', context, output_detailed_fields, output_type, output_crs)
 
         for result in results:
             for location in result['locations']:
-                feature = QgsFeature(output_rslts_fields)
-                base_ft = get_location_feature(location['id'])
-                assert(base_ft is not None)
-                feature.setGeometry(QgsGeometry(base_ft.geometry()))
-                for i in range(len(locations.fields())):
-                    feature.setAttribute(i, base_ft.attribute(i))
-                feature.setAttribute(len(output_rslts_fields)-2, result['search_id'])
-                feature.setAttribute(len(output_rslts_fields)-1, json.dumps(location['properties']))
-                sink.addFeature(feature, QgsFeatureSink.FastInsert)
-            for id_ in result['unreachable']:
-                feature = QgsFeature(output_unrch_fields)
-                base_ft = get_location_feature(id_)
-                assert(base_ft is not None)
-                feature.setGeometry(QgsGeometry(base_ft.geometry()))
-                for i in range(len(locations.fields())):
-                    feature.setAttribute(i, base_ft.attribute(i))
-                feature.setAttribute(len(output_unrch_fields)-1, result['search_id'])
-                unreachable_sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                feature_n = QgsFeature(output_normal_fields)
+
+                geom_n = QgsLineString()
+                for part in location['properties'][0]['route']['parts']:
+                    feature_d = QgsFeature(output_detailed_fields)
+                    geom_d = QgsLineString()
+                    for coord in part['coords']:
+                        point = QgsPoint(coord['lng'], coord['lat'])
+                        geom_d.addVertex(point)
+                        if geom_n.endPoint() != point:
+                            geom_n.addVertex(point)
+
+                    feature_d.setGeometry(geom_d)
+                    feature_d.setAttribute(0, part['type'])
+                    feature_d.setAttribute(1, part['mode'])
+                    feature_d.setAttribute(2, part['directions'])
+                    sink_detailed.addFeature(feature_d, QgsFeatureSink.FastInsert)
+
+                feature_n.setGeometry(geom_n)
+
+                feature_n.setAttribute(0, result['search_id'])
+                feature_n.setAttribute(1, location['id'])
+                feature_n.setAttribute(2, location['properties'][0]['travel_time'])
+                feature_n.setAttribute(3, location['properties'][0]['distance'])
+                feature_n.setAttribute(4, location['properties'][0]['route']['departure_time'])
+                feature_n.setAttribute(5, location['properties'][0]['route']['arrival_time'])
+
+                sink_normal.addFeature(feature_n, QgsFeatureSink.FastInsert)
 
         feedback.pushDebugInfo('TimeFilterAlgorithm done !')
 
         # to get hold of the layer in post processing
-        self.sink_id = sink_id
-        self.unreachable_sink_id = unreachable_sink_id
+        self.sink_normal_id = sink_normal_id
+        self.sink_detailed_id = sink_detailed_id
 
         return {
-            'OUTPUT_RESULTS': sink_id,
-            'OUTPUT_UNREACHABLE': unreachable_sink_id,
+            'OUTPUT_NORMAL': sink_normal,
+            'OUTPUT_DETAILED': sink_detailed,
         }
+
+    def postProcessAlgorithm(self, context, feedback):
+        style_path = os.path.join(os.path.dirname(__file__), 'resources', 'style_route_duration.qml')
+        QgsProcessingUtils.mapLayerFromString(self.sink_normal_id, context).loadNamedStyle(style_path)
+        style_path = os.path.join(os.path.dirname(__file__), 'resources', 'style_route_mode.qml')
+        QgsProcessingUtils.mapLayerFromString(self.sink_detailed_id, context).loadNamedStyle(style_path)
+        return super().postProcessAlgorithm(context, feedback)
 
 
 class TimeMapSimpleAlgorithm(AlgorithmBase):
