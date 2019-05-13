@@ -1023,16 +1023,17 @@ class TimeFilterSimpleAlgorithm(AlgorithmBase):
         return {'OUTPUT': dest_id}
 
 
-class TimeFilterSimpleAlgorithm(AlgorithmBase):
-    _name = 'time_filter_simple'
-    _displayName = tr('Time Filter - Simple')
+class RoutesSimpleAlgorithm(AlgorithmBase):
+    _name = 'routes_simple'
+    _displayName = tr('Routes - Simple')
     _group = 'Simplified'
     _groupId = 'simple'
     _icon = resources.icon_simplified
-    _helpUrl = 'http://docs.traveltimeplatform.com/reference/time-filter/'
-    _shortHelpString = tr("This algorithms provides a simpified access to the time-filter endpoint.\n\nPlease see the help on {url} for more details on how to use it.").format(url=_helpUrl)
+    _helpUrl = 'http://docs.traveltimeplatform.com/reference/routes/'
+    _shortHelpString = tr("This algorithms provides a simpified access to the routes endpoint.\n\nPlease see the help on {url} for more details on how to use it.").format(url=_helpUrl)
 
     SEARCH_TYPES = ['DEPARTURE', 'ARRIVAL']
+    RESULT_TYPE = ['NORMAL', 'DETAILED']
 
     def initAlgorithm(self, config):
 
@@ -1071,6 +1072,11 @@ class TimeFilterSimpleAlgorithm(AlgorithmBase):
 
         # OUTPUT
         self.addParameter(
+            QgsProcessingParameterEnum('INPUT_RESULT_TYPE',
+                                       tr('Output style'),
+                                       options=self.RESULT_TYPE)
+        )
+        self.addParameter(
             QgsProcessingParameterFeatureSink('OUTPUT',
                                               tr('Output layer'),
                                               type=QgsProcessing.TypeVectorPoint, )
@@ -1078,10 +1084,11 @@ class TimeFilterSimpleAlgorithm(AlgorithmBase):
 
     def processAlgorithm(self, parameters, context, feedback):
 
-        feedback.pushDebugInfo('Starting TimeFilterSimpleAlgorithm...')
+        feedback.pushDebugInfo('Starting RoutesSimpleAlgorithm...')
 
         mode = self.SEARCH_TYPES[self.parameterAsEnum(parameters, 'INPUT_SEARCH_TYPE', context)]
         trnspt_type = TRANSPORTATION_TYPES[self.parameterAsEnum(parameters, 'INPUT_TRNSPT_TYPE', context)]
+        result_type = self.RESULT_TYPE[self.parameterAsEnum(parameters, 'INPUT_RESULT_TYPE', context)]
 
         search_layer = self.parameterAsSource(parameters, 'INPUT_SEARCHES', context).materialize(QgsFeatureRequest())
         locations_layer = self.parameterAsSource(parameters, 'INPUT_LOCATIONS', context).materialize(QgsFeatureRequest())
@@ -1093,18 +1100,21 @@ class TimeFilterSimpleAlgorithm(AlgorithmBase):
             'INPUT_{}_TRAVEL_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context) * 60),
             'INPUT_{}_TRNSPT_WALKING_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context) * 60),
             'INPUT_LOCATIONS'.format(mode): locations_layer,
-            'OUTPUT_RESULTS': 'memory:results',
-            'OUTPUT_UNREACHABLE': 'memory:unreachable',
+            'OUTPUT_NORMAL': 'memory:output_normal',
+            'OUTPUT_DETAILED': 'memory:output_detailed',
         }
 
         feedback.pushDebugInfo('Calling subcommand with following parameters...')
         feedback.pushDebugInfo(str(sub_parameters))
 
-        results = processing.run("ttp_v4:time_filter", sub_parameters, context=context, feedback=feedback)
+        results = processing.run("ttp_v4:routes", sub_parameters, context=context, feedback=feedback)
 
         feedback.pushDebugInfo('Got results fom subcommand...')
 
-        result_layer = results['OUTPUT_RESULTS']
+        if result_type == 'NORMAL':
+            result_layer = results['OUTPUT_NORMAL']
+        else:
+            result_layer = results['OUTPUT_DETAILED']
 
         # Configure output
         (sink, dest_id) = self.parameterAsSink(
@@ -1117,4 +1127,17 @@ class TimeFilterSimpleAlgorithm(AlgorithmBase):
 
         feedback.pushDebugInfo('TimeMapSimpleAlgorithm done !')
 
+        # to get hold of the layer in post processing
+        self.dest_id = dest_id
+        self.result_type = result_type
+
         return {'OUTPUT': dest_id}
+
+    def postProcessAlgorithm(self, context, feedback):
+        if self.result_type == 'NORMAL':
+            style_file = 'style_route_duration.qml'
+        else:
+            style_file = 'style_route_mode.qml'
+        style_path = os.path.join(os.path.dirname(__file__), 'resources', style_file)
+        QgsProcessingUtils.mapLayerFromString(self.dest_id, context).loadNamedStyle(style_path)
+        return super().postProcessAlgorithm(context, feedback)
