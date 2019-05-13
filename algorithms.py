@@ -793,8 +793,8 @@ class RoutesAlgorithm(AdvancedAlgorithmBase):
         self.sink_detailed_id = sink_detailed_id
 
         return {
-            'OUTPUT_NORMAL': sink_normal,
-            'OUTPUT_DETAILED': sink_detailed,
+            'OUTPUT_NORMAL': sink_normal_id,
+            'OUTPUT_DETAILED': sink_detailed_id,
         }
 
     def postProcessAlgorithm(self, context, feedback):
