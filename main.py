@@ -45,7 +45,7 @@ class Main:
         self.toolbar.addSeparator()
 
         # Show toolbox action
-        self.action_show_toolbox = QAction(resources.icon, tr("Show the toolbox"), self.iface.mainWindow())
+        self.action_show_toolbox = QAction(resources.icon_general, tr("Show the toolbox"), self.iface.mainWindow())
         self.action_show_toolbox.triggered.connect(self.show_toolbox)
         self.toolbar.addAction(self.action_show_toolbox)
         self.iface.addPluginToMenu(u"&Travel Time Platform", self.action_show_toolbox)

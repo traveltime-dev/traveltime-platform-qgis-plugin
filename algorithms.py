@@ -392,7 +392,7 @@ class TimeMapAlgorithm(AdvancedAlgorithmBase):
     _displayName = 'Time Map'
     _group = 'Advanced'
     _groupId = 'advanced'
-    _icon = resources.icon
+    _icon = resources.icon_time_map_advanced
     _helpUrl = 'http://docs.traveltimeplatform.com/reference/time-map/'
     _shortHelpString = tr("This algorithms allows to use the time-map endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with.").format(url=_helpUrl)
 
@@ -508,7 +508,7 @@ class TimeFilterAlgorithm(AdvancedAlgorithmBase):
     _displayName = 'Time Filter'
     _group = 'Advanced'
     _groupId = 'advanced'
-    _icon = resources.icon
+    _icon = resources.icon_time_filter_advanced
     _helpUrl = 'http://docs.traveltimeplatform.com/reference/time-filter/'
     _shortHelpString = tr("This algorithms allows to use the time-filter endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with.").format(url=_helpUrl)
 
@@ -657,7 +657,7 @@ class RoutesAlgorithm(AdvancedAlgorithmBase):
     _displayName = 'Routes'
     _group = 'Advanced'
     _groupId = 'advanced'
-    _icon = resources.icon
+    _icon = resources.icon_routes_advanced
     _helpUrl = 'http://docs.traveltimeplatform.com/reference/routes/'
     _shortHelpString = tr("This algorithms allows to use the routes endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with.").format(url=_helpUrl)
 
@@ -810,7 +810,7 @@ class TimeMapSimpleAlgorithm(AlgorithmBase):
     _displayName = tr('Time Map - Simple')
     _group = 'Simplified'
     _groupId = 'simple'
-    _icon = resources.icon_simplified
+    _icon = resources.icon_time_map_simple
     _helpUrl = 'http://docs.traveltimeplatform.com/reference/time-map/'
     _shortHelpString = tr("This algorithms provides a simpified access to the time-map endpoint.\n\nPlease see the help on {url} for more details on how to use it.").format(url=_helpUrl)
 
@@ -931,7 +931,7 @@ class TimeFilterSimpleAlgorithm(AlgorithmBase):
     _displayName = tr('Time Filter - Simple')
     _group = 'Simplified'
     _groupId = 'simple'
-    _icon = resources.icon_simplified
+    _icon = resources.icon_time_filter_simple
     _helpUrl = 'http://docs.traveltimeplatform.com/reference/time-filter/'
     _shortHelpString = tr("This algorithms provides a simpified access to the time-filter endpoint.\n\nPlease see the help on {url} for more details on how to use it.").format(url=_helpUrl)
 
@@ -1028,7 +1028,7 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
     _displayName = tr('Routes - Simple')
     _group = 'Simplified'
     _groupId = 'simple'
-    _icon = resources.icon_simplified
+    _icon = resources.icon_routes_simple
     _helpUrl = 'http://docs.traveltimeplatform.com/reference/routes/'
     _shortHelpString = tr("This algorithms provides a simpified access to the routes endpoint.\n\nPlease see the help on {url} for more details on how to use it.").format(url=_helpUrl)
 

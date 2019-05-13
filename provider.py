@@ -28,5 +28,5 @@ class Provider(QgsProcessingProvider):
         return self.name()
 
     def icon(self):
-        return resources.icon
+        return resources.icon_general
 
