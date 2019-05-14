@@ -64,6 +64,9 @@ cached_requests = requests_cache.core.CachedSession(
 class AlgorithmBase(QgsProcessingAlgorithm):
     """Base class for all processing algorithms"""
 
+    method = 'POST'
+    accept_header = 'application/json'
+
     def addAdvancedParamter(self, parameter, *args, **kwargs):
         """Helper to add advanced parameters"""
         parameter.setFlags(parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
@@ -86,7 +89,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             self.expressions[PARAM] = QgsExpression(self.parameterAsExpression(parameters, PARAM, context))
             self.expressions[PARAM].prepare(self.expressions_context)
 
-    def processAlgorithmMakeRequest(self, data, parameters, context, feedback):
+    def processAlgorithmMakeRequest(self, parameters, context, feedback, data=None, params={}):
         """Helper method to check the API limits and make an authenticated request"""
 
         json_data = json.dumps(data)
@@ -137,7 +140,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
         try:
 
-            response = cached_requests.post(self.url, data=json_data, headers=headers)
+            response = cached_requests.request(self.method, self.url, data=json_data, params=params, headers=headers)
 
             if response.from_cache:
                 feedback.pushDebugInfo('Got response from cache...')
@@ -377,7 +380,7 @@ class SearchAlgorithmBase(AlgorithmBase):
             data = self.processAlgorithmRemixData(data, parameters, context, feedback)
 
             # Make the query
-            response_data = self.processAlgorithmMakeRequest(data, parameters, context, feedback)
+            response_data = self.processAlgorithmMakeRequest(parameters, context, feedback, data=data)
 
             results += response_data['results']
 
