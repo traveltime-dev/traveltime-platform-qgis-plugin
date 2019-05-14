@@ -37,7 +37,7 @@ from qgis.core import (QgsMessageLog,
 
 import processing
 
-from . import requests_cache
+from .libraries import requests_cache
 
 from . import resources
 from . import auth
