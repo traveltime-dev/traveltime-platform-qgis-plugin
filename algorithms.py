@@ -608,30 +608,22 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
 
         (sink, sink_id) = self.parameterAsSink(parameters, 'OUTPUT', context, output_fields, output_type, output_crs)
 
-        def get_location_layer_feature_clone(id_):
+        def clone_feature(id_):
             """Returns a feature cloned from the locations layer"""
-            new_feature = QgsFeature(output_fields)
             id_expr = self.parameterAsString(parameters, 'INPUT_LOCATIONS_ID', context)
             expression_ctx = self.createExpressionContext(parameters, context)
             expression = QgsExpression("{} = '{}'".format(id_expr, id_))
-            for old_feature in locations.getFeatures(QgsFeatureRequest(expression, expression_ctx)):
-                # Return the first one
-                break
-            new_feature.setGeometry(QgsGeometry(old_feature.geometry()))
-            # Clone all attributes
-            for i in range(len(locations.fields())):
-                new_feature.setAttribute(i, old_feature.attribute(i))
-            return new_feature
+            return utils.clone_feature(QgsFeatureRequest(expression, expression_ctx), locations, output_fields)
 
         for result in results:
             for location in result['locations']:
-                feature = get_location_layer_feature_clone(location['id'])
+                feature = clone_feature(location['id'])
                 feature.setAttribute(len(output_fields)-3, result['search_id'])
                 feature.setAttribute(len(output_fields)-2, 1)
                 feature.setAttribute(len(output_fields)-1, json.dumps(location['properties']))
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
             for id_ in result['unreachable']:
-                feature = get_location_layer_feature_clone(id_)
+                feature = clone_feature(id_)
                 feature.setAttribute(len(output_fields)-3, result['search_id'])
                 feature.setAttribute(len(output_fields)-2, 0)
                 feature.setAttribute(len(output_fields)-1, None)
