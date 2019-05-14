@@ -596,7 +596,7 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
     def processAlgorithmOutput(self, results, parameters, context, feedback):
         locations = self.parameterAsSource(parameters, 'INPUT_LOCATIONS', context)
 
-        output_fields = locations.fields()
+        output_fields = QgsFields(locations.fields())
         output_fields.append(QgsField('search_id', QVariant.String, 'text', 255))
         output_fields.append(QgsField('reachable', QVariant.Int, 'int', 255))
         output_fields.append(QgsField('properties', QVariant.String, 'text', 255))
