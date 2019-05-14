@@ -64,6 +64,118 @@ cached_requests = requests_cache.core.CachedSession(
 class AlgorithmBase(QgsProcessingAlgorithm):
     """Base class for all processing algorithms"""
 
+    def addAdvancedParamter(self, parameter, *args, **kwargs):
+        """Helper to add advanced parameters"""
+        parameter.setFlags(parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        return self.addParameter(parameter, *args, **kwargs)
+
+    def eval_expr(self, key):
+        """Helper to evaluate an expression from the input.
+
+        Do not forget to call self.expressions_context.setFeature(feature) before using this."""
+        if key in self.expressions:
+            return self.expressions[key].evaluate(self.expressions_context)
+        else:
+            return None
+
+    def processAlgorithmConfigureExpressionInputs(self, parameters, context, feedback):
+        """Helper method that sets up all expressions parameter"""
+        self.expressions_context = self.createExpressionContext(parameters, context)
+        self.expressions = {}
+        for PARAM in [p.name() for p in self.parameterDefinitions() if p.type() == 'expression']:
+            self.expressions[PARAM] = QgsExpression(self.parameterAsExpression(parameters, PARAM, context))
+            self.expressions[PARAM].prepare(self.expressions_context)
+
+    def processAlgorithmMakeRequest(self, data, parameters, context, feedback):
+        """Helper method to check the API limits and make an authenticated request"""
+
+        json_data = json.dumps(data)
+
+        # Get API key
+        APP_ID, API_KEY = auth.get_app_id_and_api_key()
+        if not APP_ID or not API_KEY:
+            feedback.reportError(tr('You need a Travel Time Platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin\'s setting dialog.').format('http://docs.traveltimeplatform.com/overview/getting-keys/'), fatalError=True)
+            raise QgsProcessingException('App ID or api key not set')
+
+        headers = {
+            'Content-type': 'application/json',
+            'Accept': self.accept_header,
+            'X-Application-Id': APP_ID,
+            'X-Api-Key': API_KEY,
+        }
+
+        feedback.pushDebugInfo('Checking API limit warnings...')
+        s = QSettings()
+        retries = 10
+        for i in range(retries):
+            enabled = bool(s.value('travel_time_platform/warning_enabled', True))
+            count = int(s.value('travel_time_platform/current_count', 0)) + 1
+            limit = int(s.value('travel_time_platform/warning_limit', 10)) + 1
+            if enabled and count >= limit:
+                if i == 0:
+                    feedback.reportError(tr('WARNING : API usage warning limit reached !'))
+                    feedback.reportError(tr('To continue, disable or increase the limit in the plugin settings, or reset the queries counter. Now is your chance to do the changes.'))
+                feedback.reportError(tr('Execution will resume in 10 seconds (retry {} out of {})').format(i+1, retries))
+                time.sleep(10)
+            else:
+                if enabled:
+                    feedback.pushInfo(tr('API usage warning limit not reached yet ({} queries remaining)...').format(limit-count))
+                else:
+                    feedback.pushInfo(tr('API usage warning limit disabled...'))
+                break
+        else:
+            feedback.reportError(tr('Execution canceled because of API limit warning.'), fatalError=True)
+            raise QgsProcessingException('API usage limit warning')
+
+        feedback.pushDebugInfo('Making request to API endpoint...')
+        print_query = bool(s.value('travel_time_platform/log_calls', False))
+        if print_query:
+            QgsMessageLog.logMessage("Making request", 'TimeTravelPlatform')
+            QgsMessageLog.logMessage("url: {}".format(self.url), 'TimeTravelPlatform')
+            QgsMessageLog.logMessage("headers: {}".format(headers), 'TimeTravelPlatform')
+            QgsMessageLog.logMessage("data: {}".format(json_data), 'TimeTravelPlatform')
+
+        try:
+
+            response = cached_requests.post(self.url, data=json_data, headers=headers)
+
+            if response.from_cache:
+                feedback.pushDebugInfo('Got response from cache...')
+            else:
+                feedback.pushDebugInfo('Got response from API endpoint...')
+                s.setValue('travel_time_platform/current_count', int(s.value('travel_time_platform/current_count', 0)) + 1)
+
+            if print_query:
+                QgsMessageLog.logMessage("Got response", 'TimeTravelPlatform')
+                QgsMessageLog.logMessage("status: {}".format(response.status_code), 'TimeTravelPlatform')
+                QgsMessageLog.logMessage("reason: {}".format(response.reason), 'TimeTravelPlatform')
+                QgsMessageLog.logMessage("text: {}".format(response.text), 'TimeTravelPlatform')
+
+            response_data = json.loads(response.text)
+            response.raise_for_status()
+
+            return response_data
+
+        except requests.exceptions.HTTPError as e:
+            nice_info = '\n'.join('\t{}:\t{}'.format(k,v) for k,v in response_data['additional_info'].items())
+            feedback.reportError(tr('Recieved error from the API.\nError code : {}\nDescription : {}\nSee : {}\nAddtionnal info :\n{}').format(response_data['error_code'],response_data['description'],response_data['documentation_link'],nice_info), fatalError=True)
+            feedback.reportError(tr('See log for more details.'), fatalError=True)
+            QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
+            raise QgsProcessingException('Got error {} form API'.format(response.status_code)) from None
+        except requests.exceptions.RequestException as e:
+            feedback.reportError(tr('Could not connect to the API. See log for more details.'), fatalError=True)
+            QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
+            raise QgsProcessingException('Could not connect to API') from None
+        except ValueError as e:
+            feedback.reportError(tr('Could not decode response. See log for more details.'), fatalError=True)
+            QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
+            raise QgsProcessingException('Could not decode response') from None
+
+    def createInstance(self):
+        return self.__class__()
+
+    # Cosmetic methods to allow less verbose definition of these propreties in child classes
+
     def name(self):
         return self._name
 
@@ -85,19 +197,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     def shortHelpString(self):
         return self._shortHelpString
 
-    def createInstance(self):
-        return self.__class__()
 
-
-class AdvancedAlgorithmBase(AlgorithmBase):
-    """Base class for advanced processing algorithms"""
+class SearchAlgorithmBase(AlgorithmBase):
+    """Base class for the algorithms that share properties such as departure/arrival_searches"""
 
     search_properties = []
-
-    def addAdvancedParamter(self, parameter, *args, **kwargs):
-        """Helper to add advanced parameters"""
-        parameter.setFlags(parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
-        return self.addParameter(parameter, *args, **kwargs)
 
     def initAlgorithm(self, config):
         """Base setup of the algorithm.
@@ -197,35 +301,16 @@ class AdvancedAlgorithmBase(AlgorithmBase):
                                                  parentLayerParameterName='INPUT_'+DEPARR+'_SEARCHES',)
             )
 
-    def eval_expr(self, key):
-        """Helper to evaluate an expression from the input.
-
-        Do not forget to call self.expressions_context.setFeature(feature) before using this."""
-        if key in self.expressions:
-            return self.expressions[key].evaluate(self.expressions_context)
-        else:
-            return None
-
     def processAlgorithm(self, parameters, context, feedback):
 
-        feedback.pushDebugInfo('Starting TimeMapAlgorithm...')
-
-        # Get API key
-        APP_ID, API_KEY = auth.get_app_id_and_api_key()
-        if not APP_ID or not API_KEY:
-            feedback.reportError(tr('You need a Travel Time Platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin\'s setting dialog.').format('http://docs.traveltimeplatform.com/overview/getting-keys/'), fatalError=True)
-            raise QgsProcessingException('App ID or api key not set')
-
-        # Configure common inputs
-        source_departure = self.parameterAsSource(parameters, 'INPUT_DEPARTURE_SEARCHES', context)
-        source_arrival = self.parameterAsSource(parameters, 'INPUT_ARRIVAL_SEARCHES', context)
+        feedback.pushDebugInfo('Starting {}...'.format(self.__class__.__name__))
 
         # Configure common expressions inputs
-        self.expressions_context = self.createExpressionContext(parameters, context)
-        self.expressions = {}
-        for PARAM in [p.name() for p in self.parameterDefinitions() if p.type() == 'expression']:
-            self.expressions[PARAM] = QgsExpression(self.parameterAsExpression(parameters, PARAM, context))
-            self.expressions[PARAM].prepare(self.expressions_context)
+        self.processAlgorithmConfigureExpressionInputs(parameters, context, feedback)
+
+        # Main implementation
+        source_departure = self.parameterAsSource(parameters, 'INPUT_DEPARTURE_SEARCHES', context)
+        source_arrival = self.parameterAsSource(parameters, 'INPUT_ARRIVAL_SEARCHES', context)
 
         source_departure_count = source_departure.featureCount() if source_departure else 0
         source_arrival_count = source_arrival.featureCount() if source_arrival else 0
@@ -242,9 +327,8 @@ class AdvancedAlgorithmBase(AlgorithmBase):
             slicing_start = slicing_i * slicing_size
             slicing_end = (slicing_i + 1) * slicing_size
 
-            # Prepare data
+            # Prepare the data
             data = {}
-
             for DEPARR, source in [('DEPARTURE', source_departure), ('ARRIVAL', source_arrival)]:
                 deparr = DEPARR.lower()
                 if source:
@@ -289,86 +373,19 @@ class AdvancedAlgorithmBase(AlgorithmBase):
                         # # Update the progress bar
                         # feedback.setProgress(int(current * total))
 
-            url = self.url
-            headers = {
-                'Content-type': 'application/json',
-                'Accept': self.accept_header,
-                'X-Application-Id': APP_ID,
-                'X-Api-Key': API_KEY,
-            }
+            # Remix the data as needed
+            data = self.processAlgorithmRemixData(data, parameters, context, feedback)
 
-            data = json.dumps(self.processAlgorithmRemixData(data, parameters, context, feedback))
+            # Make the query
+            response_data = self.processAlgorithmMakeRequest(data, parameters, context, feedback)
 
-            feedback.pushDebugInfo('Checking API limit warnings...')
-            s = QSettings()
-            retries = 10
-            for i in range(retries):
-                enabled = bool(s.value('travel_time_platform/warning_enabled', True))
-                count = int(s.value('travel_time_platform/current_count', 0)) + 1
-                limit = int(s.value('travel_time_platform/warning_limit', 10)) + 1
-                if enabled and count >= limit:
-                    if i == 0:
-                        feedback.reportError(tr('WARNING : API usage warning limit reached !'))
-                        feedback.reportError(tr('To continue, disable or increase the limit in the plugin settings, or reset the queries counter. Now is your chance to do the changes.'))
-                    feedback.reportError(tr('Execution will resume in 10 seconds (retry {} out of {})').format(i+1, retries))
-                    time.sleep(10)
-                else:
-                    if enabled:
-                        feedback.pushInfo(tr('API usage warning limit not reached yet ({} queries remaining)...').format(limit-count))
-                    else:
-                        feedback.pushInfo(tr('API usage warning limit disabled...'))
-                    break
-            else:
-                feedback.reportError(tr('Execution canceled because of API limit warning.'), fatalError=True)
-                raise QgsProcessingException('API usage limit warning')
-
-            feedback.pushDebugInfo('Making request to API endpoint...')
-            print_query = bool(s.value('travel_time_platform/log_calls', False))
-            if print_query:
-                QgsMessageLog.logMessage("Making request", 'TimeTravelPlatform')
-                QgsMessageLog.logMessage("url: {}".format(url), 'TimeTravelPlatform')
-                QgsMessageLog.logMessage("headers: {}".format(headers), 'TimeTravelPlatform')
-                QgsMessageLog.logMessage("data: {}".format(data), 'TimeTravelPlatform')
-
-            try:
-
-                response = cached_requests.post(url, data=data, headers=headers)
-
-                if response.from_cache:
-                    feedback.pushDebugInfo('Got response from cache...')
-                else:
-                    feedback.pushDebugInfo('Got response from API endpoint...')
-                    s.setValue('travel_time_platform/current_count', int(s.value('travel_time_platform/current_count', 0)) + 1)
-
-                if print_query:
-                    QgsMessageLog.logMessage("Got response", 'TimeTravelPlatform')
-                    QgsMessageLog.logMessage("status: {}".format(response.status_code), 'TimeTravelPlatform')
-                    QgsMessageLog.logMessage("reason: {}".format(response.reason), 'TimeTravelPlatform')
-                    QgsMessageLog.logMessage("text: {}".format(response.text), 'TimeTravelPlatform')
-
-                response_data = json.loads(response.text)
-                response.raise_for_status()
-                results += response_data['results']
-
-            except requests.exceptions.HTTPError as e:
-                nice_info = '\n'.join('\t{}:\t{}'.format(k,v) for k,v in response_data['additional_info'].items())
-                feedback.reportError(tr('Recieved error from the API.\nError code : {}\nDescription : {}\nSee : {}\nAddtionnal info :\n{}').format(response_data['error_code'],response_data['description'],response_data['documentation_link'],nice_info), fatalError=True)
-                feedback.reportError(tr('See log for more details.'), fatalError=True)
-                QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-                raise QgsProcessingException('Got error {} form API'.format(response.status_code)) from None
-            except requests.exceptions.RequestException as e:
-                feedback.reportError(tr('Could not connect to the API. See log for more details.'), fatalError=True)
-                QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-                raise QgsProcessingException('Could not connect to API') from None
-            except ValueError as e:
-                feedback.reportError(tr('Could not decode response. See log for more details.'), fatalError=True)
-                QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-                raise QgsProcessingException('Could not decode response') from None
+            results += response_data['results']
 
         feedback.pushDebugInfo('Loading response to layer...')
 
         # Configure output
         return self.processAlgorithmOutput(results, parameters, context, feedback)
+
 
     def processAlgorithmRemixData(self, data, parameters, context, feedback):
         """To be overriden by subclasses : allow to edit the data object before sending to the API"""
@@ -379,7 +396,7 @@ class AdvancedAlgorithmBase(AlgorithmBase):
         return None
 
 
-class TimeMapAlgorithm(AdvancedAlgorithmBase):
+class TimeMapAlgorithm(SearchAlgorithmBase):
     url = 'https://api.traveltimeapp.com/v4/time-map'
     accept_header = 'application/vnd.wkt+json'
 
@@ -493,7 +510,7 @@ class TimeMapAlgorithm(AdvancedAlgorithmBase):
         return retval
 
 
-class TimeFilterAlgorithm(AdvancedAlgorithmBase):
+class TimeFilterAlgorithm(SearchAlgorithmBase):
     url = 'https://api.traveltimeapp.com/v4/time-filter'
     accept_header = 'application/json'
     # search_properties = ["travel_time", "distance", "distance_breakdown", "fares", "route"]
@@ -635,7 +652,7 @@ class TimeFilterAlgorithm(AdvancedAlgorithmBase):
         return super().postProcessAlgorithm(context, feedback)
 
 
-class RoutesAlgorithm(AdvancedAlgorithmBase):
+class RoutesAlgorithm(SearchAlgorithmBase):
     url = 'https://api.traveltimeapp.com/v4/routes'
     accept_header = 'application/json'
     # search_properties = ["travel_time", "distance", "route", "fares"]
