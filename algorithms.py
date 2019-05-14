@@ -49,23 +49,16 @@ from .utils import tr
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
 TRANSPORTATION_TYPES = ['cycling', 'driving', 'driving+train', 'public_transport', 'walking', 'coach', 'bus', 'train', 'ferry', 'driving+ferry', 'cycling+ferry']
 
-# Regular cache (does not persist accross plugin reloads or restarts)
 cached_requests = requests_cache.core.CachedSession(
+    # Regular
     cache_name="ttp_cache",
     backend="memory",
+    # # Persisting (use for development, to avoid hitting API limit)
+    # cache_name=os.path.join(os.path.dirname(__file__), 'cachefile'),
+    # backend="sqlite",
     expire_after=86400,
     allowable_methods=('GET', 'POST')
 )
-
-# # Persisting (database file in in the plugin folder)
-# import os
-# cached_requests = requests_cache.core.CachedSession(
-#     cache_name=os.path.join(os.path.dirname(__file__), 'cachefile'),
-#     backend="sqlite",
-#     expire_after=86400,
-#     allowable_methods=('GET', 'POST')
-# )
-
 
 
 class AlgorithmBase(QgsProcessingAlgorithm):
