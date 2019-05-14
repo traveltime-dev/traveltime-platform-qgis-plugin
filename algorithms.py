@@ -627,6 +627,11 @@ class TimeFilterAlgorithm(AdvancedAlgorithmBase):
             'OUTPUT_RESULTS': sink_id,
         }
 
+    def postProcessAlgorithm(self, context, feedback):
+        style_path = os.path.join(os.path.dirname(__file__), 'resources', 'style_filter.qml')
+        QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(style_path)
+        return super().postProcessAlgorithm(context, feedback)
+
 
 class RoutesAlgorithm(AdvancedAlgorithmBase):
     url = 'https://api.traveltimeapp.com/v4/routes'
@@ -1004,7 +1009,15 @@ class TimeFilterSimpleAlgorithm(AlgorithmBase):
 
         feedback.pushDebugInfo('TimeMapSimpleAlgorithm done !')
 
+        # to get hold of the layer in post processing
+        self.dest_id = dest_id
+
         return {'OUTPUT': dest_id}
+
+    def postProcessAlgorithm(self, context, feedback):
+        style_path = os.path.join(os.path.dirname(__file__), 'resources', 'style_filter.qml')
+        QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(style_path)
+        return super().postProcessAlgorithm(context, feedback)
 
 
 class RoutesSimpleAlgorithm(AlgorithmBase):
