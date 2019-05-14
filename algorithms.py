@@ -527,14 +527,9 @@ class TimeFilterAlgorithm(AdvancedAlgorithmBase):
 
         # Define output parameters
         self.addParameter(
-            QgsProcessingParameterFeatureSink('OUTPUT_RESULTS',
+            QgsProcessingParameterFeatureSink('OUTPUT',
                                               tr('Results'),
                                               type=QgsProcessing.TypeVectorPoint, )
-        )
-        self.addParameter(
-            QgsProcessingParameterFeatureSink('OUTPUT_UNREACHABLE',
-                                              tr('Unreachable'),
-                                              type=QgsProcessing.TypeVectorAnyGeometry, )
         )
 
     def processAlgorithmRemixData(self, data, parameters, context, feedback):
@@ -582,61 +577,54 @@ class TimeFilterAlgorithm(AdvancedAlgorithmBase):
     def processAlgorithmOutput(self, results, parameters, context, feedback):
         locations = self.parameterAsSource(parameters, 'INPUT_LOCATIONS', context)
 
-        output_rslts_fields = locations.fields()
-        output_rslts_fields.append(QgsField('search_id', QVariant.String, 'text', 255))
-        output_rslts_fields.append(QgsField('properties', QVariant.String, 'text', 255))
-
-        output_unrch_fields = locations.fields()
-        output_unrch_fields.append(QgsField('search_id', QVariant.String, 'text', 255))
+        output_fields = locations.fields()
+        output_fields.append(QgsField('search_id', QVariant.String, 'text', 255))
+        output_fields.append(QgsField('reachable', QVariant.Int, 'int', 255))
+        output_fields.append(QgsField('properties', QVariant.String, 'text', 255))
 
         output_crs = locations.sourceCrs()
-        output_type = QgsWkbTypes.Point
-        # output_type = locations.wkbType() # uncomment if we accept more input types
+        output_type = locations.wkbType()
 
         QgsWkbTypes.MultiPolygon
 
-        (sink, sink_id) = self.parameterAsSink(parameters, 'OUTPUT_RESULTS', context, output_rslts_fields, output_type, output_crs)
-        (unreachable_sink, unreachable_sink_id) = self.parameterAsSink(parameters, 'OUTPUT_UNREACHABLE', context, output_unrch_fields, output_type, output_crs)
+        (sink, sink_id) = self.parameterAsSink(parameters, 'OUTPUT', context, output_fields, output_type, output_crs)
 
-        def get_location_feature(id_):
-            """Returns a feature from the locations layer"""
+        def get_location_layer_feature_clone(id_):
+            """Returns a feature cloned from the locations layer"""
+            new_feature = QgsFeature(output_fields)
             id_expr = self.parameterAsString(parameters, 'INPUT_LOCATIONS_ID', context)
             expression_ctx = self.createExpressionContext(parameters, context)
             expression = QgsExpression("{} = '{}'".format(id_expr, id_))
-            for f in locations.getFeatures(QgsFeatureRequest(expression, expression_ctx)):
+            for old_feature in locations.getFeatures(QgsFeatureRequest(expression, expression_ctx)):
                 # Return the first one
-                return f
+                break
+            new_feature.setGeometry(QgsGeometry(old_feature.geometry()))
+            # Clone all attributes
+            for i in range(len(locations.fields())):
+                new_feature.setAttribute(i, old_feature.attribute(i))
+            return new_feature
 
         for result in results:
             for location in result['locations']:
-                feature = QgsFeature(output_rslts_fields)
-                base_ft = get_location_feature(location['id'])
-                assert(base_ft is not None)
-                feature.setGeometry(QgsGeometry(base_ft.geometry()))
-                for i in range(len(locations.fields())):
-                    feature.setAttribute(i, base_ft.attribute(i))
-                feature.setAttribute(len(output_rslts_fields)-2, result['search_id'])
-                feature.setAttribute(len(output_rslts_fields)-1, json.dumps(location['properties']))
+                feature = get_location_layer_feature_clone(location['id'])
+                feature.setAttribute(len(output_fields)-3, result['search_id'])
+                feature.setAttribute(len(output_fields)-2, 1)
+                feature.setAttribute(len(output_fields)-1, json.dumps(location['properties']))
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
             for id_ in result['unreachable']:
-                feature = QgsFeature(output_unrch_fields)
-                base_ft = get_location_feature(id_)
-                assert(base_ft is not None)
-                feature.setGeometry(QgsGeometry(base_ft.geometry()))
-                for i in range(len(locations.fields())):
-                    feature.setAttribute(i, base_ft.attribute(i))
-                feature.setAttribute(len(output_unrch_fields)-1, result['search_id'])
-                unreachable_sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                feature = get_location_layer_feature_clone(id_)
+                feature.setAttribute(len(output_fields)-3, result['search_id'])
+                feature.setAttribute(len(output_fields)-2, 0)
+                feature.setAttribute(len(output_fields)-1, None)
+                sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
         feedback.pushDebugInfo('TimeFilterAlgorithm done !')
 
         # to get hold of the layer in post processing
         self.sink_id = sink_id
-        self.unreachable_sink_id = unreachable_sink_id
 
         return {
             'OUTPUT_RESULTS': sink_id,
-            'OUTPUT_UNREACHABLE': unreachable_sink_id,
         }
 
 
@@ -993,8 +981,7 @@ class TimeFilterSimpleAlgorithm(AlgorithmBase):
             'INPUT_{}_TRAVEL_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context) * 60),
             'INPUT_{}_TRNSPT_WALKING_TIME'.format(mode): str(self.parameterAsInt(parameters, 'INPUT_TRAVEL_TIME', context) * 60),
             'INPUT_LOCATIONS'.format(mode): locations_layer,
-            'OUTPUT_RESULTS': 'memory:results',
-            'OUTPUT_UNREACHABLE': 'memory:unreachable',
+            'OUTPUT': 'memory:results',
         }
 
         feedback.pushDebugInfo('Calling subcommand with following parameters...')
@@ -1004,7 +991,7 @@ class TimeFilterSimpleAlgorithm(AlgorithmBase):
 
         feedback.pushDebugInfo('Got results fom subcommand...')
 
-        result_layer = results['OUTPUT_RESULTS']
+        result_layer = results['OUTPUT']
 
         # Configure output
         (sink, dest_id) = self.parameterAsSink(
