@@ -9,8 +9,9 @@
     <categories>
       <category value="bus" render="true" symbol="0" label="bus"/>
       <category value="train" render="true" symbol="1" label="train"/>
-      <category value="walk" render="true" symbol="2" label="walk"/>
-      <category value="" render="true" symbol="3" label=""/>
+      <category value="bike" render="true" symbol="2" label="bike"/>
+      <category value="walk" render="true" symbol="3" label="walk"/>
+      <category value="" render="true" symbol="4" label=""/>
     </categories>
     <symbols>
       <symbol type="line" clip_to_extent="1" force_rhr="0" alpha="1" name="0">
@@ -75,8 +76,8 @@
           <prop v="MM" k="customdash_unit"/>
           <prop v="0" k="draw_inside_polygon"/>
           <prop v="round" k="joinstyle"/>
-          <prop v="245,166,35,255" k="line_color"/>
-          <prop v="dot" k="line_style"/>
+          <prop v="239,66,127,255" k="line_color"/>
+          <prop v="solid" k="line_style"/>
           <prop v="1" k="line_width"/>
           <prop v="MM" k="line_width_unit"/>
           <prop v="0" k="offset"/>
@@ -102,7 +103,34 @@
           <prop v="MM" k="customdash_unit"/>
           <prop v="0" k="draw_inside_polygon"/>
           <prop v="round" k="joinstyle"/>
-          <prop v="209,112,63,255" k="line_color"/>
+          <prop v="245,166,35,255" k="line_color"/>
+          <prop v="dot" k="line_style"/>
+          <prop v="1" k="line_width"/>
+          <prop v="MM" k="line_width_unit"/>
+          <prop v="0" k="offset"/>
+          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+          <prop v="MM" k="offset_unit"/>
+          <prop v="0" k="ring_filter"/>
+          <prop v="0" k="use_custom_dash"/>
+          <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option type="QString" value="" name="name"/>
+              <Option name="properties"/>
+              <Option type="QString" value="collection" name="type"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+      </symbol>
+      <symbol type="line" clip_to_extent="1" force_rhr="0" alpha="1" name="4">
+        <layer pass="0" locked="0" enabled="1" class="SimpleLine">
+          <prop v="round" k="capstyle"/>
+          <prop v="5;2" k="customdash"/>
+          <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
+          <prop v="MM" k="customdash_unit"/>
+          <prop v="0" k="draw_inside_polygon"/>
+          <prop v="round" k="joinstyle"/>
+          <prop v="128,128,128,255" k="line_color"/>
           <prop v="solid" k="line_style"/>
           <prop v="1" k="line_width"/>
           <prop v="MM" k="line_width_unit"/>
@@ -151,6 +179,7 @@
         </layer>
       </symbol>
     </source-symbol>
+    <colorramp type="randomcolors" name="[source]"/>
     <rotation/>
     <sizescale/>
   </renderer-v2>
@@ -168,6 +197,7 @@
   <SingleCategoryDiagramRenderer diagramType="Histogram" attributeLegend="1">
     <DiagramCategory penWidth="0" penAlpha="255" barWidth="5" backgroundAlpha="255" rotationOffset="270" penColor="#000000" minScaleDenominator="0" opacity="1" width="15" diagramOrientation="Up" labelPlacementMethod="XHeight" lineSizeScale="3x:0,0,0,0,0,0" enabled="0" sizeType="MM" maxScaleDenominator="1e+08" sizeScale="3x:0,0,0,0,0,0" scaleBasedVisibility="0" scaleDependency="Area" lineSizeType="MM" minimumSize="0" backgroundColor="#ffffff" height="15">
       <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
+      <attribute color="#000000" field="" label=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
   <DiagramLayerSettings showAll="1" obstacle="0" dist="0" linePlacementFlags="18" zIndex="0" priority="0" placement="2">
@@ -198,24 +228,35 @@
         </config>
       </editWidget>
     </field>
+    <field name="directions">
+      <editWidget type="TextEdit">
+        <config>
+          <Option/>
+        </config>
+      </editWidget>
+    </field>
   </fieldConfiguration>
   <aliases>
     <alias index="0" field="type" name=""/>
     <alias index="1" field="mode" name=""/>
+    <alias index="2" field="directions" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
     <default expression="" applyOnUpdate="0" field="type"/>
     <default expression="" applyOnUpdate="0" field="mode"/>
+    <default expression="" applyOnUpdate="0" field="directions"/>
   </defaults>
   <constraints>
     <constraint constraints="0" unique_strength="0" exp_strength="0" field="type" notnull_strength="0"/>
     <constraint constraints="0" unique_strength="0" exp_strength="0" field="mode" notnull_strength="0"/>
+    <constraint constraints="0" unique_strength="0" exp_strength="0" field="directions" notnull_strength="0"/>
   </constraints>
   <constraintExpressions>
     <constraint exp="" field="type" desc=""/>
     <constraint exp="" field="mode" desc=""/>
+    <constraint exp="" field="directions" desc=""/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
@@ -224,8 +265,9 @@
   <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
       <column type="field" width="-1" hidden="0" name="type"/>
-      <column type="field" width="-1" hidden="0" name="mode"/>
+      <column type="field" width="236" hidden="0" name="mode"/>
       <column type="actions" width="-1" hidden="1"/>
+      <column type="field" width="-1" hidden="0" name="directions"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -256,10 +298,12 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>generatedlayout</editorlayout>
   <editable>
+    <field name="directions" editable="1"/>
     <field name="mode" editable="1"/>
     <field name="type" editable="1"/>
   </editable>
   <labelOnTop>
+    <field labelOnTop="0" name="directions"/>
     <field labelOnTop="0" name="mode"/>
     <field labelOnTop="0" name="type"/>
   </labelOnTop>
