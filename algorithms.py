@@ -201,8 +201,10 @@ class AdvancedAlgorithmBase(AlgorithmBase):
         """Helper to evaluate an expression from the input.
 
         Do not forget to call self.expressions_context.setFeature(feature) before using this."""
-
-        return self.expressions[key].evaluate(self.expressions_context)
+        if key in self.expressions:
+            return self.expressions[key].evaluate(self.expressions_context)
+        else:
+            return None
 
     def processAlgorithm(self, parameters, context, feedback):
 
@@ -711,6 +713,7 @@ class RoutesAlgorithm(AdvancedAlgorithmBase):
                     'coords': departure_search['coords'],
                 })
                 del departure_search['coords']
+                del departure_search['travel_time']
                 departure_search['departure_location_id'] = departure_search['id']
                 departure_search['arrival_location_ids'] = all_locations_ids
         if 'arrival_searches' in data:
@@ -720,6 +723,7 @@ class RoutesAlgorithm(AdvancedAlgorithmBase):
                     'coords': arrival_search['coords'],
                 })
                 del arrival_search['coords']
+                del arrival_search['travel_time']
                 arrival_search['arrival_location_id'] = arrival_search['id']
                 arrival_search['departure_location_ids'] = all_locations_ids
 
