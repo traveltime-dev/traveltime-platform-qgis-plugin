@@ -4,14 +4,12 @@ from qgis.PyQt.QtCore import Qt, QSettings, QDateTime, QDate, QTime
 from qgis.PyQt.QtWidgets import QDialog, QDateTimeEdit, QWidget
 from qgis.PyQt import uic
 
-from qgis.core import QgsMessageLog
-
 from processing.gui.AlgorithmDialog import AlgorithmDialog
 from processing.gui.wrappers import WidgetWrapper
 
 from . import algorithms
 from . import auth
-from .utils import tr
+from .utils import tr, log
 
 
 HELP_DIR = os.path.join(os.path.dirname(__file__), "docs")
@@ -178,9 +176,7 @@ class HelpWidget(QWidget):
         elif url.url()[0:4] == "http":
             webbrowser.open(url.url())
         else:
-            QgsMessageLog.logMessage(
-                "Unknown url : {}".format(url.url()), "TimeTravelPlatform"
-            )
+            log("Unknown url : {}".format(url.url()), "TimeTravelPlatform")
 
 
 class IsoDateTimeWidgetWrapper(WidgetWrapper):

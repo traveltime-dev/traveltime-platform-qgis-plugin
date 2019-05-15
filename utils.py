@@ -3,7 +3,7 @@ import time
 
 from qgis.PyQt.QtCore import QCoreApplication
 
-from qgis.core import QgsFeature, QgsGeometry
+from qgis.core import QgsFeature, QgsGeometry, QgsMessageLog
 
 
 def now_iso():
@@ -39,6 +39,10 @@ def clone_feature(id_or_request, source_layer, output_fields=None):
     for i in range(len(source_layer.fields())):
         new_feature.setAttribute(i, old_feature.attribute(i))
     return new_feature
+
+
+def log(msg):
+    QgsMessageLog.logMessage(msg, "TimeTravelPlatform")
 
 
 def tr(string):

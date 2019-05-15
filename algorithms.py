@@ -48,7 +48,7 @@ from . import resources
 from . import auth
 from . import utils
 from . import parameters
-from .utils import tr
+from .utils import tr, log
 
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
@@ -180,15 +180,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         feedback.pushDebugInfo("Making request to API endpoint...")
         print_query = bool(s.value("travel_time_platform/log_calls", False))
         if print_query:
-            QgsMessageLog.logMessage("Making request", "TimeTravelPlatform")
-            QgsMessageLog.logMessage("url: {}".format(self.url), "TimeTravelPlatform")
-            QgsMessageLog.logMessage(
-                "headers: {}".format(headers), "TimeTravelPlatform"
-            )
-            QgsMessageLog.logMessage(
-                "params: {}".format(str(params)), "TimeTravelPlatform"
-            )
-            QgsMessageLog.logMessage("data: {}".format(json_data), "TimeTravelPlatform")
+            log("Making request", "TimeTravelPlatform")
+            log("url: {}".format(self.url), "TimeTravelPlatform")
+            log("headers: {}".format(headers), "TimeTravelPlatform")
+            log("params: {}".format(str(params)), "TimeTravelPlatform")
+            log("data: {}".format(json_data), "TimeTravelPlatform")
 
         try:
 
@@ -206,16 +202,10 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 )
 
             if print_query:
-                QgsMessageLog.logMessage("Got response", "TimeTravelPlatform")
-                QgsMessageLog.logMessage(
-                    "status: {}".format(response.status_code), "TimeTravelPlatform"
-                )
-                QgsMessageLog.logMessage(
-                    "reason: {}".format(response.reason), "TimeTravelPlatform"
-                )
-                QgsMessageLog.logMessage(
-                    "text: {}".format(response.text), "TimeTravelPlatform"
-                )
+                log("Got response", "TimeTravelPlatform")
+                log("status: {}".format(response.status_code), "TimeTravelPlatform")
+                log("reason: {}".format(response.reason), "TimeTravelPlatform")
+                log("text: {}".format(response.text), "TimeTravelPlatform")
 
             response_data = json.loads(response.text)
             response.raise_for_status()
@@ -239,7 +229,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 fatalError=True,
             )
             feedback.reportError(tr("See log for more details."), fatalError=True)
-            QgsMessageLog.logMessage(str(e), "TimeTravelPlatform")
+            log(str(e), "TimeTravelPlatform")
             raise QgsProcessingException(
                 "Got error {} form API".format(response.status_code)
             ) from None
@@ -248,14 +238,14 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 tr("Could not connect to the API. See log for more details."),
                 fatalError=True,
             )
-            QgsMessageLog.logMessage(str(e), "TimeTravelPlatform")
+            log(str(e), "TimeTravelPlatform")
             raise QgsProcessingException("Could not connect to API") from None
         except ValueError as e:
             feedback.reportError(
                 tr("Could not decode response. See log for more details."),
                 fatalError=True,
             )
-            QgsMessageLog.logMessage(str(e), "TimeTravelPlatform")
+            log(str(e), "TimeTravelPlatform")
             raise QgsProcessingException("Could not decode response") from None
 
     def createInstance(self):
