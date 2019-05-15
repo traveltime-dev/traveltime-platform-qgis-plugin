@@ -42,7 +42,7 @@ def clone_feature(id_or_request, source_layer, output_fields=None):
 
 
 def log(msg):
-    QgsMessageLog.logMessage(msg, "TimeTravelPlatform")
+    QgsMessageLog.logMessage(str(msg), "TimeTravelPlatform")
 
 
 def tr(string):
