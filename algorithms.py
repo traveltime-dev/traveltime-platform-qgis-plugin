@@ -1494,19 +1494,7 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
         return super().postProcessAlgorithm(context, feedback)
 
 
-class GeocodingAlgorithm(AlgorithmBase):
-    url = "https://api.traveltimeapp.com/v4/geocoding/search"
-    method = "GET"
-
-    _name = "geocoding"
-    _displayName = tr("Geocoding")
-    _group = "Utilities"
-    _groupId = "utils"
-    _icon = resources.icon_geocoding
-    _helpUrl = "https://docs.traveltimeplatform.com/reference/geocoding-search/"
-    _shortHelpString = tr(
-        "This algorithms provides access to the geocoding endpoint.\n\nPlease see the help on {url} for more details on how to use it."
-    ).format(url=_helpUrl)
+class GeocodingAlgorithmBase(AlgorithmBase):
 
     RESULT_TYPE = ["ALL", "BEST_MATCH"]
 
@@ -1517,16 +1505,7 @@ class GeocodingAlgorithm(AlgorithmBase):
                 "INPUT_DATA", tr("Input data"), [QgsProcessing.TypeVector]
             )
         )
-        self.addParameter(
-            QgsProcessingParameterExpression(
-                "INPUT_QUERY_FIELD",
-                tr("Search expression"),
-                parentLayerParameterName="INPUT_DATA",
-            )
-        )
-        self.addParameter(
-            QgsProcessingParameterPoint("INPUT_FOCUS", tr("Focus point"), optional=True)
-        )
+
         self.addParameter(
             QgsProcessingParameterEnum(
                 "INPUT_COUNTRY",
@@ -1538,7 +1517,7 @@ class GeocodingAlgorithm(AlgorithmBase):
 
         self.addParameter(
             QgsProcessingParameterEnum(
-                "INPUT_RESULT_TYPE", tr("Result aggregation"), options=self.RESULT_TYPE
+                "INPUT_RESULT_TYPE", tr("Results type"), options=self.RESULT_TYPE
             )
         )
 
@@ -1558,13 +1537,8 @@ class GeocodingAlgorithm(AlgorithmBase):
 
         # Main implementation
         source_data = self.parameterAsSource(parameters, "INPUT_DATA", context)
-        focus_point = self.parameterAsPoint(parameters, "INPUT_FOCUS", context)
-        focus_point_crs = self.parameterAsPointCrs(parameters, "INPUT_FOCUS", context)
         limit_country_chc = self.parameterAsEnum(parameters, "INPUT_COUNTRY", context)
         limit_country = COUNTRIES[limit_country_chc][0] if limit_country_chc else None
-        result_type = self.RESULT_TYPE[
-            self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
-        ]
 
         if source_data.featureCount() > 1:
             feedback.pushInfo(
@@ -1573,23 +1547,52 @@ class GeocodingAlgorithm(AlgorithmBase):
                 ).format(source_data.featureCount())
             )
 
+        # Configure output
+        output_fields = QgsFields(source_data.fields())
+        response_attributes = [
+            "name",
+            "label",
+            "score",
+            "house_number",
+            "street",
+            "region",
+            "region_code",
+            "neighbourhood",
+            "county",
+            "macroregion",
+            "city",
+            "country",
+            "country_code",
+            "continent",
+        ]
+        for attr in response_attributes:
+            output_fields.append(
+                QgsField("geocoded_" + attr, QVariant.String, "text", 255)
+            )
+
+        (sink, sink_id) = self.parameterAsSink(
+            parameters, "OUTPUT", context, output_fields, QgsWkbTypes.Point, EPSG4326
+        )
+
         results_by_id = {}
 
-        xform = QgsCoordinateTransform(
-            focus_point_crs, EPSG4326, context.transformContext()
-        )
         for feature in source_data.getFeatures():
 
             # Set feature for expression context
             self.expressions_context.setFeature(feature)
 
             # Prepare the data
-            params = {"query": self.eval_expr("INPUT_QUERY_FIELD")}
-            if focus_point:
-                focus_point = xform.transform(focus_point)
-                params.update(
-                    {"focus.lat": focus_point.y(), "focus.lng": focus_point.x()}
-                )
+            source_data = self.parameterAsSource(parameters, "INPUT_DATA", context)
+            limit_country_chc = self.parameterAsEnum(
+                parameters, "INPUT_COUNTRY", context
+            )
+            limit_country = (
+                COUNTRIES[limit_country_chc][0] if limit_country_chc else None
+            )
+
+            params = self.processAlgorithmMakeGetParams(
+                feature, source_data, parameters, context, feedback
+            )
             if limit_country:
                 params.update({"within.country": limit_country})
 
@@ -1598,90 +1601,120 @@ class GeocodingAlgorithm(AlgorithmBase):
                 parameters, context, feedback, params=params
             )
 
+            # Process the results
+            result_type = self.RESULT_TYPE[
+                self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
+            ]
+
             if result_type == "ALL":
-                results_by_id[feature.id()] = response_geojson["features"]
+                # We keep all results
+                results = response_geojson["features"]
             elif result_type == "BEST_MATCH":
-                results_by_id[feature.id()] = sorted(
+                # We only keep the result wit the best score
+                results = sorted(
                     response_geojson["features"], key=lambda f: f["properties"]["score"]
                 )[-1:]
 
-        feedback.pushDebugInfo("Loading response to layer...")
-
-        # Configure output
-
-        output_fields = QgsFields(source_data.fields())
-        output_fields.append(QgsField("name", QVariant.String, "text", 255))
-        output_fields.append(QgsField("label", QVariant.String, "text", 255))
-        output_fields.append(QgsField("score", QVariant.Double, "number", 255))
-        output_fields.append(QgsField("street", QVariant.String, "text", 255))
-        output_fields.append(QgsField("neighbourhood", QVariant.String, "text", 255))
-        output_fields.append(QgsField("macroregion", QVariant.String, "text", 255))
-        output_fields.append(QgsField("city", QVariant.String, "text", 255))
-        output_fields.append(QgsField("country", QVariant.String, "text", 255))
-        output_fields.append(QgsField("country_code", QVariant.String, "text", 255))
-        output_fields.append(QgsField("continent", QVariant.String, "text", 255))
-
-        (sink, sink_id) = self.parameterAsSink(
-            parameters, "OUTPUT", context, output_fields, QgsWkbTypes.Point, EPSG4326
-        )
-
-        feedback.pushDebugInfo("Copying features response to layer...")
-
-        for id_, results in results_by_id.items():
             for result in results:
-                feature = utils.clone_feature(
-                    QgsFeatureRequest(id_), source_data, output_fields
-                )
-                feature.setGeometry(
+                newfeature = QgsFeature(output_fields)
+
+                # Clone the existing attributes
+                for i in range(len(source_data.fields())):
+                    newfeature.setAttribute(i, feature.attribute(i))
+
+                # Add our attributes
+                props = result["properties"]
+                for i, attr in enumerate(response_attributes):
+                    output_fields.append(QgsField(attr, QVariant.String, "text", 255))
+                    newfeature.setAttribute(
+                        len(source_data.fields()) + i,
+                        props[attr] if attr in props else None,
+                    )
+
+                # Add our geometry
+                newfeature.setGeometry(
                     QgsPoint(
                         result["geometry"]["coordinates"][0],
                         result["geometry"]["coordinates"][1],
                     )
                 )
 
-                props = result["properties"]
-
-                feature.setAttribute(
-                    len(output_fields) - 10, props["name"] if "name" in props else None
-                )
-                feature.setAttribute(
-                    len(output_fields) - 9, props["label"] if "label" in props else None
-                )
-                feature.setAttribute(
-                    len(output_fields) - 8, props["score"] if "score" in props else None
-                )
-                feature.setAttribute(
-                    len(output_fields) - 7,
-                    props["street"] if "street" in props else None,
-                )
-                feature.setAttribute(
-                    len(output_fields) - 6,
-                    props["neighbourhood"] if "neighbourhood" in props else None,
-                )
-                feature.setAttribute(
-                    len(output_fields) - 5,
-                    props["macroregion"] if "macroregion" in props else None,
-                )
-                feature.setAttribute(
-                    len(output_fields) - 4, props["city"] if "city" in props else None
-                )
-                feature.setAttribute(
-                    len(output_fields) - 3,
-                    props["country"] if "country" in props else None,
-                )
-                feature.setAttribute(
-                    len(output_fields) - 2,
-                    props["country_code"] if "country_code" in props else None,
-                )
-                feature.setAttribute(
-                    len(output_fields) - 1,
-                    props["continent"] if "continent" in props else None,
-                )
-
-                sink.addFeature(QgsFeature(feature), QgsFeatureSink.FastInsert)
-        feedback.pushDebugInfo("TimeMapAlgorithm done !")
+                sink.addFeature(newfeature, QgsFeatureSink.FastInsert)
 
         # to get hold of the layer in post processing
         self.sink_id = sink_id
 
         return {"OUTPUT": sink_id}
+
+    def processAlgorithmMakeGetParams(self, feature, parameters, context, feedback):
+        """To be overriden by subclasses"""
+        return {}
+
+
+class GeocodingAlgorithm(GeocodingAlgorithmBase):
+    url = "https://api.traveltimeapp.com/v4/geocoding/search"
+    method = "GET"
+
+    _name = "geocoding"
+    _displayName = tr("Geocoding")
+    _group = "Utilities"
+    _groupId = "utils"
+    _icon = resources.icon_geocoding
+    _helpUrl = "https://docs.traveltimeplatform.com/reference/geocoding-search/"
+    _shortHelpString = tr(
+        "This algorithms provides access to the geocoding endpoint.\n\nPlease see the help on {url} for more details on how to use it."
+    ).format(url=_helpUrl)
+
+    def initAlgorithm(self, config):
+
+        super().initAlgorithm(config)
+        self.addParameter(
+            QgsProcessingParameterExpression(
+                "INPUT_QUERY_FIELD",
+                tr("Search expression"),
+                parentLayerParameterName="INPUT_DATA",
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterPoint("INPUT_FOCUS", tr("Focus point"), optional=True)
+        )
+
+    def processAlgorithmMakeGetParams(
+        self, feature, source_data, parameters, context, feedback
+    ):
+        focus_point = self.parameterAsPoint(parameters, "INPUT_FOCUS", context)
+        focus_point_crs = self.parameterAsPointCrs(parameters, "INPUT_FOCUS", context)
+        xform = QgsCoordinateTransform(
+            focus_point_crs, EPSG4326, context.transformContext()
+        )
+        params = {"query": self.eval_expr("INPUT_QUERY_FIELD")}
+        if focus_point:
+            focus_point = xform.transform(focus_point)
+            params.update({"focus.lat": focus_point.y(), "focus.lng": focus_point.x()})
+        return params
+
+
+class ReverseGeocodingAlgorithm(GeocodingAlgorithmBase):
+    url = "https://api.traveltimeapp.com/v4/geocoding/reverse"
+    method = "GET"
+
+    _name = "reverse_geocoding"
+    _displayName = tr("Reverse Geocoding")
+    _group = "Utilities"
+    _groupId = "utils"
+    _icon = resources.icon_reverse_geocoding
+    _helpUrl = "https://docs.traveltimeplatform.com/reference/geocoding-reverse/"
+    _shortHelpString = tr(
+        "This algorithms provides access to the reverse geocoding endpoint.\n\nPlease see the help on {url} for more details on how to use it."
+    ).format(url=_helpUrl)
+
+    def processAlgorithmMakeGetParams(
+        self, feature, source_data, parameters, context, feedback
+    ):
+        xform = QgsCoordinateTransform(
+            source_data.sourceCrs(), EPSG4326, context.transformContext()
+        )
+        focus_point = xform.transform(feature.geometry().asPoint())
+        params = {"lat": focus_point.y(), "lng": focus_point.x()}
+        return params
+
