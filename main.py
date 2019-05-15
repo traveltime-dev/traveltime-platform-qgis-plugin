@@ -1,4 +1,5 @@
 import os.path
+import requests
 
 from qgis.PyQt.QtCore import Qt, QSettings, QCoreApplication, QTranslator, QSize
 from qgis.PyQt.QtWidgets import (
@@ -9,15 +10,19 @@ from qgis.PyQt.QtWidgets import (
     QInputDialog,
     QLineEdit,
     QPushButton,
+    QToolButton,
+    QMenu,
 )
-from qgis.core import QgsApplication, QgsMessageLog
+from qgis.core import Qgis, QgsApplication
 from qgis.gui import QgsFilterLineEdit
 
 from .provider import Provider
-from .utils import tr
+from .utils import tr, log
 from . import resources
 from . import auth
 from . import ui
+from . import auth
+from . import tiles
 
 
 class Main:
@@ -42,6 +47,7 @@ class Main:
         # Add GUI elements
         self.splash_screen = ui.SplashScreen(self)
         self.config_dialog = ui.ConfigDialog()
+        self.tilesManager = tiles.TilesManager()
 
         self.toolbar = self.iface.addToolBar("Travel Time Platform Toolbar")
 
@@ -60,6 +66,28 @@ class Main:
         self.action_show_toolbox.triggered.connect(self.show_toolbox)
         self.toolbar.addAction(self.action_show_toolbox)
         self.iface.addPluginToMenu(u"&Travel Time Platform", self.action_show_toolbox)
+
+        # Add tiles
+        tiles_menu = QMenu()
+        for key, tile in self.tilesManager.tiles.items():
+            action = QAction(tile["resource"], tile["label"], tiles_menu)
+            action.triggered.connect(lambda: self.tilesManager.add_layer(key))
+            action.setEnabled(self.tilesManager.has_tiles)
+            tiles_menu.addAction(action)
+        if not self.tilesManager.has_tiles:
+            action = QAction(tr("Request access to backgrounds"), tiles_menu)
+            action.triggered.connect(lambda: self.tilesManager.request_access())
+            tiles_menu.addAction(action)
+
+        tiles_button = QToolButton()
+        tiles_button.setToolTip(tr("Add background"))
+        tiles_button.setIcon(resources.icon_tiles)
+        tiles_button.setMenu(tiles_menu)
+        tiles_button.setPopupMode(QToolButton.InstantPopup)
+
+        # self.action_show_toolbox.triggered.connect(self.show_toolbox)
+        self.toolbar.addWidget(tiles_button)
+        # self.iface.addPluginToMenu(u"&Travel Time Platform", self.action_show_toolbox)
         self.toolbar.addSeparator()
 
         # Show help actions
