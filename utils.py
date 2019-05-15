@@ -5,6 +5,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 
 from qgis.core import QgsFeature, QgsGeometry
 
+
 def now_iso():
     """Calculate the offset taking into account daylight saving time
 
@@ -13,7 +14,12 @@ def now_iso():
     utc_offset_sec = time.altzone if time.localtime().tm_isdst else time.timezone
     utc_offset = datetime.timedelta(seconds=-utc_offset_sec)
     now = datetime.datetime.now()
-    return datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour).replace(tzinfo=datetime.timezone(offset=utc_offset)).isoformat()
+    return (
+        datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour)
+        .replace(tzinfo=datetime.timezone(offset=utc_offset))
+        .isoformat()
+    )
+
 
 def clone_feature(id_or_request, source_layer, output_fields=None):
     """Returns a feature cloned from the source layer
@@ -34,5 +40,6 @@ def clone_feature(id_or_request, source_layer, output_fields=None):
         new_feature.setAttribute(i, old_feature.attribute(i))
     return new_feature
 
+
 def tr(string):
-    return QCoreApplication.translate('@default', string)
+    return QCoreApplication.translate("@default", string)

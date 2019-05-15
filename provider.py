@@ -6,7 +6,6 @@ from . import resources
 
 
 class Provider(QgsProcessingProvider):
-
     def unload(self):
         pass
 
@@ -19,14 +18,13 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(algorithms.RoutesAlgorithm())
 
     def id(self):
-        return 'ttp_v4'
+        return "ttp_v4"
 
     def name(self):
-        return 'Travel Time Platform'
+        return "Travel Time Platform"
 
     def longName(self):
         return self.name()
 
     def icon(self):
         return resources.icon_general
-

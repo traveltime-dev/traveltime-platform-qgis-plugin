@@ -7,4 +7,5 @@
     "python.linting.flake8Args": [
         "--max-line-length=110",
     ],
+    "python.formatting.provider": "black",
 }
