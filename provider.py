@@ -16,6 +16,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(algorithms.TimeMapAlgorithm())
         self.addAlgorithm(algorithms.TimeFilterAlgorithm())
         self.addAlgorithm(algorithms.RoutesAlgorithm())
+        self.addAlgorithm(algorithms.GeocodingAlgorithm())
 
     def id(self):
         return "ttp_v4"

@@ -24,12 +24,14 @@ from qgis.core import (
     QgsProcessingParameterBoolean,
     QgsProcessingException,
     QgsProcessingParameterDefinition,
+    QgsProcessingParameterPoint,
     QgsWkbTypes,
     QgsCoordinateReferenceSystem,
     QgsPoint,
     QgsLineString,
     QgsFields,
     QgsField,
+    QgsVectorLayer,
     QgsFeature,
     QgsGeometry,
     QgsExpression,
@@ -40,6 +42,7 @@ from qgis.core import (
 import processing
 
 from .libraries import requests_cache
+from .libraries import iso3166
 
 from . import resources
 from . import auth
@@ -62,14 +65,15 @@ TRANSPORTATION_TYPES = [
     "driving+ferry",
     "cycling+ferry",
 ]
+COUNTRIES = [(None, "-")] + list([(c.alpha2, c.name) for c in iso3166.countries])
 
 cached_requests = requests_cache.core.CachedSession(
-    # Regular
-    cache_name="ttp_cache",
-    backend="memory",
-    # # Persisting (use for development, to avoid hitting API limit)
-    # cache_name=os.path.join(os.path.dirname(__file__), 'cachefile'),
-    # backend="sqlite",
+    # # Regular
+    # cache_name="ttp_cache",
+    # backend="memory",
+    # Persisting (use for development, to avoid hitting API limit)
+    cache_name=os.path.join(os.path.dirname(__file__), "cachefile"),
+    backend="sqlite",
     expire_after=86400,
     allowable_methods=("GET", "POST"),
 )
@@ -180,6 +184,9 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             QgsMessageLog.logMessage("url: {}".format(self.url), "TimeTravelPlatform")
             QgsMessageLog.logMessage(
                 "headers: {}".format(headers), "TimeTravelPlatform"
+            )
+            QgsMessageLog.logMessage(
+                "params: {}".format(str(params)), "TimeTravelPlatform"
             )
             QgsMessageLog.logMessage("data: {}".format(json_data), "TimeTravelPlatform")
 
@@ -1485,3 +1492,196 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
             style_path
         )
         return super().postProcessAlgorithm(context, feedback)
+
+
+class GeocodingAlgorithm(AlgorithmBase):
+    url = "https://api.traveltimeapp.com/v4/geocoding/search"
+    method = "GET"
+
+    _name = "geocoding"
+    _displayName = tr("Geocoding")
+    _group = "Utilities"
+    _groupId = "utils"
+    _icon = resources.icon_geocoding
+    _helpUrl = "https://docs.traveltimeplatform.com/reference/geocoding-search/"
+    _shortHelpString = tr(
+        "This algorithms provides access to the geocoding endpoint.\n\nPlease see the help on {url} for more details on how to use it."
+    ).format(url=_helpUrl)
+
+    RESULT_TYPE = ["ALL", "BEST_MATCH"]
+
+    def initAlgorithm(self, config):
+
+        self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                "INPUT_DATA", tr("Input data"), [QgsProcessing.TypeVector]
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterExpression(
+                "INPUT_QUERY_FIELD",
+                tr("Search expression"),
+                parentLayerParameterName="INPUT_DATA",
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterPoint("INPUT_FOCUS", tr("Focus point"), optional=True)
+        )
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                "INPUT_COUNTRY",
+                tr("Restrict to country"),
+                optional=True,
+                options=[c[1] for c in COUNTRIES],
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                "INPUT_RESULT_TYPE", tr("Result aggregation"), options=self.RESULT_TYPE
+            )
+        )
+
+        # Define output parameters
+        self.addParameter(
+            QgsProcessingParameterFeatureSink(
+                "OUTPUT", tr("Output"), type=QgsProcessing.TypeVectorPoint
+            )
+        )
+
+    def processAlgorithm(self, parameters, context, feedback):
+
+        feedback.pushDebugInfo("Starting Geocoding...")
+
+        # Configure common expressions inputs
+        self.processAlgorithmConfigureExpressionInputs(parameters, context, feedback)
+
+        # Main implementation
+        source_data = self.parameterAsSource(parameters, "INPUT_DATA", context)
+        focus_point = self.parameterAsPoint(parameters, "INPUT_FOCUS", context)
+        focus_point_crs = self.parameterAsPointCrs(parameters, "INPUT_FOCUS", context)
+        limit_country_chc = self.parameterAsEnum(parameters, "INPUT_COUNTRY", context)
+        limit_country = COUNTRIES[limit_country_chc][0] if limit_country_chc else None
+        result_type = self.RESULT_TYPE[
+            self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
+        ]
+
+        if source_data.featureCount() > 1:
+            feedback.pushInfo(
+                tr(
+                    "Input layer has multiple features. The query will be executed in {} queries. This may have unexpected consequences on some parameters. Keep an eye on your API usage !"
+                ).format(source_data.featureCount())
+            )
+
+        results_by_id = {}
+
+        xform = QgsCoordinateTransform(
+            focus_point_crs, EPSG4326, context.transformContext()
+        )
+        for feature in source_data.getFeatures():
+
+            # Set feature for expression context
+            self.expressions_context.setFeature(feature)
+
+            # Prepare the data
+            params = {"query": self.eval_expr("INPUT_QUERY_FIELD")}
+            if focus_point:
+                focus_point = xform.transform(focus_point)
+                params.update(
+                    {"focus.lat": focus_point.y(), "focus.lng": focus_point.x()}
+                )
+            if limit_country:
+                params.update({"within.country": limit_country})
+
+            # Make the query
+            response_geojson = self.processAlgorithmMakeRequest(
+                parameters, context, feedback, params=params
+            )
+
+            if result_type == "ALL":
+                results_by_id[feature.id()] = response_geojson["features"]
+            elif result_type == "BEST_MATCH":
+                results_by_id[feature.id()] = sorted(
+                    response_geojson["features"], key=lambda f: f["properties"]["score"]
+                )[-1:]
+
+        feedback.pushDebugInfo("Loading response to layer...")
+
+        # Configure output
+
+        output_fields = QgsFields(source_data.fields())
+        output_fields.append(QgsField("name", QVariant.String, "text", 255))
+        output_fields.append(QgsField("label", QVariant.String, "text", 255))
+        output_fields.append(QgsField("score", QVariant.Double, "number", 255))
+        output_fields.append(QgsField("street", QVariant.String, "text", 255))
+        output_fields.append(QgsField("neighbourhood", QVariant.String, "text", 255))
+        output_fields.append(QgsField("macroregion", QVariant.String, "text", 255))
+        output_fields.append(QgsField("city", QVariant.String, "text", 255))
+        output_fields.append(QgsField("country", QVariant.String, "text", 255))
+        output_fields.append(QgsField("country_code", QVariant.String, "text", 255))
+        output_fields.append(QgsField("continent", QVariant.String, "text", 255))
+
+        (sink, sink_id) = self.parameterAsSink(
+            parameters, "OUTPUT", context, output_fields, QgsWkbTypes.Point, EPSG4326
+        )
+
+        feedback.pushDebugInfo("Copying features response to layer...")
+
+        for id_, results in results_by_id.items():
+            for result in results:
+                feature = utils.clone_feature(
+                    QgsFeatureRequest(id_), source_data, output_fields
+                )
+                feature.setGeometry(
+                    QgsPoint(
+                        result["geometry"]["coordinates"][0],
+                        result["geometry"]["coordinates"][1],
+                    )
+                )
+
+                props = result["properties"]
+
+                feature.setAttribute(
+                    len(output_fields) - 10, props["name"] if "name" in props else None
+                )
+                feature.setAttribute(
+                    len(output_fields) - 9, props["label"] if "label" in props else None
+                )
+                feature.setAttribute(
+                    len(output_fields) - 8, props["score"] if "score" in props else None
+                )
+                feature.setAttribute(
+                    len(output_fields) - 7,
+                    props["street"] if "street" in props else None,
+                )
+                feature.setAttribute(
+                    len(output_fields) - 6,
+                    props["neighbourhood"] if "neighbourhood" in props else None,
+                )
+                feature.setAttribute(
+                    len(output_fields) - 5,
+                    props["macroregion"] if "macroregion" in props else None,
+                )
+                feature.setAttribute(
+                    len(output_fields) - 4, props["city"] if "city" in props else None
+                )
+                feature.setAttribute(
+                    len(output_fields) - 3,
+                    props["country"] if "country" in props else None,
+                )
+                feature.setAttribute(
+                    len(output_fields) - 2,
+                    props["country_code"] if "country_code" in props else None,
+                )
+                feature.setAttribute(
+                    len(output_fields) - 1,
+                    props["continent"] if "continent" in props else None,
+                )
+
+                sink.addFeature(QgsFeature(feature), QgsFeatureSink.FastInsert)
+        feedback.pushDebugInfo("TimeMapAlgorithm done !")
+
+        # to get hold of the layer in post processing
+        self.sink_id = sink_id
+
+        return {"OUTPUT": sink_id}
