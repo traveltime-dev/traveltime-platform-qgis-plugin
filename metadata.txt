@@ -6,7 +6,7 @@ qgisMaximumVersion=3.99
 description=Get travel time polygons from the Travel Time Platform API directly from QGIS
 about=This plugin adds a toolbar and processing algorithms allowing to query the Travel Time Platform API directly from QGIS. The Travel Time Platform API allows to obtain polygons based on actual travel time using several transport modes rather, allowing for much more accurate results than simple distance calculations.
 category=Vector
-version=0.2.1-alpha
+version=0.2.2-alpha
 author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
@@ -18,6 +18,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - fix : simplified algorithm bug when short travel time
     - 2019-05-10 : version 0.2.1-alpha
         - fix : bug on arrival searches
+    - 2019-05-21 : version 0.2.2-alpha
+        - feature : option to disable SSL verification
 tags=travel,time,platform,api,distance
 homepage=https://github.com/olivierdalang/travel_time_platform_plugin
 tracker=https://github.com/olivierdalang/travel_time_platform_plugin/issues

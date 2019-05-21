@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>511</width>
-    <height>343</height>
+    <width>513</width>
+    <height>452</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -168,10 +168,42 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="logCallsCheckBox">
-     <property name="text">
-      <string>Log all api calls to the message logs</string>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Advanced</string>
      </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="logCallsCheckBox">
+        <property name="text">
+         <string>Log all api calls to the message logs</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="disableHttpsCheckBox">
+        <property name="toolTip">
+         <string>Under certain circumstances (such as connection from an enterprise network), requests made from Python may fail because the SSL certificates can not be verified. If this happens, you can disable the verification by checking this box.</string>
+        </property>
+        <property name="text">
+         <string>Disable HTTPS certificate verification</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_7">
+        <property name="styleSheet">
+         <string notr="true">font-style:italic;color:gray;</string>
+        </property>
+        <property name="text">
+         <string>Under certain circumstances (such as connection from an enterprise network), requests made from Python may fail because the SSL certificates can not be verified. If this happens, you can disable the verification by checking this box. Please be aware that this makes your requests to the API more vulnerable to interception by an attacker.</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

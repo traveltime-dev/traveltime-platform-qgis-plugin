@@ -322,7 +322,12 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                 QgsMessageLog.logMessage("data: {}".format(data), 'TimeTravelPlatform')
 
             try:
-                response = requests.post(url, data=data, headers=headers)
+
+                disable_https = QSettings().value('travel_time_platform/disable_https', False, type=bool)
+                if disable_https:
+                    feedback.pushInfo(tr("Warning ! HTTPS certificate verification is disabled. This means all data sent to the API can potentially be intercepted by an attacker."))
+
+                response = requests.post(url, data=data, headers=headers, verify=not disable_https)
 
                 feedback.pushDebugInfo('Got response from API endpoint...')
                 if print_query:
@@ -340,7 +345,11 @@ class TimeMapAlgorithm(QgsProcessingAlgorithm):
                 feedback.reportError(tr('Recieved error from the API.\nError code : {}\nDescription : {}\nSee : {}\nAddtionnal info :\n{}').format(response_data['error_code'],response_data['description'],response_data['documentation_link'],nice_info), fatalError=True)
                 feedback.reportError(tr('See log for more details.'), fatalError=True)
                 QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
-                raise QgsProcessingException('Got error {} form API'.format(response.status_code)) from None
+                raise QgsProcessingException('Got error {} from API'.format(response.status_code)) from None
+            except requests.exceptions.SSLError as e:
+                feedback.reportError(tr('Could not connect to the API because of an SSL certificate error. You can disable SSL verification in the plugin settings. See log for more details.'), fatalError=True)
+                QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
+                raise QgsProcessingException('Got an SSL error when connecting to the API') from None
             except requests.exceptions.RequestException as e:
                 feedback.reportError(tr('Could not connect to the API. See log for more details.'), fatalError=True)
                 QgsMessageLog.logMessage(str(e), 'TimeTravelPlatform')
