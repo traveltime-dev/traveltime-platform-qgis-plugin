@@ -188,8 +188,23 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
         try:
 
+            disable_https = QSettings().value(
+                "travel_time_platform/disable_https", False, type=bool
+            )
+            if disable_https:
+                feedback.pushInfo(
+                    tr(
+                        "Warning ! HTTPS certificate verification is disabled. This means all data sent to the API can potentially be intercepted by an attacker."
+                    )
+                )
+
             response = cached_requests.request(
-                self.method, self.url, data=json_data, params=params, headers=headers
+                self.method,
+                self.url,
+                data=json_data,
+                params=params,
+                headers=headers,
+                verify=not disable_https,
             )
 
             if response.from_cache:
@@ -231,7 +246,18 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             feedback.reportError(tr("See log for more details."), fatalError=True)
             log(str(e), "TimeTravelPlatform")
             raise QgsProcessingException(
-                "Got error {} form API".format(response.status_code)
+                "Got error {} from API".format(response.status_code)
+            ) from None
+        except requests.exceptions.SSLError as e:
+            feedback.reportError(
+                tr(
+                    "Could not connect to the API because of an SSL certificate error. You can disable SSL verification in the plugin settings. See log for more details."
+                ),
+                fatalError=True,
+            )
+            QgsMessageLog.logMessage(str(e), "TimeTravelPlatform")
+            raise QgsProcessingException(
+                "Got an SSL error when connecting to the API"
             ) from None
         except requests.exceptions.RequestException as e:
             feedback.reportError(

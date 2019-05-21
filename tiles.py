@@ -6,6 +6,7 @@ from . import auth
 from . import resources
 from .utils import log, tr
 
+from qgis.PyQt.QtCore import QSettings
 from qgis.core import QgsRasterLayer, QgsProject
 
 
@@ -35,8 +36,11 @@ class TilesManager:
 
     def _get_url(self, identifier):
         app_id, _ = auth.get_app_id_and_api_key()
+        disable_https = QSettings().value(
+            "travel_time_platform/disable_https", False, type=bool
+        )
         return "https://tiles.traveltimeplatform.com/styles/{identifier}/{{z}}/{{x}}/{{y}}.png?key={app_id}".format(
-            app_id=app_id, identifier=identifier
+            app_id=app_id, identifier=identifier, verify=not disable_https
         )
 
     def _check_has_tiles(self):

@@ -51,6 +51,10 @@ class ConfigDialog(QDialog):
         self.logCallsCheckBox.setChecked(
             s.value("travel_time_platform/log_calls", False, type=bool)
         )
+        # disable https
+        self.disableHttpsCheckBox.setChecked(
+            s.value("travel_time_platform/disable_https", False, type=bool)
+        )
 
     def get_key(self):
         webbrowser.open("http://docs.traveltimeplatform.com/overview/getting-keys/")
@@ -79,6 +83,10 @@ class ConfigDialog(QDialog):
         s.setValue("travel_time_platform/warning_limit", self.warningSpinBox.value())
         # logs calls
         s.setValue("travel_time_platform/log_calls", self.logCallsCheckBox.isChecked())
+        # disable https
+        s.setValue(
+            "travel_time_platform/disable_https", self.disableHttpsCheckBox.isChecked()
+        )
 
         super().accept(*args, **kwargs)
 
