@@ -132,6 +132,15 @@ class Main:
 
     def show_toolbox(self):
         toolBox = self.iface.mainWindow().findChild(QDockWidget, "ProcessingToolbox")
+        if toolBox is None:
+            self.iface.messageBar().pushMessage(
+                "Error",
+                tr(
+                    "The Travel Time Platfrom plugin requires the Processing plugin. Please enable the processing plugin in the plugin manager."
+                ),
+                level=Qgis.Critical,
+            )
+            return
         toolBox.setVisible(True)
         searchBox = toolBox.findChild(QgsFilterLineEdit, "searchBox")
         if searchBox.value() == "Travel Time Platform":
