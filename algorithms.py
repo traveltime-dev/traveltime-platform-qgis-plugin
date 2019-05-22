@@ -615,6 +615,16 @@ class SearchAlgorithmBase(AlgorithmBase):
                                 "travel_time": self.eval_expr(
                                     "INPUT_" + DEPARR + "_TRAVEL_TIME"
                                 ),
+                                "range": {
+                                    "enabled": bool(
+                                        self.eval_expr(
+                                            "INPUT_" + DEPARR + "_RANGE_WIDTH"
+                                        )
+                                    ),
+                                    "width": self.eval_expr(
+                                        "INPUT_" + DEPARR + "_RANGE_WIDTH"
+                                    ),
+                                },
                                 # TODO : allow to edit properties
                                 "properties": self.search_properties,
                             }
