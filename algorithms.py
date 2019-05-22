@@ -431,6 +431,21 @@ class SearchAlgorithmBase(AlgorithmBase):
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
+                    "INPUT_" + DEPARR + "_TRNSPT_CYCLING_TIME_TO_STATION",
+                    "{} / Transportation / cycling time to station".format(
+                        DEPARR.title()
+                    ),
+                    optional=True,
+                    defaultValue="900",
+                    parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Maximum time (in seconds) of cycling (including any ferry transfers) from source to a station or stop. Default value is 900. Cannot be higher than travel_time. Used in cycling+public_transport transportation mode"
+                ),
+            )
+            self.addParameter(
+                QgsProcessingParameterExpression(
                     "INPUT_" + DEPARR + "_TRNSPT_PARKING_TIME",
                     "{} / Transportation / parking time".format(DEPARR.title()),
                     optional=True,
@@ -582,6 +597,11 @@ class SearchAlgorithmBase(AlgorithmBase):
                                         "INPUT_"
                                         + DEPARR
                                         + "_TRNSPT_DRIVING_TIME_TO_STATION"
+                                    ),
+                                    "cycling_time_to_station": self.eval_expr(
+                                        "INPUT_"
+                                        + DEPARR
+                                        + "_TRNSPT_CYCLING_TIME_TO_STATION"
                                     ),
                                     "parking_time": self.eval_expr(
                                         "INPUT_" + DEPARR + "_TRNSPT_PARKING_TIME"
