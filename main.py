@@ -125,6 +125,7 @@ class Main:
         del self.toolbar
         self.iface.removePluginMenu(u"&Travel Time Platform", self.action_show_toolbox)
         self.iface.removePluginMenu(u"&Travel Time Platform", self.action_show_config)
+        self.iface.removePluginMenu(u"&Travel Time Platform", self.action_show_help)
 
         # Remove the provider from the registry
         QgsApplication.processingRegistry().removeProvider(self.provider)
