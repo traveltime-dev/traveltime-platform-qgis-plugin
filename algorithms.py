@@ -180,11 +180,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         feedback.pushDebugInfo("Making request to API endpoint...")
         print_query = bool(s.value("travel_time_platform/log_calls", False))
         if print_query:
-            log("Making request", "TimeTravelPlatform")
-            log("url: {}".format(self.url), "TimeTravelPlatform")
-            log("headers: {}".format(headers), "TimeTravelPlatform")
-            log("params: {}".format(str(params)), "TimeTravelPlatform")
-            log("data: {}".format(json_data), "TimeTravelPlatform")
+            log("Making request")
+            log("url: {}".format(self.url))
+            log("headers: {}".format(headers))
+            log("params: {}".format(str(params)))
+            log("data: {}".format(json_data))
 
         try:
 
@@ -217,10 +217,10 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 )
 
             if print_query:
-                log("Got response", "TimeTravelPlatform")
-                log("status: {}".format(response.status_code), "TimeTravelPlatform")
-                log("reason: {}".format(response.reason), "TimeTravelPlatform")
-                log("text: {}".format(response.text), "TimeTravelPlatform")
+                log("Got response")
+                log("status: {}".format(response.status_code))
+                log("reason: {}".format(response.reason))
+                log("text: {}".format(response.text))
 
             response_data = json.loads(response.text)
             response.raise_for_status()
@@ -244,7 +244,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 fatalError=True,
             )
             feedback.reportError(tr("See log for more details."), fatalError=True)
-            log(str(e), "TimeTravelPlatform")
+            log(e)
             raise QgsProcessingException(
                 "Got error {} from API".format(response.status_code)
             ) from None
@@ -255,7 +255,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 ),
                 fatalError=True,
             )
-            QgsMessageLog.logMessage(str(e), "TimeTravelPlatform")
+            log(e)
             raise QgsProcessingException(
                 "Got an SSL error when connecting to the API"
             ) from None
@@ -264,14 +264,14 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 tr("Could not connect to the API. See log for more details."),
                 fatalError=True,
             )
-            log(str(e), "TimeTravelPlatform")
+            log(e)
             raise QgsProcessingException("Could not connect to API") from None
         except ValueError as e:
             feedback.reportError(
                 tr("Could not decode response. See log for more details."),
                 fatalError=True,
             )
-            log(str(e), "TimeTravelPlatform")
+            log(e)
             raise QgsProcessingException("Could not decode response") from None
 
     def createInstance(self):
