@@ -641,6 +641,8 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
         "This algorithms allows to use the time-map endpoint from the Travel Time Platform API.\n\nIt matches the endpoint data structure as closely as possible. Please see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
     ).format(url=_helpUrl)
 
+    RESULT_TYPE = ["NORMAL", "UNION", "INTERSECTION"]
+
     def initAlgorithm(self, config):
 
         # Define all common DEPARTURE and ARRIVAL parameters
@@ -648,73 +650,40 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
 
         # Define additional input parameters
         self.addParameter(
-            QgsProcessingParameterBoolean(
-                "INPUT_CALC_UNION",
-                tr("Compute union aggregation"),
-                optional=True,
-                defaultValue=False,
+            QgsProcessingParameterEnum(
+                "INPUT_RESULT_TYPE", tr("Result aggregation"), options=self.RESULT_TYPE
             ),
             help_text=tr(
-                "TODO : replace this by an enum, just like the simplified algorithm"
-            ),
-        )
-        self.addParameter(
-            QgsProcessingParameterBoolean(
-                "INPUT_CALC_INTER",
-                tr("Compute intersection aggregation"),
-                optional=True,
-                defaultValue=False,
-            ),
-            help_text=tr(
-                "TODO : replace this by an enum, just like the simplified algorithm"
+                "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
             ),
         )
 
         # Define output parameters
         self.addParameter(
             QgsProcessingParameterFeatureSink(
-                "OUTPUT_SEARCHES",
+                "OUTPUT",
                 tr("Output - searches layer"),
                 type=QgsProcessing.TypeVectorPolygon,
             ),
             help_text=tr("Where to save the output"),
         )
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                "OUTPUT_UNION",
-                tr("Output - union layer"),
-                type=QgsProcessing.TypeVectorPolygon,
-            ),
-            help_text=tr(
-                "TODO : remove this and output to just one layer, just like the simplified algorithm"
-            ),
-        )
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                "OUTPUT_INTER",
-                tr("Output - intersection layer"),
-                type=QgsProcessing.TypeVectorPolygon,
-            ),
-            help_text=tr(
-                "TODO : remove this and output to just one layer, just like the simplified algorithm"
-            ),
-        )
 
     def processAlgorithmRemixData(self, data, parameters, context, feedback):
         """To be overriden by subclasses : allow to edit the data object before sending to the API"""
 
-        compute_union = self.parameterAsBool(parameters, "INPUT_CALC_UNION", context)
-        compute_inter = self.parameterAsBool(parameters, "INPUT_CALC_INTER", context)
+        result_type = self.RESULT_TYPE[
+            self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
+        ]
 
-        if compute_union or compute_inter:
+        if result_type != "NORMAL":
             search_ids = []
             for deparr in ["departure", "arrival"]:
                 if deparr + "_searches" in data:
                     for d in data[deparr + "_searches"]:
                         search_ids.append(d["id"])
-            if compute_union:
+            if result_type == "UNION":
                 data["unions"] = [{"id": "union_all", "search_ids": search_ids}]
-            if compute_inter:
+            elif result_type == "INTERSECTION":
                 data["intersections"] = [
                     {"id": "intersection_all", "search_ids": search_ids}
                 ]
@@ -728,28 +697,16 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
 
         (sink, sink_id) = self.parameterAsSink(
             parameters,
-            "OUTPUT_SEARCHES",
+            "OUTPUT",
             context,
             output_fields,
             QgsWkbTypes.MultiPolygon,
             EPSG4326,
         )
-        (sink_union, sink_union_id) = self.parameterAsSink(
-            parameters,
-            "OUTPUT_UNION",
-            context,
-            output_fields,
-            QgsWkbTypes.MultiPolygon,
-            EPSG4326,
-        )
-        (sink_inter, sink_inter_id) = self.parameterAsSink(
-            parameters,
-            "OUTPUT_INTER",
-            context,
-            output_fields,
-            QgsWkbTypes.MultiPolygon,
-            EPSG4326,
-        )
+
+        result_type = self.RESULT_TYPE[
+            self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
+        ]
 
         for result in results:
             feature = QgsFeature(output_fields)
@@ -758,45 +715,41 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
             feature.setGeometry(QgsGeometry.fromWkt(result["shape"]))
 
             # Add a feature in the sink
-            if result["search_id"] == "union_all":
-                sink_union.addFeature(feature, QgsFeatureSink.FastInsert)
-            elif result["search_id"] == "intersection_all":
-                sink_inter.addFeature(feature, QgsFeatureSink.FastInsert)
-            else:
+            if (
+                result_type == "NORMAL"
+                or (
+                    result_type == "INTERSECTION"
+                    and result["search_id"] == "intersection_all"
+                )
+                or (result_type == "UNION" and result["search_id"] == "union_all")
+            ):
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
         feedback.pushDebugInfo("TimeMapAlgorithm done !")
 
         # to get hold of the layer in post processing
         self.sink_id = sink_id
-        self.sink_union_id = sink_union_id
-        self.sink_inter_id = sink_inter_id
+        self.result_type = self.RESULT_TYPE[
+            self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
+        ]
 
-        return {
-            "OUTPUT_SEARCHES": sink_id,
-            "OUTPUT_UNION": sink_union_id,
-            "OUTPUT_INTER": sink_inter_id,
-        }
+        return {"OUTPUT": sink_id}
 
     def postProcessAlgorithm(self, context, feedback):
-        retval = super().postProcessAlgorithm(context, feedback)
-        style_path = os.path.join(
-            os.path.dirname(__file__), "resources", "style_union.qml"
-        )
-        QgsProcessingUtils.mapLayerFromString(
-            self.sink_union_id, context
-        ).loadNamedStyle(style_path)
-        style_path = os.path.join(
-            os.path.dirname(__file__), "resources", "style_intersection.qml"
-        )
-        QgsProcessingUtils.mapLayerFromString(
-            self.sink_inter_id, context
-        ).loadNamedStyle(style_path)
-        style_path = os.path.join(os.path.dirname(__file__), "resources", "style.qml")
+
+        if self.result_type == "NORMAL":
+            style_file = "style.qml"
+        elif self.result_type == "UNION":
+            style_file = "style_union.qml"
+        elif self.result_type == "INTERSECTION":
+            style_file = "style_intersection.qml"
+
+        style_path = os.path.join(os.path.dirname(__file__), "resources", style_file)
         QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(
             style_path
         )
-        return retval
+
+        return super().postProcessAlgorithm(context, feedback)
 
 
 class TimeFilterAlgorithm(SearchAlgorithmBase):
@@ -1273,11 +1226,10 @@ class TimeMapSimpleAlgorithm(AlgorithmBase):
             "INPUT_{}_TRNSPT_WALKING_TIME".format(mode): str(
                 self.parameterAsInt(parameters, "INPUT_TRAVEL_TIME", context) * 60
             ),
-            "INPUT_CALC_UNION": (result_type == "UNION"),
-            "INPUT_CALC_INTER": (result_type == "INTERSECTION"),
-            "OUTPUT_SEARCHES": "memory:results",
-            "OUTPUT_UNION": "memory:union",
-            "OUTPUT_INTER": "memory:inter",
+            "INPUT_RESULT_TYPE": self.parameterAsEnum(
+                parameters, "INPUT_RESULT_TYPE", context
+            ),
+            "OUTPUT": "memory:results",
         }
 
         feedback.pushDebugInfo("Calling subcommand with following parameters...")
@@ -1289,12 +1241,7 @@ class TimeMapSimpleAlgorithm(AlgorithmBase):
 
         feedback.pushDebugInfo("Got results fom subcommand...")
 
-        if result_type == "UNION":
-            result_layer = results["OUTPUT_UNION"]
-        elif result_type == "INTERSECTION":
-            result_layer = results["OUTPUT_INTER"]
-        else:
-            result_layer = results["OUTPUT_SEARCHES"]
+        result_layer = results["OUTPUT"]
 
         # Configure output
         (sink, dest_id) = self.parameterAsSink(
