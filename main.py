@@ -1,5 +1,6 @@
 import os.path
 import requests
+import functools
 
 from qgis.PyQt.QtCore import Qt, QSettings, QCoreApplication, QTranslator, QSize
 from qgis.PyQt.QtWidgets import (
@@ -71,7 +72,9 @@ class Main:
         tiles_menu = QMenu()
         for key, tile in self.tilesManager.tiles.items():
             action = QAction(tile["resource"], tile["label"], tiles_menu)
-            action.triggered.connect(lambda: self.tilesManager.add_layer(key))
+            action.triggered.connect(
+                functools.partial(self.tilesManager.add_layer, key)
+            )
             action.setEnabled(self.tilesManager.has_tiles)
             tiles_menu.addAction(action)
         if not self.tilesManager.has_tiles:
