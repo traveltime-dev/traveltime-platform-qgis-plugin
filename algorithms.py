@@ -3,7 +3,7 @@ import time
 import json
 import os
 import math
-
+import collections
 from qgis.PyQt.QtCore import QVariant, QSettings
 from qgis.PyQt.QtWidgets import QMessageBox
 
@@ -85,12 +85,23 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     method = "POST"
     accept_header = "application/json"
 
-    def addAdvancedParamter(self, parameter, *args, **kwargs):
-        """Helper to add advanced parameters"""
-        parameter.setFlags(
-            parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced
-        )
-        return self.addParameter(parameter, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.parameters_help = {
+            True: collections.OrderedDict(),
+            False: collections.OrderedDict(),
+        }
+
+    def addParameter(self, parameter, advanced=False, help_text=None, *args, **kwargs):
+        """Helper to add parameters with help texts"""
+        if advanced:
+            parameter.setFlags(
+                parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced
+            )
+        if help_text:
+            self.parameters_help[advanced][parameter.description()] = help_text
+
+        return super().addParameter(parameter, *args, **kwargs)
 
     def eval_expr(self, key):
         """Helper to evaluate an expression from the input.
@@ -298,7 +309,22 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         return self._helpUrl
 
     def shortHelpString(self):
-        return self._shortHelpString
+        help_string = self._shortHelpString
+        if self.parameters_help[False]:
+            help_string += "<h2>Parameters description</h2>" + "".join(
+                [
+                    "\n<b>{}</b>: {}".format(key, val)
+                    for key, val in self.parameters_help[False].items()
+                ]
+            )
+        if self.parameters_help[True]:
+            help_string += "<h2>Advanced parameters description</h2>" + "".join(
+                [
+                    "\n<b>{}</b>: {}".format(key, val)
+                    for key, val in self.parameters_help[True].items()
+                ]
+            )
+        return help_string
 
 
 class SearchAlgorithmBase(AlgorithmBase):
@@ -332,7 +358,10 @@ class SearchAlgorithmBase(AlgorithmBase):
                     "{} / Searches".format(DEPARR.title()),
                     [QgsProcessing.TypeVectorPoint],
                     optional=True,
-                )
+                ),
+                help_text=tr(
+                    "Searches based on departure time. Leave departure location at no earlier than given time. You can define a maximum of 10 searches"
+                ),
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -341,7 +370,10 @@ class SearchAlgorithmBase(AlgorithmBase):
                     optional=True,
                     defaultValue="'" + DEPARR.lower() + "_searches_' || $id",
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
-                )
+                ),
+                help_text=tr(
+                    "Used to identify this specific search in the results array. MUST be unique among all searches."
+                ),
             )
             # Transportation
             self.addParameter(
@@ -351,27 +383,38 @@ class SearchAlgorithmBase(AlgorithmBase):
                     optional=True,
                     defaultValue="'public_transport'",
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
-                )
+                ),
+                help_text=tr(
+                    "cycling, driving, driving+train (only in Great Britain), public_transport, walking, coach, bus, train, ferry, driving+ferry, cycling+ferry or cycling+public_transport (only in Netherlands)"
+                ),
             )
-            self.addAdvancedParamter(
+            self.addParameter(
                 QgsProcessingParameterExpression(
                     "INPUT_" + DEPARR + "_TRNSPT_PT_CHANGE_DELAY",
                     "{} / Transportation / change delay".format(DEPARR.title()),
                     optional=True,
                     defaultValue="0",
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
-                )
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Time (in seconds) needed to board public transportation vehicle. Default is 0. Cannot be higher than travel_time. Used in public_transport, coach, bus, train, driving+train and cycling+public_transport transportation modes"
+                ),
             )
-            self.addAdvancedParamter(
+            self.addParameter(
                 QgsProcessingParameterExpression(
                     "INPUT_" + DEPARR + "_TRNSPT_WALKING_TIME",
                     "{} / Transportation / walking time".format(DEPARR.title()),
                     optional=True,
                     defaultValue="900",
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
-                )
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Maximum time (in seconds) of walking from source to a station/stop and from station/stop to destination. Default value is 900. Cannot be higher than travel_time. Used in public_transport, coach, bus, train, driving+train and cycling+public_transport transportation modes"
+                ),
             )
-            self.addAdvancedParamter(
+            self.addParameter(
                 QgsProcessingParameterExpression(
                     "INPUT_" + DEPARR + "_TRNSPT_DRIVING_TIME_TO_STATION",
                     "{} / Transportation / driving time to station".format(
@@ -380,34 +423,50 @@ class SearchAlgorithmBase(AlgorithmBase):
                     optional=True,
                     defaultValue="1800",
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
-                )
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Maximum time (in seconds) of driving from source to train station. Default value is 1800. Cannot be higher than travel_time. Used in driving+train transportation mode"
+                ),
             )
-            self.addAdvancedParamter(
+            self.addParameter(
                 QgsProcessingParameterExpression(
                     "INPUT_" + DEPARR + "_TRNSPT_PARKING_TIME",
                     "{} / Transportation / parking time".format(DEPARR.title()),
                     optional=True,
                     defaultValue="300",
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
-                )
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Time (in seconds) required to park a car or a bike. Default is 300. Cannot be higher than travel_time. Used in driving+train and cycling+public_transport transportation modes."
+                ),
             )
-            self.addAdvancedParamter(
+            self.addParameter(
                 QgsProcessingParameterExpression(
                     "INPUT_" + DEPARR + "_TRNSPT_BOARDING_TIME",
                     "{} / Transportation / boarding time".format(DEPARR.title()),
                     optional=True,
                     defaultValue="0",
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
-                )
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Time (in seconds) required to board a ferry. Default is 0. Cannot be higher than travel_time. Used in public_transport, ferry, driving+ferry, cycling+ferry and cycling+public_transport transportation modes. For public_transport mode, pt_change_delay is used instead"
+                ),
             )
-            self.addAdvancedParamter(
+            self.addParameter(
                 QgsProcessingParameterExpression(
                     "INPUT_" + DEPARR + "_RANGE_WIDTH",
                     "{} / Search range width ".format(DEPARR.title()),
                     optional=True,
                     defaultValue="null",
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
-                )
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Search range width in seconds. width along with departure_time specify departure interval. For example, if you set departure_time to 9am and width to 1 hour, we will return a combined shape of all possible journeys that have departure time between 9am and 10am. Range width is limited to 12 hours"
+                ),
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -416,7 +475,10 @@ class SearchAlgorithmBase(AlgorithmBase):
                     optional=True,
                     defaultValue="'{}'".format(utils.now_iso()),
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
-                )
+                ),
+                help_text=tr(
+                    "Leave departure location at no earlier than given time. Example - 2017-10-18T08:00:00Z"
+                ),
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -425,7 +487,10 @@ class SearchAlgorithmBase(AlgorithmBase):
                     optional=True,
                     defaultValue="900",
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
-                )
+                ),
+                help_text=tr(
+                    "Travel time in seconds. Maximum value is 14400 (4 hours)"
+                ),
             )
 
     def processAlgorithm(self, parameters, context, feedback):
@@ -573,7 +638,7 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
     _icon = resources.icon_time_map_advanced
     _helpUrl = "http://docs.traveltimeplatform.com/reference/time-map/"
     _shortHelpString = tr(
-        "This algorithms allows to use the time-map endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with."
+        "This algorithms allows to use the time-map endpoint from the Travel Time Platform API.\n\nIt matches the endpoint data structure as closely as possible. Please see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
     ).format(url=_helpUrl)
 
     def initAlgorithm(self, config):
@@ -588,7 +653,10 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
                 tr("Compute union aggregation"),
                 optional=True,
                 defaultValue=False,
-            )
+            ),
+            help_text=tr(
+                "TODO : replace this by an enum, just like the simplified algorithm"
+            ),
         )
         self.addParameter(
             QgsProcessingParameterBoolean(
@@ -596,7 +664,10 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
                 tr("Compute intersection aggregation"),
                 optional=True,
                 defaultValue=False,
-            )
+            ),
+            help_text=tr(
+                "TODO : replace this by an enum, just like the simplified algorithm"
+            ),
         )
 
         # Define output parameters
@@ -605,21 +676,28 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
                 "OUTPUT_SEARCHES",
                 tr("Output - searches layer"),
                 type=QgsProcessing.TypeVectorPolygon,
-            )
+            ),
+            help_text=tr("Where to save the output"),
         )
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 "OUTPUT_UNION",
                 tr("Output - union layer"),
                 type=QgsProcessing.TypeVectorPolygon,
-            )
+            ),
+            help_text=tr(
+                "TODO : remove this and output to just one layer, just like the simplified algorithm"
+            ),
         )
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 "OUTPUT_INTER",
                 tr("Output - intersection layer"),
                 type=QgsProcessing.TypeVectorPolygon,
-            )
+            ),
+            help_text=tr(
+                "TODO : remove this and output to just one layer, just like the simplified algorithm"
+            ),
         )
 
     def processAlgorithmRemixData(self, data, parameters, context, feedback):
@@ -734,7 +812,7 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
     _icon = resources.icon_time_filter_advanced
     _helpUrl = "http://docs.traveltimeplatform.com/reference/time-filter/"
     _shortHelpString = tr(
-        "This algorithms allows to use the time-filter endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with."
+        "This algorithms allows to use the time-filter endpoint from the Travel Time Platform API.\n\nIt matches the endpoint data structure as closely as possible. The key difference with the API is that the filter is automatically done on ALL locations, while the API technically allows to specify which locations to filter for each search.\n\nPlease see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
     ).format(url=_helpUrl)
 
     def initAlgorithm(self, config):
@@ -749,7 +827,10 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
                 tr("Locations"),
                 [QgsProcessing.TypeVectorPoint],
                 optional=False,
-            )
+            ),
+            help_text=tr(
+                "The list of locations to filter. In contrast to the API, this algorithm filters ALL locations, while the API allows to specify which arrival_location_ids/departure_location_ids to filter."
+            ),
         )
         self.addParameter(
             QgsProcessingParameterExpression(
@@ -758,14 +839,18 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
                 optional=True,
                 defaultValue="'locations_' || $id",
                 parentLayerParameterName="INPUT_LOCATIONS",
-            )
+            ),
+            help_text=tr(
+                "You will have to reference this id in your searches. It will also be used in the response body. MUST be unique among all locations."
+            ),
         )
 
         # Define output parameters
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 "OUTPUT", tr("Results"), type=QgsProcessing.TypeVectorPoint
-            )
+            ),
+            help_text=tr("Where to save the output"),
         )
 
     def processAlgorithmRemixData(self, data, parameters, context, feedback):
@@ -887,7 +972,7 @@ class RoutesAlgorithm(SearchAlgorithmBase):
     _icon = resources.icon_routes_advanced
     _helpUrl = "http://docs.traveltimeplatform.com/reference/routes/"
     _shortHelpString = tr(
-        "This algorithms allows to use the routes endpoint from the Travel Time Platform API.\n\nIt matches exactly the endpoint data structure. Please see the help on {url} for more details on how to use it.\n\nConsider using the other algorithms as they may be easier to work with."
+        "This algorithms allows to use the routes endpoint from the Travel Time Platform API.\n\nIt matches the endpoint data structure as closely as possible. The key difference with the API is that the routes are automatically computd on ALL locations, while the API technically allows to specify which locations to filter for each search.\n\nPlease see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
     ).format(url=_helpUrl)
 
     def initAlgorithm(self, config):
@@ -906,7 +991,10 @@ class RoutesAlgorithm(SearchAlgorithmBase):
                 tr("Locations"),
                 [QgsProcessing.TypeVectorPoint],
                 optional=False,
-            )
+            ),
+            help_text=tr(
+                "Define your locations to use later in departure_searches or arrival_searches"
+            ),
         )
         self.addParameter(
             QgsProcessingParameterExpression(
@@ -915,21 +1003,28 @@ class RoutesAlgorithm(SearchAlgorithmBase):
                 optional=True,
                 defaultValue="'locations_' || $id",
                 parentLayerParameterName="INPUT_LOCATIONS",
-            )
+            ),
+            help_text=tr(
+                "You will have to reference this id in your searches. It will also be used in the response body. MUST be unique among all locations."
+            ),
         )
 
         # Define output parameters
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 "OUTPUT_NORMAL", tr("Routes"), type=QgsProcessing.TypeVectorLine
-            )
+            ),
+            help_text=tr("Where to save the output with simple route"),
         )
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 "OUTPUT_DETAILED",
                 tr("Detailed route"),
                 type=QgsProcessing.TypeVectorLine,
-            )
+            ),
+            help_text=tr(
+                "Where to save the normal output with detailed routing information"
+            ),
         )
 
     def processAlgorithmRemixData(self, data, parameters, context, feedback):
@@ -1135,7 +1230,10 @@ class TimeMapSimpleAlgorithm(AlgorithmBase):
         self.addParameter(
             QgsProcessingParameterEnum(
                 "INPUT_RESULT_TYPE", tr("Result aggregation"), options=self.RESULT_TYPE
-            )
+            ),
+            help_text=tr(
+                "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
+            ),
         )
 
         # OUTPUT
@@ -1419,7 +1517,10 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
         self.addParameter(
             QgsProcessingParameterEnum(
                 "INPUT_RESULT_TYPE", tr("Output style"), options=self.RESULT_TYPE
-            )
+            ),
+            help_text=tr(
+                "Normal will return a simple linestring for each route. Detailed will return several segments for each type of transportation for each route."
+            ),
         )
         self.addParameter(
             QgsProcessingParameterFeatureSink(
@@ -1528,13 +1629,17 @@ class GeocodingAlgorithmBase(AlgorithmBase):
                 tr("Restrict to country"),
                 optional=True,
                 options=[c[1] for c in COUNTRIES],
-            )
+            ),
+            help_text=tr(
+                "Only return the results that are within the specified country"
+            ),
         )
 
         self.addParameter(
             QgsProcessingParameterEnum(
                 "INPUT_RESULT_TYPE", tr("Results type"), options=self.RESULT_TYPE
-            )
+            ),
+            help_text="ALL will return several results per input, corresponding to all potential matches returned by the API. BEST_MATCH will only return the best point.",
         )
 
         # Define output parameters
@@ -1689,10 +1794,18 @@ class GeocodingAlgorithm(GeocodingAlgorithmBase):
                 "INPUT_QUERY_FIELD",
                 tr("Search expression"),
                 parentLayerParameterName="INPUT_DATA",
-            )
+            ),
+            help_text=tr(
+                "The field containing the query to geocode. Can be an address, a postcode or a venue. For example SW1A 0AA or Victoria street, London. Providing a country or city the request will get you more accurate results"
+            ),
         )
         self.addParameter(
-            QgsProcessingParameterPoint("INPUT_FOCUS", tr("Focus point"), optional=True)
+            QgsProcessingParameterPoint(
+                "INPUT_FOCUS", tr("Focus point"), optional=True
+            ),
+            help_text=tr(
+                "This will prioritize results around this point. Note that this does not exclude results that are far away from the focus point"
+            ),
         )
 
     def processAlgorithmMakeGetParams(
