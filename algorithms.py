@@ -129,6 +129,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 param = self.parameterAsEnum(parameters, p.name(), context)
             elif p.type() == "string":
                 param = self.parameterAsString(parameters, p.name(), context)
+            elif p.type() == "ttp_datetime":
+                param = self.parameterAsString(parameters, p.name(), context)
             elif p.type() == "number":
                 if p.dataType() == QgsProcessingParameterNumber.Type.Integer:
                     param = self.parameterAsInt(parameters, p.name(), context)
@@ -1014,6 +1016,8 @@ class RoutesAlgorithm(SearchAlgorithmBase):
         "This algorithms allows to use the routes endpoint from the Travel Time Platform API.\n\nIt matches the endpoint data structure as closely as possible. The key difference with the API is that the routes are automatically computd on ALL locations, while the API technically allows to specify which locations to filter for each search.\n\nPlease see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
     ).format(url=_helpUrl)
 
+    RESULT_TYPE = ["NORMAL", "DETAILED"]
+
     def initAlgorithm(self, config):
 
         # Define all common DEPARTURE and ARRIVAL parameters
@@ -1050,20 +1054,18 @@ class RoutesAlgorithm(SearchAlgorithmBase):
 
         # Define output parameters
         self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                "OUTPUT_NORMAL", tr("Routes"), type=QgsProcessing.TypeVectorLine
+            QgsProcessingParameterEnum(
+                "INPUT_RESULT_TYPE", tr("Output style"), options=self.RESULT_TYPE
             ),
-            help_text=tr("Where to save the output with simple route"),
+            help_text=tr(
+                "Normal will return a simple linestring for each route. Detailed will return several segments for each type of transportation for each route."
+            ),
         )
         self.addParameter(
             QgsProcessingParameterFeatureSink(
-                "OUTPUT_DETAILED",
-                tr("Detailed route"),
-                type=QgsProcessing.TypeVectorLine,
+                "OUTPUT", tr("Routes"), type=QgsProcessing.TypeVectorLine
             ),
-            help_text=tr(
-                "Where to save the normal output with detailed routing information"
-            ),
+            help_text=tr("Where to save the output"),
         )
 
     def processAlgorithm(self, parameters, context, feedback):
@@ -1153,105 +1155,89 @@ class RoutesAlgorithm(SearchAlgorithmBase):
         return data
 
     def processAlgorithmOutput(self, results, parameters, context, feedback):
-        output_normal_fields = QgsFields()
-        output_normal_fields.append(QgsField("search_id", QVariant.String, "text", 255))
-        output_normal_fields.append(
-            QgsField("location_id", QVariant.String, "text", 255)
-        )
-        output_normal_fields.append(
-            QgsField("travel_time", QVariant.Double, "text", 255)
-        )
-        output_normal_fields.append(QgsField("distance", QVariant.Double, "text", 255))
-        output_normal_fields.append(
-            QgsField("departure_time", QVariant.String, "text", 255)
-        )
-        output_normal_fields.append(
-            QgsField("arrival_time", QVariant.String, "text", 255)
-        )
-
-        output_detailed_fields = QgsFields()
-        output_detailed_fields.append(QgsField("type", QVariant.String, "text", 255))
-        output_detailed_fields.append(QgsField("mode", QVariant.String, "text", 255))
-        output_detailed_fields.append(
-            QgsField("directions", QVariant.String, "text", 255)
-        )
+        output_fields = QgsFields()
+        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
+        if result_type == "NORMAL":
+            output_fields.append(QgsField("search_id", QVariant.String, "text", 255))
+            output_fields.append(QgsField("location_id", QVariant.String, "text", 255))
+            output_fields.append(QgsField("travel_time", QVariant.Double, "text", 255))
+            output_fields.append(QgsField("distance", QVariant.Double, "text", 255))
+            output_fields.append(
+                QgsField("departure_time", QVariant.String, "text", 255)
+            )
+            output_fields.append(QgsField("arrival_time", QVariant.String, "text", 255))
+        else:
+            output_fields.append(QgsField("type", QVariant.String, "text", 255))
+            output_fields.append(QgsField("mode", QVariant.String, "text", 255))
+            output_fields.append(QgsField("directions", QVariant.String, "text", 255))
 
         output_crs = EPSG4326
         output_type = QgsWkbTypes.LineString
 
-        (sink_normal, sink_normal_id) = self.parameterAsSink(
-            parameters,
-            "OUTPUT_NORMAL",
-            context,
-            output_normal_fields,
-            output_type,
-            output_crs,
-        )
-        (sink_detailed, sink_detailed_id) = self.parameterAsSink(
-            parameters,
-            "OUTPUT_DETAILED",
-            context,
-            output_detailed_fields,
-            output_type,
-            output_crs,
+        (sink, sink_id) = self.parameterAsSink(
+            parameters, "OUTPUT", context, output_fields, output_type, output_crs
         )
 
         for result in results:
             for location in result["locations"]:
-                feature_n = QgsFeature(output_normal_fields)
 
-                geom_n = QgsLineString()
-                for part in location["properties"][0]["route"]["parts"]:
-                    feature_d = QgsFeature(output_detailed_fields)
-                    geom_d = QgsLineString()
-                    for coord in part["coords"]:
-                        point = QgsPoint(coord["lng"], coord["lat"])
-                        geom_d.addVertex(point)
-                        if geom_n.endPoint() != point:
-                            geom_n.addVertex(point)
+                if result_type == "NORMAL":
 
-                    feature_d.setGeometry(geom_d)
-                    feature_d.setAttribute(0, part["type"])
-                    feature_d.setAttribute(1, part["mode"])
-                    feature_d.setAttribute(2, part["directions"])
-                    sink_detailed.addFeature(feature_d, QgsFeatureSink.FastInsert)
+                    # Create the geom
+                    geom = QgsLineString()
+                    for part in location["properties"][0]["route"]["parts"]:
+                        for coord in part["coords"]:
+                            point = QgsPoint(coord["lng"], coord["lat"])
+                            if geom.endPoint() != point:
+                                geom.addVertex(point)
 
-                feature_n.setGeometry(geom_n)
+                    # Create the feature
+                    feature = QgsFeature(output_fields)
+                    feature.setGeometry(geom)
+                    feature.setAttribute(0, result["search_id"])
+                    feature.setAttribute(1, location["id"])
+                    feature.setAttribute(2, location["properties"][0]["travel_time"])
+                    feature.setAttribute(3, location["properties"][0]["distance"])
+                    feature.setAttribute(
+                        4, location["properties"][0]["route"]["departure_time"]
+                    )
+                    feature.setAttribute(
+                        5, location["properties"][0]["route"]["arrival_time"]
+                    )
+                    sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                else:
+                    for part in location["properties"][0]["route"]["parts"]:
 
-                feature_n.setAttribute(0, result["search_id"])
-                feature_n.setAttribute(1, location["id"])
-                feature_n.setAttribute(2, location["properties"][0]["travel_time"])
-                feature_n.setAttribute(3, location["properties"][0]["distance"])
-                feature_n.setAttribute(
-                    4, location["properties"][0]["route"]["departure_time"]
-                )
-                feature_n.setAttribute(
-                    5, location["properties"][0]["route"]["arrival_time"]
-                )
+                        # Create the geom
+                        geom = QgsLineString()
+                        for coord in part["coords"]:
+                            point = QgsPoint(coord["lng"], coord["lat"])
+                            geom.addVertex(point)
 
-                sink_normal.addFeature(feature_n, QgsFeatureSink.FastInsert)
+                        # Create the feature
+                        feature_d = QgsFeature(output_fields)
+                        feature_d.setGeometry(geom)
+                        feature_d.setAttribute(0, part["type"])
+                        feature_d.setAttribute(1, part["mode"])
+                        feature_d.setAttribute(2, part["directions"])
+                        sink.addFeature(feature_d, QgsFeatureSink.FastInsert)
 
         feedback.pushDebugInfo("TimeFilterAlgorithm done !")
 
         # to get hold of the layer in post processing
-        self.sink_normal_id = sink_normal_id
-        self.sink_detailed_id = sink_detailed_id
+        self.sink_id = sink_id
 
-        return {"OUTPUT_NORMAL": sink_normal_id, "OUTPUT_DETAILED": sink_detailed_id}
+        return {"OUTPUT": sink_id}
 
     def postProcessAlgorithm(self, context, feedback):
-        style_path = os.path.join(
-            os.path.dirname(__file__), "resources", "style_route_duration.qml"
+        if self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]] == "NORMAL":
+            style_file = "style_route_duration.qml"
+        else:
+            style_file = "style_route_mode.qml"
+        style_path = os.path.join(os.path.dirname(__file__), "resources", style_file)
+        QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(
+            style_path
         )
-        QgsProcessingUtils.mapLayerFromString(
-            self.sink_normal_id, context
-        ).loadNamedStyle(style_path)
-        style_path = os.path.join(
-            os.path.dirname(__file__), "resources", "style_route_mode.qml"
-        )
-        QgsProcessingUtils.mapLayerFromString(
-            self.sink_detailed_id, context
-        ).loadNamedStyle(style_path)
         return super().postProcessAlgorithm(context, feedback)
 
 
@@ -1505,7 +1491,7 @@ class TimeFilterSimpleAlgorithm(AlgorithmBase):
         for f in result_layer.getFeatures():
             sink.addFeature(QgsFeature(f))
 
-        feedback.pushDebugInfo("TimeMapSimpleAlgorithm done !")
+        feedback.pushDebugInfo("TimeFilterSimpleAlgorithm done !")
 
         # to get hold of the layer in post processing
         self.dest_id = dest_id
@@ -1590,8 +1576,6 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
 
         mode = self.SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
         trnspt_type = TRANSPORTATION_TYPES[self.params["INPUT_TRNSPT_TYPE"]]
-        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
-
         search_layer = self.params["INPUT_SEARCHES"].materialize(QgsFeatureRequest())
         locations_layer = self.params["INPUT_LOCATIONS"].materialize(
             QgsFeatureRequest()
@@ -1604,9 +1588,9 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
             "INPUT_{}_TRNSPT_WALKING_TIME".format(mode): str(
                 self.params["INPUT_TRAVEL_TIME"] * 60
             ),
-            "INPUT_LOCATIONS".format(mode): locations_layer,
-            "OUTPUT_NORMAL": "memory:output_normal",
-            "OUTPUT_DETAILED": "memory:output_detailed",
+            "INPUT_LOCATIONS": locations_layer,
+            "INPUT_RESULT_TYPE": self.params["INPUT_RESULT_TYPE"],
+            "OUTPUT": "memory:output",
         }
 
         feedback.pushDebugInfo("Calling subcommand with following parameters...")
@@ -1618,10 +1602,7 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
 
         feedback.pushDebugInfo("Got results fom subcommand...")
 
-        if result_type == "NORMAL":
-            result_layer = results["OUTPUT_NORMAL"]
-        else:
-            result_layer = results["OUTPUT_DETAILED"]
+        result_layer = results["OUTPUT"]
 
         # Configure output
         (sink, dest_id) = self.parameterAsSink(
@@ -1637,7 +1618,7 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
         for f in result_layer.getFeatures():
             sink.addFeature(QgsFeature(f))
 
-        feedback.pushDebugInfo("TimeMapSimpleAlgorithm done !")
+        feedback.pushDebugInfo("RoutesSimpleAlgorithm done !")
 
         # to get hold of the layer in post processing
         self.dest_id = dest_id
