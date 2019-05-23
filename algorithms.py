@@ -951,7 +951,7 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
 
         def clone_feature(id_):
             """Returns a feature cloned from the locations layer"""
-            id_expr = self.params["INPUT_LOCATIONS_ID"]
+            id_expr = self.parameterAsString(parameters, "INPUT_LOCATIONS_ID", context)
             expression_ctx = self.createExpressionContext(parameters, context)
             expression = QgsExpression("{} = '{}'".format(id_expr, id_))
             return utils.clone_feature(
