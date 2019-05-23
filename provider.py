@@ -10,14 +10,14 @@ class Provider(QgsProcessingProvider):
         pass
 
     def loadAlgorithms(self):
-        self.addAlgorithm(algorithms.TimeMapSimpleAlgorithm())
-        self.addAlgorithm(algorithms.TimeFilterSimpleAlgorithm())
-        self.addAlgorithm(algorithms.RoutesSimpleAlgorithm())
-        self.addAlgorithm(algorithms.TimeMapAlgorithm())
-        self.addAlgorithm(algorithms.TimeFilterAlgorithm())
-        self.addAlgorithm(algorithms.RoutesAlgorithm())
-        self.addAlgorithm(algorithms.GeocodingAlgorithm())
-        self.addAlgorithm(algorithms.ReverseGeocodingAlgorithm())
+        self.addAlgorithm(algorithms.simple.TimeMapSimpleAlgorithm())
+        self.addAlgorithm(algorithms.simple.TimeFilterSimpleAlgorithm())
+        self.addAlgorithm(algorithms.simple.RoutesSimpleAlgorithm())
+        self.addAlgorithm(algorithms.advanced.TimeMapAlgorithm())
+        self.addAlgorithm(algorithms.advanced.TimeFilterAlgorithm())
+        self.addAlgorithm(algorithms.advanced.RoutesAlgorithm())
+        self.addAlgorithm(algorithms.utilities.GeocodingAlgorithm())
+        self.addAlgorithm(algorithms.utilities.ReverseGeocodingAlgorithm())
 
     def id(self):
         return "ttp_v4"
