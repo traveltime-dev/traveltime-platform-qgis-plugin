@@ -107,22 +107,35 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         """Helper to evaluate an expression from the input.
 
         Do not forget to call self.expressions_context.setFeature(feature) before using this."""
-        if key in self.expressions:
-            return self.expressions[key].evaluate(self.expressions_context)
+        if key in self.params:
+            return self.params[key].evaluate(self.expressions_context)
         else:
             return None
 
-    def processAlgorithmConfigureExpressionInputs(self, parameters, context, feedback):
+    def processAlgorithmConfigureParams(self, parameters, context, feedback):
         """Helper method that sets up all expressions parameter"""
         self.expressions_context = self.createExpressionContext(parameters, context)
-        self.expressions = {}
-        for PARAM in [
-            p.name() for p in self.parameterDefinitions() if p.type() == "expression"
-        ]:
-            self.expressions[PARAM] = QgsExpression(
-                self.parameterAsExpression(parameters, PARAM, context)
-            )
-            self.expressions[PARAM].prepare(self.expressions_context)
+        self.params = {}
+        for p in self.parameterDefinitions():
+            param = None
+            if p.type() == "expression":
+                param = QgsExpression(
+                    self.parameterAsExpression(parameters, p.name(), context)
+                )
+                param.prepare(self.expressions_context)
+            elif p.type() == "source":
+                param = self.parameterAsSource(parameters, p.name(), context)
+            elif p.type() == "enum":
+                param = self.parameterAsEnum(parameters, p.name(), context)
+            elif p.type() == "string":
+                param = self.parameterAsString(parameters, p.name(), context)
+            elif p.type() == "number":
+                if p.dataType() == QgsProcessingParameterNumber.Type.Integer:
+                    param = self.parameterAsInt(parameters, p.name(), context)
+                else:
+                    param = self.parameterAsDouble(parameters, p.name(), context)
+
+            self.params[p.name()] = param
 
     def processAlgorithmMakeRequest(
         self, parameters, context, feedback, data=None, params={}
@@ -149,47 +162,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             "X-Api-Key": API_KEY,
         }
 
-        feedback.pushDebugInfo("Checking API limit warnings...")
-        s = QSettings()
-        retries = 10
-        for i in range(retries):
-            enabled = bool(s.value("travel_time_platform/warning_enabled", True))
-            count = int(s.value("travel_time_platform/current_count", 0)) + 1
-            limit = int(s.value("travel_time_platform/warning_limit", 10)) + 1
-            if enabled and count >= limit:
-                if i == 0:
-                    feedback.reportError(
-                        tr("WARNING : API usage warning limit reached !")
-                    )
-                    feedback.reportError(
-                        tr(
-                            "To continue, disable or increase the limit in the plugin settings, or reset the queries counter. Now is your chance to do the changes."
-                        )
-                    )
-                feedback.reportError(
-                    tr(
-                        "Execution will resume in 10 seconds (retry {} out of {})"
-                    ).format(i + 1, retries)
-                )
-                time.sleep(10)
-            else:
-                if enabled:
-                    feedback.pushInfo(
-                        tr(
-                            "API usage warning limit not reached yet ({} queries remaining)..."
-                        ).format(limit - count)
-                    )
-                else:
-                    feedback.pushInfo(tr("API usage warning limit disabled..."))
-                break
-        else:
-            feedback.reportError(
-                tr("Execution canceled because of API limit warning."), fatalError=True
-            )
-            raise QgsProcessingException("API usage limit warning")
-
         feedback.pushDebugInfo("Making request to API endpoint...")
-        print_query = bool(s.value("travel_time_platform/log_calls", False))
+        print_query = bool(QSettings().value("travel_time_platform/log_calls", False))
         if print_query:
             log("Making request")
             log("url: {}".format(self.url))
@@ -222,9 +196,9 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 feedback.pushDebugInfo("Got response from cache...")
             else:
                 feedback.pushDebugInfo("Got response from API endpoint...")
-                s.setValue(
+                QSettings().setValue(
                     "travel_time_platform/current_count",
-                    int(s.value("travel_time_platform/current_count", 0)) + 1,
+                    int(QSettings().value("travel_time_platform/current_count", 0)) + 1,
                 )
 
             if print_query:
@@ -284,6 +258,50 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             )
             log(e)
             raise QgsProcessingException("Could not decode response") from None
+
+    def processAlgorithmEnforceLimit(
+        self, queries_count, parameters, context, feedback
+    ):
+        feedback.pushDebugInfo("Checking API limit warnings...")
+        s = QSettings()
+        retries = 10
+        for i in range(retries):
+            enabled = bool(s.value("travel_time_platform/warning_enabled", True))
+            count = (
+                int(s.value("travel_time_platform/current_count", 0)) + queries_count
+            )
+            limit = int(s.value("travel_time_platform/warning_limit", 10)) + 1
+            if enabled and count >= limit:
+                if i == 0:
+                    feedback.reportError(
+                        tr("WARNING : API usage warning limit reached !")
+                    )
+                    feedback.reportError(
+                        tr(
+                            "To continue, disable or increase the limit in the plugin settings, or reset the queries counter. Now is your chance to do the changes."
+                        )
+                    )
+                feedback.reportError(
+                    tr(
+                        "Execution will resume in 10 seconds (retry {} out of {})"
+                    ).format(i + 1, retries)
+                )
+                time.sleep(10)
+            else:
+                if enabled:
+                    feedback.pushInfo(
+                        tr(
+                            "API usage warning limit not reached yet ({} queries remaining)..."
+                        ).format(limit - count)
+                    )
+                else:
+                    feedback.pushInfo(tr("API usage warning limit disabled..."))
+                break
+        else:
+            feedback.reportError(
+                tr("Execution canceled because of API limit warning."), fatalError=True
+            )
+            raise QgsProcessingException("API usage limit warning")
 
     def createInstance(self):
         return self.__class__()
@@ -508,148 +526,122 @@ class SearchAlgorithmBase(AlgorithmBase):
                 ),
             )
 
-    def processAlgorithm(self, parameters, context, feedback):
+    def processAlgorithmGetSlices(self, parameters, context, feedback):
+        """Gets the slices to subdivide queries in smaller chunks"""
+        slices = list(self._processAlgorithmYieldSlices(parameters, context, feedback))
 
-        feedback.pushDebugInfo("Starting {}...".format(self.__class__.__name__))
-
-        # Configure common expressions inputs
-        self.processAlgorithmConfigureExpressionInputs(parameters, context, feedback)
-
-        # Main implementation
-        source_departure = self.parameterAsSource(
-            parameters, "INPUT_DEPARTURE_SEARCHES", context
-        )
-        source_arrival = self.parameterAsSource(
-            parameters, "INPUT_ARRIVAL_SEARCHES", context
-        )
-
-        source_departure_count = (
-            source_departure.featureCount() if source_departure else 0
-        )
-        source_arrival_count = source_arrival.featureCount() if source_arrival else 0
-
-        slicing_size = 10
-        slicing_count = math.ceil(
-            max(source_departure_count, source_arrival_count) / slicing_size
-        )
-
-        if slicing_count > 1:
+        if len(slices) > 1:
             feedback.pushInfo(
                 tr(
-                    "Input layers have more than {} features. The query will be executed in {} queries. This may have unexpected consequences on some parameters. Keep an eye on your API usage !"
-                ).format(slicing_size, slicing_count)
+                    "Due to the large amount of features, the request will be chukned in {} API calls are required. This may have unexpected consequences on some parameters. Keep an eye on your API usage !"
+                ).format(len(slices))
             )
 
-        results = []
+        # Make sure we don't hit the API limit
+        self.processAlgorithmEnforceLimit(len(slices), parameters, context, feedback)
+
+        return slices
+
+    def _processAlgorithmYieldSlices(self, parameters, context, feedback):
+        """Yields slices to subdivide queries in smaller chunks"""
+
+        departure_count = (
+            self.params["INPUT_DEPARTURE_SEARCHES"].featureCount()
+            if self.params["INPUT_DEPARTURE_SEARCHES"]
+            else 0
+        )
+        arrival_count = (
+            self.params["INPUT_ARRIVAL_SEARCHES"].featureCount()
+            if self.params["INPUT_ARRIVAL_SEARCHES"]
+            else 0
+        )
+
+        slicing_size = 10
+        slicing_count = math.ceil(max(departure_count, arrival_count) / slicing_size)
 
         for slicing_i in range(slicing_count):
-            slicing_start = slicing_i * slicing_size
-            slicing_end = (slicing_i + 1) * slicing_size
+            yield {
+                "search_slice_start": slicing_i * slicing_size,
+                "search_slice_end": (slicing_i + 1) * slicing_size,
+            }
 
-            # Prepare the data
-            data = {}
-            for DEPARR, source in [
-                ("DEPARTURE", source_departure),
-                ("ARRIVAL", source_arrival),
-            ]:
-                deparr = DEPARR.lower()
-                if source:
-                    feedback.pushDebugInfo(
-                        "Loading {} searches features...".format(deparr)
-                    )
-                    data[deparr + "_searches"] = []
-                    xform = QgsCoordinateTransform(
-                        source.sourceCrs(), EPSG4326, context.transformContext()
-                    )
-                    for i, feature in enumerate(source.getFeatures()):
-                        # Stop the algorithm if cancel button has been clicked
-                        # if feedback.isCanceled():
-                        #     break
+    def processAlgorithmPrepareSearchData(
+        self, slicing_start, slicing_end, parameters, context, feedback
+    ):
+        """This method prepares the data array with all parameters corresponding to the common search attributes
 
-                        if i < slicing_start or i >= slicing_end:
-                            continue
+        The slicing_start/end params allow to prepare just a slice, to conform to API limitation (for now 10 searches/query)
+        """
+        data = {}
+        for DEPARR in ["DEPARTURE", "ARRIVAL"]:
+            source = self.params["INPUT_" + DEPARR + "_SEARCHES"]
+            deparr = DEPARR.lower()
+            if source:
+                feedback.pushDebugInfo("Loading {} searches features...".format(deparr))
+                data[deparr + "_searches"] = []
+                xform = QgsCoordinateTransform(
+                    source.sourceCrs(), EPSG4326, context.transformContext()
+                )
+                for i, feature in enumerate(source.getFeatures()):
+                    # Stop the algorithm if cancel button has been clicked
+                    # if feedback.isCanceled():
+                    #     break
 
-                        # Set feature for expression context
-                        self.expressions_context.setFeature(feature)
+                    if i < slicing_start or i >= slicing_end:
+                        continue
 
-                        # Reproject to WGS84
-                        geometry = feature.geometry()
-                        geometry.transform(xform)
+                    # Set feature for expression context
+                    self.expressions_context.setFeature(feature)
 
-                        search_data = {
-                            "id": self.eval_expr("INPUT_" + DEPARR + "_ID"),
-                            "coords": {
-                                "lat": geometry.asPoint().y(),
-                                "lng": geometry.asPoint().x(),
-                            },
-                            "transportation": {
-                                "type": self.eval_expr(
-                                    "INPUT_" + DEPARR + "_TRNSPT_TYPE"
-                                ),
-                                "pt_change_delay": self.eval_expr(
-                                    "INPUT_" + DEPARR + "_TRNSPT_PT_CHANGE_DELAY"
-                                ),
-                                "walking_time": self.eval_expr(
-                                    "INPUT_" + DEPARR + "_TRNSPT_WALKING_TIME"
-                                ),
-                                "driving_time_to_station": self.eval_expr(
-                                    "INPUT_"
-                                    + DEPARR
-                                    + "_TRNSPT_DRIVING_TIME_TO_STATION"
-                                ),
-                                "cycling_time_to_station": self.eval_expr(
-                                    "INPUT_"
-                                    + DEPARR
-                                    + "_TRNSPT_CYCLING_TIME_TO_STATION"
-                                ),
-                                "parking_time": self.eval_expr(
-                                    "INPUT_" + DEPARR + "_TRNSPT_PARKING_TIME"
-                                ),
-                                "boarding_time": self.eval_expr(
-                                    "INPUT_" + DEPARR + "_TRNSPT_BOARDING_TIME"
-                                ),
-                            },
-                            deparr
-                            + "_time": self.eval_expr("INPUT_" + DEPARR + "_TIME"),
-                            "travel_time": self.eval_expr(
-                                "INPUT_" + DEPARR + "_TRAVEL_TIME"
+                    # Reproject to WGS84
+                    geometry = feature.geometry()
+                    geometry.transform(xform)
+
+                    search_data = {
+                        "id": self.eval_expr("INPUT_" + DEPARR + "_ID"),
+                        "coords": {
+                            "lat": geometry.asPoint().y(),
+                            "lng": geometry.asPoint().x(),
+                        },
+                        "transportation": {
+                            "type": self.eval_expr("INPUT_" + DEPARR + "_TRNSPT_TYPE"),
+                            "pt_change_delay": self.eval_expr(
+                                "INPUT_" + DEPARR + "_TRNSPT_PT_CHANGE_DELAY"
                             ),
-                            # TODO : allow to edit properties
-                            "properties": self.search_properties,
-                        }
-                        range_width = self.eval_expr("INPUT_" + DEPARR + "_RANGE_WIDTH")
-                        if range_width:
-                            search_data.update(
-                                {"range": {"enabled": True, "width": range_width}}
-                            )
+                            "walking_time": self.eval_expr(
+                                "INPUT_" + DEPARR + "_TRNSPT_WALKING_TIME"
+                            ),
+                            "driving_time_to_station": self.eval_expr(
+                                "INPUT_" + DEPARR + "_TRNSPT_DRIVING_TIME_TO_STATION"
+                            ),
+                            "cycling_time_to_station": self.eval_expr(
+                                "INPUT_" + DEPARR + "_TRNSPT_CYCLING_TIME_TO_STATION"
+                            ),
+                            "parking_time": self.eval_expr(
+                                "INPUT_" + DEPARR + "_TRNSPT_PARKING_TIME"
+                            ),
+                            "boarding_time": self.eval_expr(
+                                "INPUT_" + DEPARR + "_TRNSPT_BOARDING_TIME"
+                            ),
+                        },
+                        deparr + "_time": self.eval_expr("INPUT_" + DEPARR + "_TIME"),
+                        "travel_time": self.eval_expr(
+                            "INPUT_" + DEPARR + "_TRAVEL_TIME"
+                        ),
+                        # TODO : allow to edit properties
+                        "properties": self.search_properties,
+                    }
+                    range_width = self.eval_expr("INPUT_" + DEPARR + "_RANGE_WIDTH")
+                    if range_width:
+                        search_data.update(
+                            {"range": {"enabled": True, "width": range_width}}
+                        )
 
-                        data[deparr + "_searches"].append(search_data)
+                    data[deparr + "_searches"].append(search_data)
 
-                        # # Update the progress bar
-                        # feedback.setProgress(int(current * total))
-
-            # Remix the data as needed
-            data = self.processAlgorithmRemixData(data, parameters, context, feedback)
-
-            # Make the query
-            response_data = self.processAlgorithmMakeRequest(
-                parameters, context, feedback, data=data
-            )
-
-            results += response_data["results"]
-
-        feedback.pushDebugInfo("Loading response to layer...")
-
-        # Configure output
-        return self.processAlgorithmOutput(results, parameters, context, feedback)
-
-    def processAlgorithmRemixData(self, data, parameters, context, feedback):
-        """To be overriden by subclasses : allow to edit the data object before sending to the API"""
+                    # # Update the progress bar
+                    # feedback.setProgress(int(current * total))
         return data
-
-    def processAlgorithmOutput(self, results, parameters, context, feedback):
-        """To be overriden by subclasses : manages the output"""
-        return None
 
 
 class TimeMapAlgorithm(SearchAlgorithmBase):
@@ -693,12 +685,47 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
             help_text=tr("Where to save the output"),
         )
 
+    def processAlgorithm(self, parameters, context, feedback):
+
+        feedback.pushDebugInfo("Starting {}...".format(self.__class__.__name__))
+
+        # Configure common expressions inputs
+        self.processAlgorithmConfigureParams(parameters, context, feedback)
+
+        # Slice queries if needed
+        slices = self.processAlgorithmGetSlices(parameters, context, feedback)
+
+        # Make the query (in slices)
+        results = []
+        for slice_ in slices:
+
+            slc_start = slice_["search_slice_start"]
+            slc_end = slice_["search_slice_end"]
+
+            # Prepare the data
+            data = self.processAlgorithmPrepareSearchData(
+                slc_start, slc_end, parameters, context, feedback
+            )
+
+            # Remix the data as needed
+            data = self.processAlgorithmRemixData(data, parameters, context, feedback)
+
+            # Make the query
+            response_data = self.processAlgorithmMakeRequest(
+                parameters, context, feedback, data=data
+            )
+
+            results += response_data["results"]
+
+        feedback.pushDebugInfo("Loading response to layer...")
+
+        # Configure output
+        return self.processAlgorithmOutput(results, parameters, context, feedback)
+
     def processAlgorithmRemixData(self, data, parameters, context, feedback):
         """To be overriden by subclasses : allow to edit the data object before sending to the API"""
 
-        result_type = self.RESULT_TYPE[
-            self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
-        ]
+        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
 
         if result_type != "NORMAL":
             search_ids = []
@@ -729,9 +756,7 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
             EPSG4326,
         )
 
-        result_type = self.RESULT_TYPE[
-            self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
-        ]
+        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
 
         for result in results:
             feature = QgsFeature(output_fields)
@@ -754,19 +779,18 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
 
         # to get hold of the layer in post processing
         self.sink_id = sink_id
-        self.result_type = self.RESULT_TYPE[
-            self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
-        ]
 
         return {"OUTPUT": sink_id}
 
     def postProcessAlgorithm(self, context, feedback):
 
-        if self.result_type == "NORMAL":
+        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
+
+        if result_type == "NORMAL":
             style_file = "style.qml"
-        elif self.result_type == "UNION":
+        elif result_type == "UNION":
             style_file = "style_union.qml"
-        elif self.result_type == "INTERSECTION":
+        elif result_type == "INTERSECTION":
             style_file = "style_intersection.qml"
 
         style_path = os.path.join(os.path.dirname(__file__), "resources", style_file)
@@ -831,8 +855,45 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
             help_text=tr("Where to save the output"),
         )
 
+    def processAlgorithm(self, parameters, context, feedback):
+
+        feedback.pushDebugInfo("Starting {}...".format(self.__class__.__name__))
+
+        # Configure common expressions inputs
+        self.processAlgorithmConfigureParams(parameters, context, feedback)
+
+        # Slice queries if needed
+        slices = self.processAlgorithmGetSlices(parameters, context, feedback)
+
+        # Make the query (in slices)
+        results = []
+        for slice_ in slices:
+
+            slc_start = slice_["search_slice_start"]
+            slc_end = slice_["search_slice_end"]
+
+            # Prepare the data
+            data = self.processAlgorithmPrepareSearchData(
+                slc_start, slc_end, parameters, context, feedback
+            )
+
+            # Remix the data as needed
+            data = self.processAlgorithmRemixData(data, parameters, context, feedback)
+
+            # Make the query
+            response_data = self.processAlgorithmMakeRequest(
+                parameters, context, feedback, data=data
+            )
+
+            results += response_data["results"]
+
+        feedback.pushDebugInfo("Loading response to layer...")
+
+        # Configure output
+        return self.processAlgorithmOutput(results, parameters, context, feedback)
+
     def processAlgorithmRemixData(self, data, parameters, context, feedback):
-        locations = self.parameterAsSource(parameters, "INPUT_LOCATIONS", context)
+        locations = self.params["INPUT_LOCATIONS"]
 
         # Prepare location data (this is the same for all the slices)
         data["locations"] = []
@@ -879,7 +940,7 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
         return data
 
     def processAlgorithmOutput(self, results, parameters, context, feedback):
-        locations = self.parameterAsSource(parameters, "INPUT_LOCATIONS", context)
+        locations = self.params["INPUT_LOCATIONS"]
 
         output_fields = QgsFields(locations.fields())
         output_fields.append(QgsField("search_id", QVariant.String, "text", 255))
@@ -897,7 +958,7 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
 
         def clone_feature(id_):
             """Returns a feature cloned from the locations layer"""
-            id_expr = self.parameterAsString(parameters, "INPUT_LOCATIONS_ID", context)
+            id_expr = self.params["INPUT_LOCATIONS_ID"]
             expression_ctx = self.createExpressionContext(parameters, context)
             expression = QgsExpression("{} = '{}'".format(id_expr, id_))
             return utils.clone_feature(
@@ -1005,8 +1066,45 @@ class RoutesAlgorithm(SearchAlgorithmBase):
             ),
         )
 
+    def processAlgorithm(self, parameters, context, feedback):
+
+        feedback.pushDebugInfo("Starting {}...".format(self.__class__.__name__))
+
+        # Configure common expressions inputs
+        self.processAlgorithmConfigureParams(parameters, context, feedback)
+
+        # Slice queries if needed
+        slices = self.processAlgorithmGetSlices(parameters, context, feedback)
+
+        # Make the query (in slices)
+        results = []
+        for slice_ in slices:
+
+            slc_start = slice_["search_slice_start"]
+            slc_end = slice_["search_slice_end"]
+
+            # Prepare the data
+            data = self.processAlgorithmPrepareSearchData(
+                slc_start, slc_end, parameters, context, feedback
+            )
+
+            # Remix the data as needed
+            data = self.processAlgorithmRemixData(data, parameters, context, feedback)
+
+            # Make the query
+            response_data = self.processAlgorithmMakeRequest(
+                parameters, context, feedback, data=data
+            )
+
+            results += response_data["results"]
+
+        feedback.pushDebugInfo("Loading response to layer...")
+
+        # Configure output
+        return self.processAlgorithmOutput(results, parameters, context, feedback)
+
     def processAlgorithmRemixData(self, data, parameters, context, feedback):
-        locations = self.parameterAsSource(parameters, "INPUT_LOCATIONS", context)
+        locations = self.params["INPUT_LOCATIONS"]
 
         # Prepare location data (this is the same for all the slices)
         data["locations"] = []
@@ -1225,35 +1323,26 @@ class TimeMapSimpleAlgorithm(AlgorithmBase):
 
         feedback.pushDebugInfo("Starting TimeMapSimpleAlgorithm...")
 
-        mode = self.SEARCH_TYPES[
-            self.parameterAsEnum(parameters, "INPUT_SEARCH_TYPE", context)
-        ]
-        trnspt_type = TRANSPORTATION_TYPES[
-            self.parameterAsEnum(parameters, "INPUT_TRNSPT_TYPE", context)
-        ]
-        result_type = self.RESULT_TYPE[
-            self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
-        ]
+        # Configure common expressions inputs
+        self.processAlgorithmConfigureParams(parameters, context, feedback)
 
-        search_layer = self.parameterAsSource(
-            parameters, "INPUT_SEARCHES", context
-        ).materialize(QgsFeatureRequest())
+        mode = self.SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
+        trnspt_type = TRANSPORTATION_TYPES[self.params["INPUT_TRNSPT_TYPE"]]
+        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
+
+        search_layer = self.params["INPUT_SEARCHES"].materialize(QgsFeatureRequest())
 
         sub_parameters = {
             "INPUT_{}_SEARCHES".format(mode): search_layer,
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
-            "INPUT_{}_TIME".format(mode): "'"
-            + self.parameterAsString(parameters, "INPUT_TIME", context)
-            + "'",
+            "INPUT_{}_TIME".format(mode): "'" + self.params["INPUT_TIME"] + "'",
             "INPUT_{}_TRAVEL_TIME".format(mode): str(
-                self.parameterAsInt(parameters, "INPUT_TRAVEL_TIME", context) * 60
+                self.params["INPUT_TRAVEL_TIME"] * 60
             ),
             "INPUT_{}_TRNSPT_WALKING_TIME".format(mode): str(
-                self.parameterAsInt(parameters, "INPUT_TRAVEL_TIME", context) * 60
+                self.params["INPUT_TRAVEL_TIME"] * 60
             ),
-            "INPUT_RESULT_TYPE": self.parameterAsEnum(
-                parameters, "INPUT_RESULT_TYPE", context
-            ),
+            "INPUT_RESULT_TYPE": self.params["INPUT_RESULT_TYPE"],
             "OUTPUT": "memory:results",
         }
 
@@ -1369,31 +1458,23 @@ class TimeFilterSimpleAlgorithm(AlgorithmBase):
 
         feedback.pushDebugInfo("Starting TimeFilterSimpleAlgorithm...")
 
-        mode = self.SEARCH_TYPES[
-            self.parameterAsEnum(parameters, "INPUT_SEARCH_TYPE", context)
-        ]
-        trnspt_type = TRANSPORTATION_TYPES[
-            self.parameterAsEnum(parameters, "INPUT_TRNSPT_TYPE", context)
-        ]
+        mode = self.SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
+        trnspt_type = TRANSPORTATION_TYPES[self.params["INPUT_TRNSPT_TYPE"]]
 
-        search_layer = self.parameterAsSource(
-            parameters, "INPUT_SEARCHES", context
-        ).materialize(QgsFeatureRequest())
-        locations_layer = self.parameterAsSource(
-            parameters, "INPUT_LOCATIONS", context
-        ).materialize(QgsFeatureRequest())
+        search_layer = self.params["INPUT_SEARCHES"].materialize(QgsFeatureRequest())
+        locations_layer = self.params["INPUT_LOCATIONS"].materialize(
+            QgsFeatureRequest()
+        )
 
         sub_parameters = {
             "INPUT_{}_SEARCHES".format(mode): search_layer,
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
-            "INPUT_{}_TIME".format(mode): "'"
-            + self.parameterAsString(parameters, "INPUT_TIME", context)
-            + "'",
+            "INPUT_{}_TIME".format(mode): "'" + self.params["INPUT_TIME"] + "'",
             "INPUT_{}_TRAVEL_TIME".format(mode): str(
-                self.parameterAsInt(parameters, "INPUT_TRAVEL_TIME", context) * 60
+                self.params["INPUT_TRAVEL_TIME"] * 60
             ),
             "INPUT_{}_TRNSPT_WALKING_TIME".format(mode): str(
-                self.parameterAsInt(parameters, "INPUT_TRAVEL_TIME", context) * 60
+                self.params["INPUT_TRAVEL_TIME"] * 60
             ),
             "INPUT_LOCATIONS".format(mode): locations_layer,
             "OUTPUT": "memory:results",
@@ -1504,31 +1585,24 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
 
         feedback.pushDebugInfo("Starting RoutesSimpleAlgorithm...")
 
-        mode = self.SEARCH_TYPES[
-            self.parameterAsEnum(parameters, "INPUT_SEARCH_TYPE", context)
-        ]
-        trnspt_type = TRANSPORTATION_TYPES[
-            self.parameterAsEnum(parameters, "INPUT_TRNSPT_TYPE", context)
-        ]
-        result_type = self.RESULT_TYPE[
-            self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
-        ]
+        # Configure common expressions inputs
+        self.processAlgorithmConfigureParams(parameters, context, feedback)
 
-        search_layer = self.parameterAsSource(
-            parameters, "INPUT_SEARCHES", context
-        ).materialize(QgsFeatureRequest())
-        locations_layer = self.parameterAsSource(
-            parameters, "INPUT_LOCATIONS", context
-        ).materialize(QgsFeatureRequest())
+        mode = self.SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
+        trnspt_type = TRANSPORTATION_TYPES[self.params["INPUT_TRNSPT_TYPE"]]
+        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
+
+        search_layer = self.params["INPUT_SEARCHES"].materialize(QgsFeatureRequest())
+        locations_layer = self.params["INPUT_LOCATIONS"].materialize(
+            QgsFeatureRequest()
+        )
 
         sub_parameters = {
             "INPUT_{}_SEARCHES".format(mode): search_layer,
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
-            "INPUT_{}_TIME".format(mode): "'"
-            + self.parameterAsString(parameters, "INPUT_TIME", context)
-            + "'",
+            "INPUT_{}_TIME".format(mode): "'" + self.params["INPUT_TIME"] + "'",
             "INPUT_{}_TRNSPT_WALKING_TIME".format(mode): str(
-                self.parameterAsInt(parameters, "INPUT_TRAVEL_TIME", context) * 60
+                self.params["INPUT_TRAVEL_TIME"] * 60
             ),
             "INPUT_LOCATIONS".format(mode): locations_layer,
             "OUTPUT_NORMAL": "memory:output_normal",
@@ -1626,11 +1700,11 @@ class GeocodingAlgorithmBase(AlgorithmBase):
         feedback.pushDebugInfo("Starting Geocoding...")
 
         # Configure common expressions inputs
-        self.processAlgorithmConfigureExpressionInputs(parameters, context, feedback)
+        self.processAlgorithmConfigureParams(parameters, context, feedback)
 
         # Main implementation
-        source_data = self.parameterAsSource(parameters, "INPUT_DATA", context)
-        limit_country_chc = self.parameterAsEnum(parameters, "INPUT_COUNTRY", context)
+        source_data = self.params["INPUT_DATA"]
+        limit_country_chc = self.params["INPUT_COUNTRY"]
         limit_country = COUNTRIES[limit_country_chc][0] if limit_country_chc else None
 
         if source_data.featureCount() > 1:
@@ -1639,6 +1713,10 @@ class GeocodingAlgorithmBase(AlgorithmBase):
                     "Input layer has multiple features. The query will be executed in {} queries. This may have unexpected consequences on some parameters. Keep an eye on your API usage !"
                 ).format(source_data.featureCount())
             )
+
+        # NOTE : this is disabled, as geocoding queries don't count towards the quota
+        # # Make sure we don't hit the API limit
+        # self.processAlgorithmEnforceLimit(len(slices), parameters, context, feedback)
 
         # Configure output
         output_fields = QgsFields(source_data.fields())
@@ -1675,10 +1753,8 @@ class GeocodingAlgorithmBase(AlgorithmBase):
             self.expressions_context.setFeature(feature)
 
             # Prepare the data
-            source_data = self.parameterAsSource(parameters, "INPUT_DATA", context)
-            limit_country_chc = self.parameterAsEnum(
-                parameters, "INPUT_COUNTRY", context
-            )
+            source_data = self.params["INPUT_DATA"]
+            limit_country_chc = self.params["INPUT_COUNTRY"]
             limit_country = (
                 COUNTRIES[limit_country_chc][0] if limit_country_chc else None
             )
@@ -1695,9 +1771,7 @@ class GeocodingAlgorithmBase(AlgorithmBase):
             )
 
             # Process the results
-            result_type = self.RESULT_TYPE[
-                self.parameterAsEnum(parameters, "INPUT_RESULT_TYPE", context)
-            ]
+            result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
 
             if result_type == "ALL":
                 # We keep all results
