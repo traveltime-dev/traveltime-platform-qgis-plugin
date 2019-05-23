@@ -576,59 +576,54 @@ class SearchAlgorithmBase(AlgorithmBase):
                         geometry = feature.geometry()
                         geometry.transform(xform)
 
-                        data[deparr + "_searches"].append(
-                            {
-                                "id": self.eval_expr("INPUT_" + DEPARR + "_ID"),
-                                "coords": {
-                                    "lat": geometry.asPoint().y(),
-                                    "lng": geometry.asPoint().x(),
-                                },
-                                "transportation": {
-                                    "type": self.eval_expr(
-                                        "INPUT_" + DEPARR + "_TRNSPT_TYPE"
-                                    ),
-                                    "pt_change_delay": self.eval_expr(
-                                        "INPUT_" + DEPARR + "_TRNSPT_PT_CHANGE_DELAY"
-                                    ),
-                                    "walking_time": self.eval_expr(
-                                        "INPUT_" + DEPARR + "_TRNSPT_WALKING_TIME"
-                                    ),
-                                    "driving_time_to_station": self.eval_expr(
-                                        "INPUT_"
-                                        + DEPARR
-                                        + "_TRNSPT_DRIVING_TIME_TO_STATION"
-                                    ),
-                                    "cycling_time_to_station": self.eval_expr(
-                                        "INPUT_"
-                                        + DEPARR
-                                        + "_TRNSPT_CYCLING_TIME_TO_STATION"
-                                    ),
-                                    "parking_time": self.eval_expr(
-                                        "INPUT_" + DEPARR + "_TRNSPT_PARKING_TIME"
-                                    ),
-                                    "boarding_time": self.eval_expr(
-                                        "INPUT_" + DEPARR + "_TRNSPT_BOARDING_TIME"
-                                    ),
-                                },
-                                deparr
-                                + "_time": self.eval_expr("INPUT_" + DEPARR + "_TIME"),
-                                "travel_time": self.eval_expr(
-                                    "INPUT_" + DEPARR + "_TRAVEL_TIME"
+                        search_data = {
+                            "id": self.eval_expr("INPUT_" + DEPARR + "_ID"),
+                            "coords": {
+                                "lat": geometry.asPoint().y(),
+                                "lng": geometry.asPoint().x(),
+                            },
+                            "transportation": {
+                                "type": self.eval_expr(
+                                    "INPUT_" + DEPARR + "_TRNSPT_TYPE"
                                 ),
-                                "range": {
-                                    "enabled": bool(
-                                        self.eval_expr(
-                                            "INPUT_" + DEPARR + "_RANGE_WIDTH"
-                                        )
-                                    ),
-                                    "width": self.eval_expr(
-                                        "INPUT_" + DEPARR + "_RANGE_WIDTH"
-                                    ),
-                                },
-                                # TODO : allow to edit properties
-                                "properties": self.search_properties,
-                            }
-                        )
+                                "pt_change_delay": self.eval_expr(
+                                    "INPUT_" + DEPARR + "_TRNSPT_PT_CHANGE_DELAY"
+                                ),
+                                "walking_time": self.eval_expr(
+                                    "INPUT_" + DEPARR + "_TRNSPT_WALKING_TIME"
+                                ),
+                                "driving_time_to_station": self.eval_expr(
+                                    "INPUT_"
+                                    + DEPARR
+                                    + "_TRNSPT_DRIVING_TIME_TO_STATION"
+                                ),
+                                "cycling_time_to_station": self.eval_expr(
+                                    "INPUT_"
+                                    + DEPARR
+                                    + "_TRNSPT_CYCLING_TIME_TO_STATION"
+                                ),
+                                "parking_time": self.eval_expr(
+                                    "INPUT_" + DEPARR + "_TRNSPT_PARKING_TIME"
+                                ),
+                                "boarding_time": self.eval_expr(
+                                    "INPUT_" + DEPARR + "_TRNSPT_BOARDING_TIME"
+                                ),
+                            },
+                            deparr
+                            + "_time": self.eval_expr("INPUT_" + DEPARR + "_TIME"),
+                            "travel_time": self.eval_expr(
+                                "INPUT_" + DEPARR + "_TRAVEL_TIME"
+                            ),
+                            # TODO : allow to edit properties
+                            "properties": self.search_properties,
+                        }
+                        range_width = self.eval_expr("INPUT_" + DEPARR + "_RANGE_WIDTH")
+                        if range_width:
+                            search_data.update(
+                                {"range": {"enabled": True, "width": range_width}}
+                            )
+
+                        data[deparr + "_searches"].append(search_data)
 
                         # # Update the progress bar
                         # feedback.setProgress(int(current * total))
