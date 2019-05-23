@@ -29,6 +29,7 @@ COUNTRIES = [(None, "-")] + list([(c.alpha2, c.name) for c in iso3166.countries]
 
 
 class GeocodingAlgorithmBase(AlgorithmBase):
+    input_type = QgsProcessing.TypeVector
 
     RESULT_TYPE = ["ALL", "BEST_MATCH"]
 
@@ -36,7 +37,7 @@ class GeocodingAlgorithmBase(AlgorithmBase):
 
         self.addParameter(
             QgsProcessingParameterFeatureSource(
-                "INPUT_DATA", tr("Input data"), [QgsProcessing.TypeVector]
+                "INPUT_DATA", tr("Input data"), [self.input_type]
             )
         )
 
@@ -188,6 +189,7 @@ class GeocodingAlgorithmBase(AlgorithmBase):
 
 
 class GeocodingAlgorithm(GeocodingAlgorithmBase):
+    input_type = QgsProcessing.TypeVector
     url = "https://api.traveltimeapp.com/v4/geocoding/search"
     method = "GET"
 
@@ -239,6 +241,7 @@ class GeocodingAlgorithm(GeocodingAlgorithmBase):
 
 
 class ReverseGeocodingAlgorithm(GeocodingAlgorithmBase):
+    input_type = QgsProcessing.TypeVectorPoint
     url = "https://api.traveltimeapp.com/v4/geocoding/reverse"
     method = "GET"
 
