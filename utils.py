@@ -21,17 +21,17 @@ def now_iso():
     )
 
 
-def clone_feature(id_or_request, source_layer, output_fields=None):
+def clone_feature(request, source_layer, output_fields=None):
     """Returns a feature cloned from the source layer
 
-    id_or_request : id or QgsFeatureRequest of the source feature
+    request : QgsFeatureRequest of the source feature
     source_layer : the layer to clone from
     output_fields : QgsFields to initialize the clone (if none, source_layers.fields() will be used)
     """
     if output_fields is None:
         output_fields = source_layer.fields()
     new_feature = QgsFeature(output_fields)
-    for old_feature in source_layer.getFeatures(id_or_request):
+    for old_feature in source_layer.getFeatures(request):
         # Return the first one
         break
     new_feature.setGeometry(QgsGeometry(old_feature.geometry()))
