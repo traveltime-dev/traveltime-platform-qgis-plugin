@@ -264,46 +264,36 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     def processAlgorithmEnforceLimit(
         self, queries_count, parameters, context, feedback
     ):
-        feedback.pushDebugInfo("Checking API limit warnings...")
         s = QSettings()
-        retries = 10
-        for i in range(retries):
-            enabled = bool(s.value("travel_time_platform/warning_enabled", True))
-            count = (
-                int(s.value("travel_time_platform/current_count", 0)) + queries_count
-            )
-            limit = int(s.value("travel_time_platform/warning_limit", 10)) + 1
-            if enabled and count >= limit:
-                if i == 0:
-                    feedback.reportError(
-                        tr("WARNING : API usage warning limit reached !")
-                    )
-                    feedback.reportError(
-                        tr(
-                            "To continue, disable or increase the limit in the plugin settings, or reset the queries counter. Now is your chance to do the changes."
-                        )
-                    )
-                feedback.reportError(
-                    tr(
-                        "Execution will resume in 10 seconds (retry {} out of {})"
-                    ).format(i + 1, retries)
-                )
-                time.sleep(10)
-            else:
-                if enabled:
-                    feedback.pushInfo(
-                        tr(
-                            "API usage warning limit not reached yet ({} queries remaining)..."
-                        ).format(limit - count)
-                    )
-                else:
-                    feedback.pushInfo(tr("API usage warning limit disabled..."))
-                break
-        else:
+        enabled = bool(s.value("travel_time_platform/warning_enabled", True))
+        count = int(s.value("travel_time_platform/current_count", 0))
+        limit = int(s.value("travel_time_platform/warning_limit", 10)) + 1
+
+        feedback.pushDebugInfo("Checking API limit warnings...")
+
+        if enabled and count + queries_count >= limit:
             feedback.reportError(
-                tr("Execution canceled because of API limit warning."), fatalError=True
+                tr(
+                    "WARNING : API usage warning limit reached ({} calls remaining, {} calls planned) !"
+                ).format(limit - count - 1, queries_count),
+                fatalError=True,
+            )
+            feedback.reportError(
+                tr(
+                    "To continue, disable or increase the limit in the plugin settings, or reset the queries counter."
+                ),
+                fatalError=True,
             )
             raise QgsProcessingException("API usage limit warning")
+
+        if enabled:
+            feedback.pushInfo(
+                tr(
+                    "API usage warning limit not reached yet ({} calls remaining, {} calls planned)..."
+                ).format(limit - count - 1, queries_count)
+            )
+        else:
+            feedback.pushInfo(tr("API usage warning limit disabled..."))
 
     def createInstance(self):
         return self.__class__()
@@ -542,7 +532,7 @@ class SearchAlgorithmBase(AlgorithmBase):
         if len(slices) > 1:
             feedback.pushInfo(
                 tr(
-                    "Due to the large amount of features, the request will be chukned in {} API calls are required. This may have unexpected consequences on some parameters. Keep an eye on your API usage !"
+                    "Due to the large amount of features, the request will be chunked in {} API calls are required. This may have unexpected consequences on some parameters. Keep an eye on your API usage !"
                 ).format(len(slices))
             )
 
