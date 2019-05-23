@@ -528,6 +528,13 @@ class SearchAlgorithmBase(AlgorithmBase):
                 ),
             )
 
+        # Define output parameters
+        self.addParameter(
+            QgsProcessingParameterFeatureSink(
+                "OUTPUT", tr("Output"), type=self.output_type
+            )
+        )
+
     def processAlgorithmGetSlices(self, parameters, context, feedback):
         """Gets the slices to subdivide queries in smaller chunks"""
         slices = list(self._processAlgorithmYieldSlices(parameters, context, feedback))
@@ -649,6 +656,7 @@ class SearchAlgorithmBase(AlgorithmBase):
 class TimeMapAlgorithm(SearchAlgorithmBase):
     url = "https://api.traveltimeapp.com/v4/time-map"
     accept_header = "application/vnd.wkt+json"
+    output_type = QgsProcessing.TypeVectorPolygon
 
     _name = "time_map"
     _displayName = "Time Map"
@@ -670,21 +678,11 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
         # Define additional input parameters
         self.addParameter(
             QgsProcessingParameterEnum(
-                "INPUT_RESULT_TYPE", tr("Result aggregation"), options=self.RESULT_TYPE
+                "OUTPUT_RESULT_TYPE", tr("Result aggregation"), options=self.RESULT_TYPE
             ),
             help_text=tr(
                 "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
             ),
-        )
-
-        # Define output parameters
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                "OUTPUT",
-                tr("Output - searches layer"),
-                type=QgsProcessing.TypeVectorPolygon,
-            ),
-            help_text=tr("Where to save the output"),
         )
 
     def processAlgorithm(self, parameters, context, feedback):
@@ -727,7 +725,7 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
     def processAlgorithmRemixData(self, data, parameters, context, feedback):
         """To be overriden by subclasses : allow to edit the data object before sending to the API"""
 
-        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
+        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
 
         if result_type != "NORMAL":
             search_ids = []
@@ -758,7 +756,7 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
             EPSG4326,
         )
 
-        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
+        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
 
         for result in results:
             feature = QgsFeature(output_fields)
@@ -786,7 +784,7 @@ class TimeMapAlgorithm(SearchAlgorithmBase):
 
     def postProcessAlgorithm(self, context, feedback):
 
-        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
+        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
 
         if result_type == "NORMAL":
             style_file = "style.qml"
@@ -808,6 +806,7 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
     accept_header = "application/json"
     # search_properties = ["travel_time", "distance", "distance_breakdown", "fares", "route"]
     search_properties = ["travel_time", "distance", "distance_breakdown", "route"]
+    output_type = QgsProcessing.TypeVectorPoint
 
     _name = "time_filter"
     _displayName = "Time Filter"
@@ -847,14 +846,6 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
             help_text=tr(
                 "You will have to reference this id in your searches. It will also be used in the response body. MUST be unique among all locations."
             ),
-        )
-
-        # Define output parameters
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                "OUTPUT", tr("Results"), type=QgsProcessing.TypeVectorPoint
-            ),
-            help_text=tr("Where to save the output"),
         )
 
     def processAlgorithm(self, parameters, context, feedback):
@@ -1005,6 +996,7 @@ class RoutesAlgorithm(SearchAlgorithmBase):
     accept_header = "application/json"
     # search_properties = ["travel_time", "distance", "route", "fares"]
     search_properties = ["travel_time", "distance", "route"]
+    output_type = QgsProcessing.TypeVectorLine
 
     _name = "routes"
     _displayName = "Routes"
@@ -1055,17 +1047,11 @@ class RoutesAlgorithm(SearchAlgorithmBase):
         # Define output parameters
         self.addParameter(
             QgsProcessingParameterEnum(
-                "INPUT_RESULT_TYPE", tr("Output style"), options=self.RESULT_TYPE
+                "OUTPUT_RESULT_TYPE", tr("Output style"), options=self.RESULT_TYPE
             ),
             help_text=tr(
                 "Normal will return a simple linestring for each route. Detailed will return several segments for each type of transportation for each route."
             ),
-        )
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                "OUTPUT", tr("Routes"), type=QgsProcessing.TypeVectorLine
-            ),
-            help_text=tr("Where to save the output"),
         )
 
     def processAlgorithm(self, parameters, context, feedback):
@@ -1156,7 +1142,7 @@ class RoutesAlgorithm(SearchAlgorithmBase):
 
     def processAlgorithmOutput(self, results, parameters, context, feedback):
         output_fields = QgsFields()
-        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
+        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
         if result_type == "NORMAL":
             output_fields.append(QgsField("search_id", QVariant.String, "text", 255))
             output_fields.append(QgsField("location_id", QVariant.String, "text", 255))
@@ -1230,7 +1216,7 @@ class RoutesAlgorithm(SearchAlgorithmBase):
         return {"OUTPUT": sink_id}
 
     def postProcessAlgorithm(self, context, feedback):
-        if self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]] == "NORMAL":
+        if self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]] == "NORMAL":
             style_file = "style_route_duration.qml"
         else:
             style_file = "style_route_mode.qml"
@@ -1291,7 +1277,7 @@ class TimeMapSimpleAlgorithm(AlgorithmBase):
         )
         self.addParameter(
             QgsProcessingParameterEnum(
-                "INPUT_RESULT_TYPE", tr("Result aggregation"), options=self.RESULT_TYPE
+                "OUTPUT_RESULT_TYPE", tr("Result aggregation"), options=self.RESULT_TYPE
             ),
             help_text=tr(
                 "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
@@ -1314,7 +1300,7 @@ class TimeMapSimpleAlgorithm(AlgorithmBase):
 
         mode = self.SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
         trnspt_type = TRANSPORTATION_TYPES[self.params["INPUT_TRNSPT_TYPE"]]
-        result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
+        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
 
         search_layer = self.params["INPUT_SEARCHES"].materialize(QgsFeatureRequest())
 
@@ -1328,7 +1314,7 @@ class TimeMapSimpleAlgorithm(AlgorithmBase):
             "INPUT_{}_TRNSPT_WALKING_TIME".format(mode): str(
                 self.params["INPUT_TRAVEL_TIME"] * 60
             ),
-            "INPUT_RESULT_TYPE": self.params["INPUT_RESULT_TYPE"],
+            "OUTPUT_RESULT_TYPE": self.params["OUTPUT_RESULT_TYPE"],
             "OUTPUT": "memory:results",
         }
 
@@ -1555,7 +1541,7 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
         # OUTPUT
         self.addParameter(
             QgsProcessingParameterEnum(
-                "INPUT_RESULT_TYPE", tr("Output style"), options=self.RESULT_TYPE
+                "OUTPUT_RESULT_TYPE", tr("Output style"), options=self.RESULT_TYPE
             ),
             help_text=tr(
                 "Normal will return a simple linestring for each route. Detailed will return several segments for each type of transportation for each route."
@@ -1589,7 +1575,7 @@ class RoutesSimpleAlgorithm(AlgorithmBase):
                 self.params["INPUT_TRAVEL_TIME"] * 60
             ),
             "INPUT_LOCATIONS": locations_layer,
-            "INPUT_RESULT_TYPE": self.params["INPUT_RESULT_TYPE"],
+            "OUTPUT_RESULT_TYPE": self.params["OUTPUT_RESULT_TYPE"],
             "OUTPUT": "memory:output",
         }
 
@@ -1664,7 +1650,7 @@ class GeocodingAlgorithmBase(AlgorithmBase):
 
         self.addParameter(
             QgsProcessingParameterEnum(
-                "INPUT_RESULT_TYPE", tr("Results type"), options=self.RESULT_TYPE
+                "OUTPUT_RESULT_TYPE", tr("Results type"), options=self.RESULT_TYPE
             ),
             help_text="ALL will return several results per input, corresponding to all potential matches returned by the API. BEST_MATCH will only return the best point.",
         )
@@ -1752,7 +1738,7 @@ class GeocodingAlgorithmBase(AlgorithmBase):
             )
 
             # Process the results
-            result_type = self.RESULT_TYPE[self.params["INPUT_RESULT_TYPE"]]
+            result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
 
             if result_type == "ALL":
                 # We keep all results
