@@ -532,7 +532,7 @@ class SearchAlgorithmBase(AlgorithmBase):
         if len(slices) > 1:
             feedback.pushInfo(
                 tr(
-                    "Due to the large amount of features, the request will be chunked in {} API calls are required. This may have unexpected consequences on some parameters. Keep an eye on your API usage !"
+                    "Due to the large amount of features, the request will be chunked in {} API calls. This may have unexpected consequences on some parameters. Keep an eye on your API usage !"
                 ).format(len(slices))
             )
 
@@ -558,10 +558,10 @@ class SearchAlgorithmBase(AlgorithmBase):
         slicing_size = 10
         slicing_count = math.ceil(max(departure_count, arrival_count) / slicing_size)
 
-        for slicing_i in range(slicing_count):
+        for i in range(slicing_count):
             yield {
-                "search_slice_start": slicing_i * slicing_size,
-                "search_slice_end": (slicing_i + 1) * slicing_size,
+                "search_slice_start": i * slicing_size,
+                "search_slice_end": (i + 1) * slicing_size,
             }
 
     def processAlgorithmPrepareSearchData(
@@ -861,7 +861,9 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
             )
 
             # Remix the data as needed
-            data = self.processAlgorithmRemixData(data, parameters, context, feedback)
+            data = self.processAlgorithmRemixData(
+                data, slice_, parameters, context, feedback
+            )
 
             # Make the query
             response_data = self.processAlgorithmMakeRequest(
@@ -875,7 +877,7 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
         # Configure output
         return self.processAlgorithmOutput(results, parameters, context, feedback)
 
-    def processAlgorithmRemixData(self, data, parameters, context, feedback):
+    def processAlgorithmRemixData(self, data, slice_, parameters, context, feedback):
         locations = self.params["INPUT_LOCATIONS"]
 
         # Prepare location data (this is the same for all the slices)
@@ -883,7 +885,15 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
         xform = QgsCoordinateTransform(
             locations.sourceCrs(), EPSG4326, context.transformContext()
         )
-        for feature in locations.getFeatures():
+
+        slc_start = slice_["loc_slice_start"]
+        slc_end = slice_["loc_slice_end"]
+
+        for i, feature in enumerate(locations.getFeatures()):
+
+            if i < slc_start or i >= slc_end:
+                continue
+
             # Set feature for expression context
             self.expressions_context.setFeature(feature)
             geometry = feature.geometry()
@@ -980,6 +990,26 @@ class TimeFilterAlgorithm(SearchAlgorithmBase):
         )
         return super().postProcessAlgorithm(context, feedback)
 
+    def _processAlgorithmYieldSlices(self, parameters, context, feedback):
+        """Yields slices to subdivide queries in smaller chunks"""
+
+        locations_count = self.params["INPUT_LOCATIONS"].featureCount()
+
+        slicing_size = 2000
+        slicing_count = math.ceil(locations_count / slicing_size)
+
+        for i in range(slicing_count):
+            for slice_ in super()._processAlgorithmYieldSlices(
+                parameters, context, feedback
+            ):
+                slice_.update(
+                    {
+                        "loc_slice_start": i * slicing_size,
+                        "loc_slice_end": (i + 1) * slicing_size,
+                    }
+                )
+                yield slice_
+
 
 class RoutesAlgorithm(SearchAlgorithmBase):
     url = "https://api.traveltimeapp.com/v4/routes"
@@ -1067,7 +1097,9 @@ class RoutesAlgorithm(SearchAlgorithmBase):
             )
 
             # Remix the data as needed
-            data = self.processAlgorithmRemixData(data, parameters, context, feedback)
+            data = self.processAlgorithmRemixData(
+                data, slice_, parameters, context, feedback
+            )
 
             # Make the query
             response_data = self.processAlgorithmMakeRequest(
@@ -1081,15 +1113,23 @@ class RoutesAlgorithm(SearchAlgorithmBase):
         # Configure output
         return self.processAlgorithmOutput(results, parameters, context, feedback)
 
-    def processAlgorithmRemixData(self, data, parameters, context, feedback):
+    def processAlgorithmRemixData(self, data, slice_, parameters, context, feedback):
         locations = self.params["INPUT_LOCATIONS"]
 
-        # Prepare location data (this is the same for all the slices)
+        # Prepare location data
         data["locations"] = []
         xform = QgsCoordinateTransform(
             locations.sourceCrs(), EPSG4326, context.transformContext()
         )
-        for feature in locations.getFeatures():
+
+        slc_start = slice_["loc_slice_start"]
+        slc_end = slice_["loc_slice_end"]
+
+        for i, feature in enumerate(locations.getFeatures()):
+
+            if i < slc_start or i >= slc_end:
+                continue
+
             # Set feature for expression context
             self.expressions_context.setFeature(feature)
             geometry = feature.geometry()
@@ -1215,6 +1255,26 @@ class RoutesAlgorithm(SearchAlgorithmBase):
             style_path
         )
         return super().postProcessAlgorithm(context, feedback)
+
+    def _processAlgorithmYieldSlices(self, parameters, context, feedback):
+        """Yields slices to subdivide queries in smaller chunks"""
+
+        locations_count = self.params["INPUT_LOCATIONS"].featureCount()
+
+        slicing_size = 2
+        slicing_count = math.ceil(locations_count / slicing_size)
+
+        for i in range(slicing_count):
+            for slice_ in super()._processAlgorithmYieldSlices(
+                parameters, context, feedback
+            ):
+                slice_.update(
+                    {
+                        "loc_slice_start": i * slicing_size,
+                        "loc_slice_end": (i + 1) * slicing_size,
+                    }
+                )
+                yield slice_
 
 
 class TimeMapSimpleAlgorithm(AlgorithmBase):
