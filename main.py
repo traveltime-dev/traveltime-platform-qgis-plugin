@@ -2,7 +2,14 @@ import os.path
 import requests
 import functools
 
-from qgis.PyQt.QtCore import Qt, QSettings, QCoreApplication, QTranslator, QSize
+from qgis.PyQt.QtCore import (
+    Qt,
+    QSettings,
+    QCoreApplication,
+    QTranslator,
+    QSize,
+    QItemSelectionModel,
+)
 from qgis.PyQt.QtWidgets import (
     QAction,
     QLabel,
@@ -13,6 +20,10 @@ from qgis.PyQt.QtWidgets import (
     QPushButton,
     QToolButton,
     QMenu,
+    QDockWidget,
+    QWidget,
+    QSplitter,
+    QTreeView,
 )
 from qgis.core import Qgis, QgsApplication
 from qgis.gui import QgsFilterLineEdit
@@ -49,7 +60,7 @@ class Main:
         self.splash_screen = ui.SplashScreen(self)
         self.config_dialog = ui.ConfigDialog()
         self.help_dialog = ui.HelpWidget(self)
-        self.tilesManager = tiles.TilesManager()
+        self.tilesManager = tiles.TilesManager(self)
 
         self.toolbar = self.iface.addToolBar("TravelTime platform Toolbar")
 
@@ -69,30 +80,13 @@ class Main:
         self.toolbar.addAction(self.action_show_toolbox)
         self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_toolbox)
 
-        # Add tiles
-        tiles_menu = QMenu()
-        for key, tile in self.tilesManager.tiles.items():
-            action = QAction(tile["resource"], tile["label"], tiles_menu)
-            action.triggered.connect(
-                functools.partial(self.tilesManager.add_layer, key)
-            )
-            action.setEnabled(self.tilesManager.has_tiles)
-            tiles_menu.addAction(action)
-        if not self.tilesManager.has_tiles:
-            action = QAction(tr("Request access to backgrounds"), tiles_menu)
-            action.triggered.connect(lambda: self.tilesManager.request_access())
-            tiles_menu.addAction(action)
-
-        tiles_button = QToolButton()
-        tiles_button.setToolTip(tr("Add background"))
-        tiles_button.setIcon(resources.icon_tiles)
-        tiles_button.setMenu(tiles_menu)
-        tiles_button.setPopupMode(QToolButton.InstantPopup)
-
-        # self.action_show_toolbox.triggered.connect(self.show_toolbox)
-        self.toolbar.addWidget(tiles_button)
-        # self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_toolbox)
-        self.toolbar.addSeparator()
+        # Show tiles action
+        self.action_show_tiles = QAction(
+            resources.icon_tiles, tr("Add a background layer"), self.iface.mainWindow()
+        )
+        self.action_show_tiles.triggered.connect(self.show_tiles)
+        self.toolbar.addAction(self.action_show_tiles)
+        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_tiles)
 
         # Show help actions
         self.action_show_help = QAction(
@@ -125,6 +119,7 @@ class Main:
         # Remove GUI elements
         del self.toolbar
         self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_toolbox)
+        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_tiles)
         self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_config)
         self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_help)
 
@@ -148,6 +143,31 @@ class Main:
             searchBox.textChanged.emit("TravelTime platform")
         else:
             searchBox.setValue("TravelTime platform")
+
+    def show_tiles(self):
+        self.tilesManager.add_tiles_to_browser()
+
+        browser = self.iface.mainWindow().findChild(QDockWidget, "Browser")
+        browser.setVisible(True)
+        browser.raise_()
+
+        # Get the XYZ item of the treeview
+        treeview = (
+            self.iface.mainWindow()
+            .findChild(QDockWidget, "Browser")
+            .findChild(QWidget, "mContents")
+            .findChild(QSplitter)
+            .widget(0)
+            .findChild(QTreeView)
+        )
+        model = treeview.model()
+
+        match = model.match(model.index(0, 0), Qt.DisplayRole, "XYZ Tiles")[0]
+        treeview.collapseAll()
+        treeview.clearSelection()
+        treeview.expand(match)
+        treeview.setCurrentIndex(match)
+        treeview.scrollTo(match)
 
     def show_config(self):
         self.config_dialog.exec_()
