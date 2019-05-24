@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32px" height="30px" viewBox="0 0 32 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>icon_time_filter_simple_32x32</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="QGIS-icons-Copy" transform="translate(-1112.000000, -145.000000)">
+            <g id="icon_time_filter_simple_32x32" transform="translate(1112.000000, 145.000000)">
+                <path d="M16,27.35 L16,9.5" id="Line-Copy-6" stroke="#F0A023" stroke-width="3" stroke-linecap="round" transform="translate(16.000000, 18.500000) rotate(-90.000000) translate(-16.000000, -18.500000) "></path>
+                <path d="M16,32.35 L16,14.5" id="Line-Copy-11" stroke="#F0A023" stroke-width="3" stroke-linecap="round" transform="translate(16.000000, 23.500000) rotate(-90.000000) translate(-16.000000, -23.500000) "></path>
+                <path d="M16,37.35 L16,19.5" id="Line-Copy-12" stroke="#F0A023" stroke-width="3" stroke-linecap="round" transform="translate(16.000000, 28.500000) rotate(-90.000000) translate(-16.000000, -28.500000) "></path>
+                <polygon id="Triangle" fill="#F0A023" transform="translate(16.000000, 6.000000) rotate(-180.000000) translate(-16.000000, -6.000000) " points="16 0 32 12 0 12"></polygon>
+                <rect id="Rectangle" fill="#F0A023" x="13" y="8" width="6" height="7"></rect>
+            </g>
+        </g>
+    </g>
+</svg>

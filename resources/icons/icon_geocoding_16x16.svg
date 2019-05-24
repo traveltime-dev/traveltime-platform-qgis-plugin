@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>icon_geocoding_16x16</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="QGIS-icons-Copy" transform="translate(-545.000000, -353.000000)">
+            <g id="icon_geocoding_16x16" transform="translate(545.000000, 353.000000)">
+                <circle id="Oval-Copy-6" stroke="#434B54" stroke-width="1.5" cx="7.95" cy="8" r="5.25"></circle>
+                <path d="M7.18205429,9.29494525 L10.5728155,6 L11.45,6.85239701 L7.9449808,10.2583715 L7.19170579,11 L4.45,8.35923628 L5.32718446,7.50683927 L7.18205429,9.29494525 Z" id="Icons-/-Check-Red-Copy-2" fill="#434B54"></path>
+                <path d="M1.5,8.75 L1.5,7.25" id="Line-Copy-7" stroke="#434B54" stroke-width="1.5" stroke-linecap="round" transform="translate(1.500000, 8.000000) rotate(-270.000000) translate(-1.500000, -8.000000) "></path>
+                <path d="M14.3,8.85 L14.3,7.15" id="Line-Copy-8" stroke="#434B54" stroke-width="1.5" stroke-linecap="round" transform="translate(14.300000, 8.000000) rotate(-90.000000) translate(-14.300000, -8.000000) "></path>
+                <path d="M7.95,2.11954461 L7.95,0.5" id="Line-Copy-9" stroke="#434B54" stroke-width="1.5" stroke-linecap="round" transform="translate(7.950000, 1.500000) rotate(-180.000000) translate(-7.950000, -1.500000) "></path>
+                <path d="M7.95,15 L7.95,13.5" id="Line-Copy-10" stroke="#434B54" stroke-width="1.5" stroke-linecap="round" transform="translate(7.950000, 14.000000) rotate(-360.000000) translate(-7.950000, -14.000000) "></path>
+            </g>
+        </g>
+    </g>
+</svg>

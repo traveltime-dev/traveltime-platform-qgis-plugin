@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32px" height="33px" viewBox="0 0 32 33" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>icon_reverse_geocoding_32x32</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="QGIS-icons-Copy" transform="translate(-425.000000, -523.000000)">
+            <g id="icon_reverse_geocoding_32x32" transform="translate(426.000000, 525.000000)">
+                <path d="M15,26.5 C8.372583,26.5 3,21.127417 3,14.5 C3,7.872583 8.372583,2.5 15,2.5 C21.627417,2.5 27,7.872583 27,14.5 C27,21.127417 21.627417,26.5 15,26.5 Z M13.2446955,17.7584378 L9.00499305,13.4669835 L7,15.5127363 L13.2667561,21.8505692 L14.9885275,20.0706609 L23,11.8963221 L20.995007,9.85056924 L13.2446955,17.7584378 Z" id="Combined-Shape" fill="#434B54"></path>
+                <path d="M15,0 L15,3.5" id="Line" stroke="#434B54" stroke-width="2.5" stroke-linecap="round"></path>
+                <path d="M15,25.5 L15,29" id="Line-Copy" stroke="#434B54" stroke-width="2.5" stroke-linecap="round"></path>
+                <path d="M2.5,13 L2.5,16.5" id="Line-Copy" stroke="#434B54" stroke-width="2.5" stroke-linecap="round" transform="translate(2.500000, 14.500000) rotate(-270.000000) translate(-2.500000, -14.500000) "></path>
+                <path d="M28,12.5 L28,16" id="Line-Copy-2" stroke="#434B54" stroke-width="2.5" stroke-linecap="round" transform="translate(28.000000, 14.500000) rotate(-90.000000) translate(-28.000000, -14.500000) "></path>
+            </g>
+        </g>
+    </g>
+</svg>
