@@ -37,7 +37,7 @@ class TilesManager:
     def _get_url(self, identifier):
         app_id, _ = auth.get_app_id_and_api_key()
         disable_https = QSettings().value(
-            "travel_time_platform/disable_https", False, type=bool
+            "traveltime_platform/disable_https", False, type=bool
         )
         return "https://tiles.traveltimeplatform.com/styles/{identifier}/{{z}}/{{x}}/{{y}}.png?key={app_id}".format(
             app_id=app_id, identifier=identifier, verify=not disable_https

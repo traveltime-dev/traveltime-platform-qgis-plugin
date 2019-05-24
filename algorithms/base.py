@@ -121,7 +121,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         if not APP_ID or not API_KEY:
             feedback.reportError(
                 tr(
-                    "You need a Travel Time Platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin's setting dialog."
+                    "You need a TravelTime platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin's setting dialog."
                 ).format("http://docs.traveltimeplatform.com/overview/getting-keys/"),
                 fatalError=True,
             )
@@ -135,7 +135,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         }
 
         feedback.pushDebugInfo("Making request to API endpoint...")
-        print_query = bool(QSettings().value("travel_time_platform/log_calls", False))
+        print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
         if print_query:
             log("Making request")
             log("url: {}".format(self.url))
@@ -146,7 +146,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         try:
 
             disable_https = QSettings().value(
-                "travel_time_platform/disable_https", False, type=bool
+                "traveltime_platform/disable_https", False, type=bool
             )
             if disable_https:
                 feedback.pushInfo(
@@ -169,8 +169,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             else:
                 feedback.pushDebugInfo("Got response from API endpoint...")
                 QSettings().setValue(
-                    "travel_time_platform/current_count",
-                    int(QSettings().value("travel_time_platform/current_count", 0)) + 1,
+                    "traveltime_platform/current_count",
+                    int(QSettings().value("traveltime_platform/current_count", 0)) + 1,
                 )
 
             if print_query:
@@ -235,9 +235,9 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         self, queries_count, parameters, context, feedback
     ):
         s = QSettings()
-        enabled = bool(s.value("travel_time_platform/warning_enabled", True))
-        count = int(s.value("travel_time_platform/current_count", 0))
-        limit = int(s.value("travel_time_platform/warning_limit", 10)) + 1
+        enabled = bool(s.value("traveltime_platform/warning_enabled", True))
+        count = int(s.value("traveltime_platform/current_count", 0))
+        limit = int(s.value("traveltime_platform/warning_limit", 10)) + 1
 
         feedback.pushDebugInfo("Checking API limit warnings...")
 

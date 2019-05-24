@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Travel Time Platform Plugin Configuration</string>
+   <string>TravelTime platform Plugin Configuration</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -38,7 +38,7 @@
            <string notr="true">font-style:italic;color:gray;</string>
           </property>
           <property name="text">
-           <string>To use the Travel Time Platform API, you need an API key.</string>
+           <string>To use the TravelTime platform API, you need an API key.</string>
           </property>
           <property name="textFormat">
            <enum>Qt::PlainText</enum>

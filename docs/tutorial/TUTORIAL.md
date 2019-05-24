@@ -1,6 +1,6 @@
 # Tutorial
 
-This tutorial covers usage of the new Travel Time Platform Plugin for QGIS.
+This tutorial covers usage of the new TravelTime Platform Plugin for QGIS.
 
 ## Introduction
 
@@ -8,7 +8,7 @@ This tutorial covers usage of the new Travel Time Platform Plugin for QGIS.
 
 Travel time is much more accurate than distance to take informed decisions, such as where to locate a new office, what type of transport to choose, or at what time a meeting should start.
 
-The Travel Time Platform Plugin for QGIS is a brand new plugin that add several algorithms that aim to allow this type of analysis right in QGIS. It works by making use of the Travel Time Platform API, an extremely fast web service for such computations.
+The TravelTime Platform Plugin for QGIS is a brand new plugin that add several algorithms that aim to allow this type of analysis right in QGIS. It works by making use of the TravelTime Platform API, an extremely fast web service for such computations.
 
 ### What we'll cover
 
@@ -27,7 +27,7 @@ Then, we'll go through a series of use cases which demonstrate most of the plugi
 
 ### Installation and setup
 
-To install the plugin, open the QGIS plugin manager, search for `Travel Time Platform`, and click on install.
+To install the plugin, open the QGIS plugin manager, search for `TravelTime Platform`, and click on install.
 
 [INSERT SCREENSHOT]
 

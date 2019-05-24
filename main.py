@@ -34,7 +34,7 @@ class Main:
 
         locale = QSettings().value("locale/userLocale")[0:2]
         locale_path = os.path.join(
-            self.plugin_dir, "i18n", "travel_time_platform_{}.qm".format(locale)
+            self.plugin_dir, "i18n", "traveltime_platform_{}.qm".format(locale)
         )
 
         if os.path.exists(locale_path):
@@ -50,7 +50,7 @@ class Main:
         self.config_dialog = ui.ConfigDialog()
         self.tilesManager = tiles.TilesManager()
 
-        self.toolbar = self.iface.addToolBar("Travel Time Platform Toolbar")
+        self.toolbar = self.iface.addToolBar("TravelTime platform Toolbar")
 
         # Logo
         button = QPushButton(resources.logo, "")
@@ -66,7 +66,7 @@ class Main:
         )
         self.action_show_toolbox.triggered.connect(self.show_toolbox)
         self.toolbar.addAction(self.action_show_toolbox)
-        self.iface.addPluginToMenu(u"&Travel Time Platform", self.action_show_toolbox)
+        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_toolbox)
 
         # Add tiles
         tiles_menu = QMenu()
@@ -90,7 +90,7 @@ class Main:
 
         # self.action_show_toolbox.triggered.connect(self.show_toolbox)
         self.toolbar.addWidget(tiles_button)
-        # self.iface.addPluginToMenu(u"&Travel Time Platform", self.action_show_toolbox)
+        # self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_toolbox)
         self.toolbar.addSeparator()
 
         # Show help actions
@@ -99,33 +99,33 @@ class Main:
         )
         self.action_show_help.triggered.connect(self.show_splash)
         self.toolbar.addAction(self.action_show_help)
-        self.iface.addPluginToMenu(u"&Travel Time Platform", self.action_show_help)
+        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_help)
 
         # Show config actions
         self.action_show_config = QAction(
             resources.icon_config,
-            tr("Configure Travel Time Platform plugin"),
+            tr("Configure TravelTime platform plugin"),
             self.iface.mainWindow(),
         )
         self.action_show_config.triggered.connect(self.show_config)
         self.toolbar.addAction(self.action_show_config)
-        self.iface.addPluginToMenu(u"&Travel Time Platform", self.action_show_config)
+        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_config)
 
         # Add the provider to the registry
         QgsApplication.processingRegistry().addProvider(self.provider)
 
         # Show splash screen
         if not QSettings().value(
-            "travel_time_platform/spashscreen_dontshowagain", False, type=bool
+            "traveltime_platform/spashscreen_dontshowagain", False, type=bool
         ):
             self.show_splash()
 
     def unload(self):
         # Remove GUI elements
         del self.toolbar
-        self.iface.removePluginMenu(u"&Travel Time Platform", self.action_show_toolbox)
-        self.iface.removePluginMenu(u"&Travel Time Platform", self.action_show_config)
-        self.iface.removePluginMenu(u"&Travel Time Platform", self.action_show_help)
+        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_toolbox)
+        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_config)
+        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_help)
 
         # Remove the provider from the registry
         QgsApplication.processingRegistry().removeProvider(self.provider)
@@ -143,10 +143,10 @@ class Main:
             return
         toolBox.setVisible(True)
         searchBox = toolBox.findChild(QgsFilterLineEdit, "searchBox")
-        if searchBox.value() == "Travel Time Platform":
-            searchBox.textChanged.emit("Travel Time Platform")
+        if searchBox.value() == "TravelTime platform":
+            searchBox.textChanged.emit("TravelTime platform")
         else:
-            searchBox.setValue("Travel Time Platform")
+            searchBox.setValue("TravelTime platform")
 
     def show_config(self):
         self.config_dialog.exec_()

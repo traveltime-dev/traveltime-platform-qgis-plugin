@@ -23,7 +23,7 @@ class Provider(QgsProcessingProvider):
         return "ttp_v4"
 
     def name(self):
-        return "Travel Time Platform"
+        return "TravelTime platform"
 
     def longName(self):
         return self.name()

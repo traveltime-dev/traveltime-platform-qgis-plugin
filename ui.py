@@ -39,32 +39,32 @@ class ConfigDialog(QDialog):
         s = QSettings()
         # warning enabled
         self.warningGroupBox.setChecked(
-            s.value("travel_time_platform/warning_enabled", True, type=bool)
+            s.value("traveltime_platform/warning_enabled", True, type=bool)
         )
         # warning limit
         self.warningSpinBox.setValue(
-            s.value("travel_time_platform/warning_limit", 10, type=int)
+            s.value("traveltime_platform/warning_limit", 10, type=int)
         )
         # current count
         self.refresh_count_display()
         # logs calls
         self.logCallsCheckBox.setChecked(
-            s.value("travel_time_platform/log_calls", False, type=bool)
+            s.value("traveltime_platform/log_calls", False, type=bool)
         )
         # disable https
         self.disableHttpsCheckBox.setChecked(
-            s.value("travel_time_platform/disable_https", False, type=bool)
+            s.value("traveltime_platform/disable_https", False, type=bool)
         )
 
     def get_key(self):
         webbrowser.open("http://docs.traveltimeplatform.com/overview/getting-keys/")
 
     def reset_count(self):
-        QSettings().setValue("travel_time_platform/current_count", 0)
+        QSettings().setValue("traveltime_platform/current_count", 0)
         self.refresh_count_display()
 
     def refresh_count_display(self):
-        c = QSettings().value("travel_time_platform/current_count", 0, type=int)
+        c = QSettings().value("traveltime_platform/current_count", 0, type=int)
         self.countSpinBox.setValue(c)
 
     def accept(self, *args, **kwargs):
@@ -77,15 +77,15 @@ class ConfigDialog(QDialog):
         s = QSettings()
         # warning enabled
         s.setValue(
-            "travel_time_platform/warning_enabled", self.warningGroupBox.isChecked()
+            "traveltime_platform/warning_enabled", self.warningGroupBox.isChecked()
         )
         # warning limit
-        s.setValue("travel_time_platform/warning_limit", self.warningSpinBox.value())
+        s.setValue("traveltime_platform/warning_limit", self.warningSpinBox.value())
         # logs calls
-        s.setValue("travel_time_platform/log_calls", self.logCallsCheckBox.isChecked())
+        s.setValue("traveltime_platform/log_calls", self.logCallsCheckBox.isChecked())
         # disable https
         s.setValue(
-            "travel_time_platform/disable_https", self.disableHttpsCheckBox.isChecked()
+            "traveltime_platform/disable_https", self.disableHttpsCheckBox.isChecked()
         )
 
         super().accept(*args, **kwargs)
@@ -139,7 +139,7 @@ class SplashScreen(QDialog):
         s = QSettings()
         # warning enabled
         self.dontShowAgainCheckBox.setChecked(
-            s.value("travel_time_platform/spashscreen_dontshowagain", False, type=bool)
+            s.value("traveltime_platform/spashscreen_dontshowagain", False, type=bool)
         )
 
     def accept(self, *args, **kwargs):
@@ -147,7 +147,7 @@ class SplashScreen(QDialog):
         s = QSettings()
         # warning enabled
         s.setValue(
-            "travel_time_platform/spashscreen_dontshowagain",
+            "traveltime_platform/spashscreen_dontshowagain",
             self.dontShowAgainCheckBox.isChecked(),
         )
         super().accept(*args, **kwargs)
