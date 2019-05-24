@@ -6,9 +6,7 @@ This plugin intends to make the TravelTime platform API available for ues in QGI
 
 ## Installation
 
-Once released, this plugin will be available in the official QGIS repository.
-
-In the meantime, you need to download the repository as zip a file and install it manually from the plugin manager.
+This plugin is available in the official QGIS repository (you need to enable experimental plugins for beta releases).
 
 ## Usage
 
@@ -18,14 +16,7 @@ Please read the plugin documentation, available both from within the plugin itse
 
 Please report any issue to the bug tracker.
 
-## Limitations
-
-Currently, only the
-[Time Map endpoint](http://docs.traveltimeplatform.com/reference/time-map/) is implemented.
-
-Currently, only 10 searches can be made per API query.
-
-## Development
+## Translations
 
 To update the translations :
 
