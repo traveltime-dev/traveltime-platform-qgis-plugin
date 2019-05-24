@@ -48,6 +48,7 @@ class Main:
         # Add GUI elements
         self.splash_screen = ui.SplashScreen(self)
         self.config_dialog = ui.ConfigDialog()
+        self.help_dialog = ui.HelpWidget(self)
         self.tilesManager = tiles.TilesManager()
 
         self.toolbar = self.iface.addToolBar("TravelTime platform Toolbar")
@@ -97,7 +98,7 @@ class Main:
         self.action_show_help = QAction(
             resources.icon_help, tr("Help"), self.iface.mainWindow()
         )
-        self.action_show_help.triggered.connect(self.show_splash)
+        self.action_show_help.triggered.connect(self.show_help)
         self.toolbar.addAction(self.action_show_help)
         self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_help)
 
@@ -154,3 +155,7 @@ class Main:
     def show_splash(self):
         self.splash_screen.raise_()
         self.splash_screen.show()
+
+    def show_help(self):
+        self.help_dialog.raise_()
+        self.help_dialog.show()

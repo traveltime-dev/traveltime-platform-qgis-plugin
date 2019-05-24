@@ -1,7 +1,8 @@
 import os
 import webbrowser
-from qgis.PyQt.QtCore import Qt, QSettings, QDateTime, QDate, QTime
+from qgis.PyQt.QtCore import Qt, QSettings, QDateTime, QDate, QTime, QUrl
 from qgis.PyQt.QtWidgets import QDialog, QDateTimeEdit, QWidget
+from qgis.PyQt.QtWebKitWidgets import QWebView
 from qgis.PyQt import uic
 
 from processing.gui.AlgorithmDialog import AlgorithmDialog
@@ -100,36 +101,6 @@ class SplashScreen(QDialog):
 
         # self.setWindowFlag(Qt.WindowStaysOnTopHint)
 
-        self.main = main
-
-        # Load html files
-        html_path = os.path.join(HELP_DIR, "{tab}.{locale}.html")
-        locale = QSettings().value("locale/userLocale")[0:2]
-
-        css_path = os.path.join(HELP_DIR, "help.css")
-        css = open(css_path).read()
-
-        for tab_key, tab_name in [
-            ("01.about", tr("About")),
-            ("02.apikey", tr("API key")),
-            ("03.start", tr("Getting started")),
-            ("04.simplified", tr("TimeMap - Simplified")),
-            ("05.advanced", tr("TimeMap - Advanced")),
-            ("06.issues", tr("Troubleshooting")),
-        ]:
-
-            path = html_path.format(tab=tab_key, locale=locale)
-            if not os.path.isfile(path):
-                path = html_path.format(tab=tab_key, locale="en")
-
-            body = open(path, "r").read()
-            html = "<html><head><style>{css}</style></head><body>{body}</body></html>".format(
-                css=css, body=body
-            )
-            page = HelpWidget(self.main, html)
-
-            self.tabWidget.addTab(page, tab_name)
-
         self.buttonBox.accepted.connect(self.accept)
 
     def showEvent(self, *args, **kwargs):
@@ -154,37 +125,30 @@ class SplashScreen(QDialog):
 
 
 class HelpWidget(QWidget):
-    def __init__(self, main, html, *args, **kwargs):
+    def __init__(self, main, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        uic.loadUi(
-            os.path.join(os.path.dirname(__file__), "ui", "HelpContent.ui"), self
-        )
+        uic.loadUi(os.path.join(os.path.dirname(__file__), "ui", "HelpDialog.ui"), self)
+
+        self.closeButton.pressed.connect(self.close)
+        self.openBrowserButton.pressed.connect(self.open_in_browser)
+        self.homeButton.pressed.connect(self.reset_url)
 
         self.main = main
-        self.htmlWidget.anchorClicked.connect(self.open_link)
-        self.htmlWidget.setText(html)
-        self.htmlWidget.setSearchPaths([HELP_DIR])
 
-    def open_link(self, url):
+        self.webview = QWebView()
+        self.reset_url()
 
-        # self.main.splash_screen.hide()
+        self.contentWidget.layout().addWidget(self.webview)
 
-        if url.url() == "#show_config":
-            self.main.show_config()
-        elif url.url() == "#show_toolbox":
-            self.main.show_toolbox()
-        elif url.url() == "#run_simple":
-            # See https://github.com/qgis/QGIS/blob/final-3_6_1/python/plugins/processing/gui/ProcessingToolbox.py#L240-L270
-            alg = algorithms.TimeMapSimpleAlgorithm().create()
-            dlg = alg.createCustomParametersWidget(self.main.iface.mainWindow())
-            if not dlg:
-                dlg = AlgorithmDialog(alg, False, self.main.iface.mainWindow())
-            dlg.show()
-            dlg.exec_()
-        elif url.url()[0:4] == "http":
-            webbrowser.open(url.url())
-        else:
-            log("Unknown url : {}".format(url.url()), "TimeTravelPlatform")
+    def reset_url(self):
+        self.webview.setUrl(
+            # TODO : change URL to actual documentation page
+            QUrl("https://docs.traveltimeplatform.com/overview/introduction")
+        )
+
+    def open_in_browser(self):
+        webbrowser.open(self.webview.url().toString())
+        self.close()
 
 
 class IsoDateTimeWidgetWrapper(WidgetWrapper):
