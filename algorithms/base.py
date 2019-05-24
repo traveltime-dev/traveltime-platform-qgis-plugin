@@ -38,12 +38,12 @@ TRANSPORTATION_TYPES = [
 COUNTRIES = [(None, "-")] + list([(c.alpha2, c.name) for c in iso3166.countries])
 
 cached_requests = requests_cache.core.CachedSession(
-    # # Regular
-    # cache_name="ttp_cache",
-    # backend="memory",
-    # Persisting (use for development, to avoid hitting API limit)
-    cache_name=os.path.join(os.path.dirname(__file__), "cachefile"),
-    backend="sqlite",
+    # Regular
+    cache_name="ttp_cache",
+    backend="memory",
+    # # Persisting (use for development, to avoid hitting API limit)
+    # cache_name=os.path.join(os.path.dirname(os.path.dirname(__file__)), "cachefile"),
+    # backend="sqlite",
     expire_after=86400,
     allowable_methods=("GET", "POST"),
 )
