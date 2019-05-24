@@ -138,6 +138,7 @@ class Main:
             )
             return
         toolBox.setVisible(True)
+        toolBox.raise_()
         searchBox = toolBox.findChild(QgsFilterLineEdit, "searchBox")
         if searchBox.value() == "TravelTime platform":
             searchBox.textChanged.emit("TravelTime platform")
