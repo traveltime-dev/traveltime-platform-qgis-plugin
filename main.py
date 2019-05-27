@@ -33,6 +33,7 @@ from .utils import tr, log
 from . import resources
 from . import auth
 from . import ui
+from . import express
 from . import auth
 from . import tiles
 
@@ -70,6 +71,20 @@ class Main:
         button.setFlat(True)
         button.pressed.connect(self.show_splash)
         self.toolbar.addWidget(button)
+        self.toolbar.addSeparator()
+
+        # Express timemap action
+        self.express_time_map_action = express.ExpressTimeMapAction(self)
+        self.toolbar.addAction(self.express_time_map_action)
+
+        # Express timefilter action
+        self.express_time_filter_action = express.ExpressTimeFilterAction(self)
+        self.toolbar.addAction(self.express_time_filter_action)
+
+        # Express route action
+        self.express_route_action = express.ExpressRouteAction(self)
+        self.toolbar.addAction(self.express_route_action)
+
         self.toolbar.addSeparator()
 
         # Show toolbox action

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>275</width>
+    <height>99</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="2">
+    <widget class="QSpinBox" name="travelTimeSpinBox">
+     <property name="suffix">
+      <string> minutes</string>
+     </property>
+     <property name="maximum">
+      <number>1440</number>
+     </property>
+     <property name="value">
+      <number>15</number>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="3">
+    <widget class="QLabel" name="label_2">
+     <property name="styleSheet">
+      <string notr="true">font-style:italic;color:gray;</string>
+     </property>
+     <property name="text">
+      <string>This tool allows to do a quick time map query by clicking on the map.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QComboBox" name="transptTypeComboBox">
+     <item>
+      <property name="text">
+       <string>public_transport</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>walking</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>cycling</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>driving</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>at</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QDateTimeEdit" name="dateTimeEdit"/>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>for</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QComboBox" name="deparrComboBox">
+     <item>
+      <property name="text">
+       <string>leaving</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>arriving</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
