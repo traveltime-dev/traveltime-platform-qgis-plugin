@@ -71,6 +71,17 @@ class Main:
         button.setFlat(True)
         button.pressed.connect(self.show_splash)
         self.toolbar.addWidget(button)
+
+        self.toolbar.addSeparator()
+
+        # Show toolbox action
+        self.action_show_toolbox = QAction(
+            resources.icon_toolbox, tr("Show the toolbox"), self.iface.mainWindow()
+        )
+        self.action_show_toolbox.triggered.connect(self.show_toolbox)
+        self.toolbar.addAction(self.action_show_toolbox)
+        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_toolbox)
+
         self.toolbar.addSeparator()
 
         # Express timemap action
@@ -86,14 +97,6 @@ class Main:
         self.toolbar.addAction(self.express_route_action)
 
         self.toolbar.addSeparator()
-
-        # Show toolbox action
-        self.action_show_toolbox = QAction(
-            resources.icon_general, tr("Show the toolbox"), self.iface.mainWindow()
-        )
-        self.action_show_toolbox.triggered.connect(self.show_toolbox)
-        self.toolbar.addAction(self.action_show_toolbox)
-        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_toolbox)
 
         # Show tiles action
         self.action_show_tiles = QAction(
