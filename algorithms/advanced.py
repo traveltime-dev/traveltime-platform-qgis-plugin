@@ -362,7 +362,10 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         # Define additional input parameters
         self.addParameter(
             QgsProcessingParameterEnum(
-                "OUTPUT_RESULT_TYPE", tr("Result aggregation"), options=self.RESULT_TYPE
+                "OUTPUT_RESULT_TYPE",
+                tr("Result aggregation"),
+                options=self.RESULT_TYPE,
+                defaultValue=0,
             ),
             help_text=tr(
                 "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
@@ -760,7 +763,10 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         # Define output parameters
         self.addParameter(
             QgsProcessingParameterEnum(
-                "OUTPUT_RESULT_TYPE", tr("Output style"), options=self.RESULT_TYPE
+                "OUTPUT_RESULT_TYPE",
+                tr("Output style"),
+                options=self.RESULT_TYPE,
+                defaultValue=0,
             ),
             help_text=tr(
                 "Normal will return a simple linestring for each route. Detailed will return several segments for each type of transportation for each route."
