@@ -87,9 +87,6 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             "INPUT_{}_SEARCHES".format(mode): search_layer,
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
             "INPUT_{}_TIME".format(mode): "'" + self.params["INPUT_TIME"] + "'",
-            "INPUT_{}_TRNSPT_WALKING_TIME".format(mode): str(
-                self.params["INPUT_TRAVEL_TIME"] * 60
-            ),
             "OUTPUT_RESULT_TYPE": self.params["OUTPUT_RESULT_TYPE"],
             "OUTPUT": "memory:results",
         }
@@ -170,6 +167,9 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
                 "INPUT_{}_TRAVEL_TIME".format(mode): str(
                     self.params["INPUT_TRAVEL_TIME"] * 60
                 ),
+                "INPUT_{}_TRNSPT_WALKING_TIME".format(mode): str(
+                    self.params["INPUT_TRAVEL_TIME"] * 60
+                ),
                 "OUTPUT_RESULT_TYPE": self.params["OUTPUT_RESULT_TYPE"],
             }
         )
@@ -246,6 +246,9 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         params.update(
             {
                 "INPUT_{}_TRAVEL_TIME".format(mode): str(
+                    self.params["INPUT_TRAVEL_TIME"] * 60
+                ),
+                "INPUT_{}_TRNSPT_WALKING_TIME".format(mode): str(
                     self.params["INPUT_TRAVEL_TIME"] * 60
                 ),
                 "INPUT_LOCATIONS": locations_layer,
