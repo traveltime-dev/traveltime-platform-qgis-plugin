@@ -224,7 +224,7 @@ class ExpressTimeFilterAction(QAction):
 
     def current_layer_changed(self, layer):
         self.setEnabled(
-            layer
+            layer is not None
             and layer.type() == QgsMapLayer.LayerType.VectorLayer
             and layer.geometryType() == QgsWkbTypes.PointGeometry
         )
