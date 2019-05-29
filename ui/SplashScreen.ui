@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>671</width>
-    <height>502</height>
+    <width>524</width>
+    <height>315</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,9 +61,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; font-weight:600; color:#ffffff;&quot;&gt;TravelTime platform plugin for QGIS&lt;/span&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt;The TravelTime API helps users find locations by journey time rather than using &lt;/span&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; font-style:italic; color:#ffffff;&quot;&gt;as the crow flies&lt;/span&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt; distance. Time-based searching gives users more opportunities for personalisation and delivers a more relevant search. &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt;The plugin adds a toolbar offering easy access to all features. &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;toolbar.png&quot; /&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt;The plugin is under active developpement, and currently only provides access to the Time Map feature. &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt;Please visit our website to &lt;/span&gt;&lt;a href=&quot;https://www.traveltimeplatform.com/&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#f5a623;&quot;&gt;learn more about the platform&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt; or to &lt;/span&gt;&lt;a href=&quot;http://docs.traveltimeplatform.com/overview/introduction&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#f5a623;&quot;&gt;learn more about the API&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt;Please click on the help button to help you get started.&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
