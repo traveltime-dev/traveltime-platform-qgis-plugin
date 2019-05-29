@@ -253,7 +253,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 ),
                 fatalError=True,
             )
-            raise QgsProcessingException("API usage limit warning")
+            raise QgsProcessingException("API usage limit warning") from None
 
         if enabled:
             feedback.pushInfo(
