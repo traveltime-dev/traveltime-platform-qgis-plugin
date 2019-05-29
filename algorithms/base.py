@@ -68,8 +68,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             parameter.setFlags(
                 parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced
             )
-        if help_text:
-            self.parameters_help[advanced][parameter.description()] = help_text
+        self.parameters_help[advanced][parameter.description()] = help_text
 
         return super().addParameter(parameter, *args, **kwargs)
 
@@ -293,14 +292,14 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         if self.parameters_help[False]:
             help_string += "<h2>Parameters description</h2>" + "".join(
                 [
-                    "\n<b>{}</b>: {}".format(key, val)
+                    "\n<b>{}</b>: {}".format(key, val or "-")
                     for key, val in self.parameters_help[False].items()
                 ]
             )
         if self.parameters_help[True]:
             help_string += "<h2>Advanced parameters description</h2>" + "".join(
                 [
-                    "\n<b>{}</b>: {}".format(key, val)
+                    "\n<b>{}</b>: {}".format(key, val or "-")
                     for key, val in self.parameters_help[True].items()
                 ]
             )
