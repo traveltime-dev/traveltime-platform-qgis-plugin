@@ -5,6 +5,8 @@ from qgis.PyQt.QtCore import QCoreApplication
 
 from qgis.core import QgsFeature, QgsGeometry, QgsMessageLog
 
+TTP_VERSION = "0.3.0-beta"
+
 
 def now_iso():
     """Calculate the offset taking into account daylight saving time

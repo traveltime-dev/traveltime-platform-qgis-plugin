@@ -4,7 +4,7 @@ import os
 import collections
 from qgis.PyQt.QtCore import QSettings
 
-from qgis.core import (
+from qgis.core import (Qgis,
     QgsProcessingAlgorithm,
     QgsProcessingParameterNumber,
     QgsProcessingException,
@@ -18,7 +18,7 @@ from ..libraries import iso3166
 from .. import auth
 from .. import cache
 
-from ..utils import tr, log
+from ..utils import tr, log, TTP_VERSION
 
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
@@ -115,9 +115,13 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             )
             raise QgsProcessingException("App ID or api key not set")
 
+
+
+
         headers = {
             "Content-type": "application/json",
             "Accept": self.accept_header,
+            "User-Agent": 'QGIS / {} / {}'.format(Qgis.QGIS_VERSION, TTP_VERSION),
             "X-Application-Id": APP_ID,
             "X-Api-Key": API_KEY,
         }

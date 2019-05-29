@@ -39,7 +39,7 @@ class TilesManager:
         disable_https = QSettings().value(
             "traveltime_platform/disable_https", False, type=bool
         )
-        return "https://tiles.traveltimeplatform.com/styles/{identifier}/{{z}}/{{x}}/{{y}}.png?key={app_id}".format(
+        return "https://tiles.traveltimeplatform.com/styles/{identifier}/{{z}}/{{x}}/{{y}}.png?key={app_id}&client=QGIS".format(
             app_id=app_id, identifier=identifier, verify=not disable_https
         )
 
