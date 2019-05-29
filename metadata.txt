@@ -29,7 +29,7 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - feature : option to disable SSL verification
         - change : default times are now rounded to the hour (to make caching actually useful)
 tags=travel,time,platform,api,distance
-homepage=https://github.com/igeolise/traveltime-platform-qgis-plugin
+homepage=https://igeolise.github.io/traveltime-platform-qgis-plugin
 tracker=https://github.com/igeolise/traveltime-platform-qgis-plugin/issues
 repository=https://github.com/igeolise/traveltime-platform-qgis-plugin
 icon=resources/ttp_icon.svg

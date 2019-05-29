@@ -155,8 +155,9 @@ class HelpWidget(QWidget):
 
     def reset_url(self):
         self.webview.setUrl(
-            # TODO : change URL to actual documentation page
-            QUrl("https://docs.traveltimeplatform.com/overview/introduction")
+            QUrl(
+                "https://igeolise.github.io/traveltime-platform-qgis-plugin/index.html#help-contents"
+            )
         )
 
     def open_in_browser(self):
