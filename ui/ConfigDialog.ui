@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>513</width>
-    <height>452</height>
+    <height>481</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -173,6 +173,27 @@
       <string>Advanced</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QToolButton" name="clearCacheButton">
+          <property name="text">
+           <string>clear cache</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="cacheLabel">
+          <property name="styleSheet">
+           <string notr="true">background-color: rgba(255,255,255,0); font-style:italic;color:gray;</string>
+          </property>
+          <property name="text">
+           <string>current cache is 0.00 Mb</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item>
        <widget class="QCheckBox" name="logCallsCheckBox">
         <property name="text">

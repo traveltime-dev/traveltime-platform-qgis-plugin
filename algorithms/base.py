@@ -13,10 +13,10 @@ from qgis.core import (
     QgsExpression,
 )
 
-from ..libraries import requests_cache
 from ..libraries import iso3166
 
 from .. import auth
+from .. import cache
 
 from ..utils import tr, log
 
@@ -36,17 +36,6 @@ TRANSPORTATION_TYPES = [
     "cycling+ferry",
 ]
 COUNTRIES = [(None, "-")] + list([(c.alpha2, c.name) for c in iso3166.countries])
-
-cached_requests = requests_cache.core.CachedSession(
-    # Regular
-    cache_name="ttp_cache",
-    backend="memory",
-    # # Persisting (use for development, to avoid hitting API limit)
-    # cache_name=os.path.join(os.path.dirname(os.path.dirname(__file__)), "cachefile"),
-    # backend="sqlite",
-    expire_after=86400,
-    allowable_methods=("GET", "POST"),
-)
 
 
 class AlgorithmBase(QgsProcessingAlgorithm):
@@ -154,7 +143,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                     )
                 )
 
-            response = cached_requests.request(
+            response = cache.instance.cached_requests.request(
                 self.method,
                 self.url,
                 data=json_data,

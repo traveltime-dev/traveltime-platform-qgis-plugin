@@ -10,6 +10,7 @@ from processing.gui.wrappers import WidgetWrapper
 
 from . import algorithms
 from . import auth
+from . import cache
 from .utils import tr, log
 
 
@@ -26,6 +27,7 @@ class ConfigDialog(QDialog):
         self.getKeyButton.pressed.connect(self.get_key)
         self.countResetButton.pressed.connect(self.reset_count)
         self.buttonBox.accepted.connect(self.accept)
+        self.clearCacheButton.pressed.connect(self.clear_cache)
 
     def showEvent(self, *args, **kwargs):
         super().showEvent(*args, **kwargs)
@@ -56,6 +58,8 @@ class ConfigDialog(QDialog):
         self.disableHttpsCheckBox.setChecked(
             s.value("traveltime_platform/disable_https", False, type=bool)
         )
+        # refresh current cache
+        self.refresh_cache_label()
 
     def get_key(self):
         webbrowser.open("http://docs.traveltimeplatform.com/overview/getting-keys/")
@@ -67,6 +71,15 @@ class ConfigDialog(QDialog):
     def refresh_count_display(self):
         c = QSettings().value("traveltime_platform/current_count", 0, type=int)
         self.countSpinBox.setValue(c)
+
+    def clear_cache(self):
+        cache.instance.clear()
+        self.refresh_cache_label()
+
+    def refresh_cache_label(self):
+        self.cacheLabel.setText(
+            tr("Current cache size : {}").format(cache.instance.size())
+        )
 
     def accept(self, *args, **kwargs):
         # Save keys
