@@ -7,9 +7,9 @@ This tutorial covers intermediate usage of the TravelTime platform plugin. It lo
 ## What we'll cover
 
 During this tutorial, we'll cover :
-- [The simplified algorithms from the toolbox](#The%20simplified%20algorithms)
-- [The advanced algorithm from the toolbox](#The%20advanced%20algorithms)
-- [Next steps](#What%20next)
+- [The simplified algorithms from the toolbox](#the-simplified-algorithms)
+- [The advanced algorithm from the toolbox](#the-advanced-algorithms)
+- [Next steps](#what-next)
 
 Make sure you followed the [first tutorial](tutorial_01.md) before doing this one, as you'll need some of the skills learned there to do this one.
 
@@ -17,13 +17,13 @@ We'll mostly focus on the Time map algorithm, but everything is applicable in si
 
 ## The simplified algorithms
 
-Since last time, thanks to your accurate analysis techniques, your pizza buisiness grew quite a lot. You now own all the pizzerias of your neighbourhood !
+Since last time, thanks to your accurate analysis techniques, your pizza business grew quite a lot. You now own all the pizzerias of your neighbourhood !
 
 The justifies moving from the express tools to the simplified algorithms.
 
 These algorithms work in a slightly different way than the map tools you used before. Instead of mouse clicks, they take inputs from other layers. It is slightly more complicated to setup, as you need actual inputs layers, but also much more powerful, as the analysis can be reproduced, and as you can process much more data at once.
 
-To get started, we want to see what area your deliery fleet is able to cover, to see if we have gaps that we need to cover.
+To get started, we want to see what area your delivery fleet is able to cover, to see if we have gaps that we need to cover.
 
 ### 1. Setup a project
 
@@ -35,17 +35,17 @@ Again, just like last time, let's load some data using QuickOSM. Do the same ste
 
 You'll get all restaurants in the map extent. As we just own pizzerias, and not all restaurants, we'll filter this layer. To do that, we'll use the `cuisine` attribute that comes with the OSM data.
 
-Right-click on the new `amenity restaurants` layer, and choose filter. In the dialog, enter (exactly, look at the quotes carefuly) `"cuisine"='pizza'`.
+Right-click on the new `amenity restaurants` layer, and choose filter. In the dialog, enter (exactly, look at the quotes carefully) `"cuisine"='pizza'`.
 
 ![](images/tutorial_02/filter.png)
 
-Click OK, and you should now have less points than before, reprensenting only pizzerias.
+Click OK, and you should now have less points than before, representing only pizzerias.
 
 ### 3. Running the algorithm
 
 We'll now feed in this layer into the Simplified Time map algorithm.
 
-Make sure the `amenity restaurants` is selected in the layer, then press the selection icon ![](images/qgis_icons/mActionSelectRectangle.svg#icon). Drag a rectangle on the map to select the pizzerais that you own. Make sure you have a select a reasonable amount of pizzerias (5-15).
+Make sure the `amenity restaurants` is selected in the layer, then press the selection icon ![](images/qgis_icons/mActionSelectRectangle.svg#icon). Drag a rectangle on the map to select the pizzerias  that you own. Make sure you have a select a reasonable amount of pizzerias (5-15).
 
 Click on the toolbox icon ![](images/icons/toolbox.svg#icon) to open the processing toolbox (note that this is exactly equivalent to showing the toolbox using QGIS's default button, and then manually filtering the algorithms).
 
@@ -57,11 +57,11 @@ Most of the parameters should look familiar. Choose the `amenity restaurants` la
 
 ![](images/tutorial_02/timemap_simple_setup.png)
 
-When ready, click run. You project should now look like this.
+When ready, click run. Your project should now look like this.
 
 ![](images/tutorial_02/what_a_mess.png)
 
-What a mess ! It's quite hard to see anything at all... Let's see how to improve this.
+What a mess&nbsp;! It's quite hard to see anything at all... Let's see how to improve this.
 
 ### 4. Combination with other algorithms
 
@@ -71,7 +71,7 @@ Still in the processing toolbox, search for the `dissolve` algorithm (using the 
 
 We'll copy over the style from the first layer to the second one, as it looked better. Right click on the `Output` in the legend and choose `Styles > Copy style > All styles categories`, then right click on the `serviced area` layer and choose `Styles > Paste style > All styles categories`. You can now delete the `Output` layer.
 
-You project should now look like this.
+Your project should now look like this.
 
 ![](images/tutorial_02/serviced_area.png)
 
@@ -79,7 +79,7 @@ Awesome !
 
 Using different algorithms together is extremely powerful. Have a quick look at the quantity of algorithms in the toolbox. You'll be able to use all of those with the outputs of the TravelTime platform plugin, opening endless possibilities.
 
-> Note : the algorithm has a "result aggregation" option that can be set to UNION. This option allows to get the dissolved polygons directly in one step. The only issue is that it works correctly only if the input layers has less than 10 points, after which the requests are made in batch to the endpoint, and thus several polygons are returned. So, if you're working with bigger datasets than 10 points, it's better to rely on the dissolved algorithm as shown.
+> Note : the algorithm has a "result aggregation" option that can be set to UNION. This option allows to get the dissolved polygons directly in one step. The only issue is that it works correctly only if the input layer has less than 10 points, after which the requests are made in batch to the endpoint, and thus several polygons are returned. So, if you're working with bigger datasets than 10 points, it's better to rely on the dissolved algorithm as shown.
 
 
 ## The advanced algorithms
@@ -114,7 +114,7 @@ Enter the following expression (again, be careful to use the same type of quotes
 
 When this is done, you can hit run. Now just do the same steps than before the dissolve the layer, and voilà !
 
-Defining parameters using expressions is extremely powerful. Using the exact same approach, you could define different searches based on each resturant's opening/closing hours, or even fine tune some parameters such as the parking time.
+Defining parameters using expressions is extremely powerful. Using the exact same approach, you could define different searches based on each restaurant's opening/closing hours, or even fine tune some parameters such as the parking time.
 
 This concludes our second tutorial !
 

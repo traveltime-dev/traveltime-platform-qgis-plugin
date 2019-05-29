@@ -2,24 +2,24 @@
 
 # Tutorial 01. The Basics ![](images/icons/general.svg#header)
 
-This tutorial covers basic usage of the TravelTime Platform Plugin for QGIS.
+This tutorial covers basic usage of the TravelTime platform Plugin for QGIS.
 
 ## What it is
 
-Travel time is much more accurate than distance to take informed decisions, such as where to locate a new office, what type of transport to choose, or at what time a meeting should start.
+Travel time is much more accurate than distance to make informed decisions, such as where to locate a new office, what type of transport to choose, or at what time a meeting should start.
 
 ![](images/tutorial_01/timemap_example.png)
 *This demonstrates the difference between a normal radius (blue) and a time based reachable area (pink)*
 
-The TravelTime Platform Plugin for QGIS adds several algorithms that aim to allow this type of analysis right in QGIS. It works by making use of the TravelTime Platform API, an extremely fast web service for such computations.
+The TravelTime platform Plugin for QGIS adds several algorithms that aim to allow this type of analysis right in QGIS. It works by making use of the TravelTime platform API, an extremely fast web service for such computations.
 
 ## What we'll cover
 
 During this tutorial, we'll cover :
-- [Installation and setup](#Installation%20and%20setup)
-- [Quick overview of the plugin](#Quick%20overview)
-- [Our first steps with TravelTime](#Quick%20start)
-- [Next steps](#What%20next)
+- [Installation and setup](#installation-and-setup)
+- [Quick overview of the plugin](#quick-overview)
+- [Our first steps with TravelTime](#quick-start)
+- [Next steps](#what-next)
 
 It is the perfect introduction before diving further into the TravelTime through the more detailed tutorials.
 
@@ -36,7 +36,7 @@ If you are on Windows, make sure to pick the Standalone Installer as it is easie
 
 Once QGIS is installed, launch it.
 
-To install the plugin, open the `Plugin manager` in the `Plugin` menu. In the dialog, search for `TravelTime Platform`, and click on install.
+To install the plugin, open the `Plugin manager` in the `Plugin` menu. In the dialog, search for `TravelTime platform`, and click on install.
 
 If the plugin was installed correctly, you should see a new tool bar.
 
@@ -48,22 +48,24 @@ This will open a web page. Fill in the form, and you will get your API key per e
 
 > Just a note : each API key has a limited quota of requests that can be done in a certain amount of time. This means that your API key may be blocked for some time if you make too many requests over a short period of time. To avoid hitting this limit without noticing, the plugin has a warning feature, that will notify you after a certain number of queries has been made. You can configure or even disable this limit in the same configuration dialog.
 
-Congratulations ! The plugin is now ready for use !
+TODO : Mention what the error will look like and the cache feature that allows to continue
+
+Congratulations&nbsp;! The plugin is now ready for use !
 
 ## Quick overview
 
 The main feature of the plugin are three algorithms :
-- ![](images/icons/timemap_simple.svg#icon) **time map**, which allows to get a polygon corresponding to the area that can be covered in a certain amount of time
-- ![](images/icons/timefilter_simple.svg#icon) **time filter**, which allows to filter a set of points according to the travel time from a certain origin
-- ![](images/icons/route_simple.svg#icon)  **route**, which returns the optimal route
+- ![](images/icons/timemap_simple.svg#icon) **time map**, which allows to get a polygon corresponding to the area that can be covered in a certain amount of time by your chosen mode of transport
+- ![](images/icons/timefilter_simple.svg#icon) **time filter**, which allows to filter a set of points according to the travel time from a certain origin. It calculates the travel time from one origin to up to 2,000 destinations in a single request.
+- ![](images/icons/route_simple.svg#icon)  **route**, which returns the door to door directions for an optimal route
 
 Each of these algorithms comes in three versions :
 - ![](images/icons/timemap_advanced.svg#icon)  **advanced**, the most powerful, that matches as closely as possible the possibilities offered by the web service
-- ![](images/icons/timemap_simple.svg#icon)  **simplified**, a simplified version with less parameters, that is easier to use and still covers most use cases
+- ![](images/icons/timemap_simple.svg#icon)  **simplified**, a simplified version with fewer parameters, that is easier to use and still covers most use cases
 - ![](images/icons/timemap_express.svg#icon)  **express**, a map tool version, that allows to run with click inputs rather than layers, which is ideal for a quick start.
 
-Additionnaly, the plugin offers a few goodies :
-- ![](images/icons/geocoding.svg#icon) **geocoding** and ![](images/icons/geocoding_reversed.svg#icon) **reverse geocoding**, which allows to translate textual addresses to coordinates or the oppsite
+Additionally, the plugin offers a few goodies :
+- ![](images/icons/geocoding.svg#icon) **geocoding** and ![](images/icons/geocoding_reversed.svg#icon) **reverse geocoding**, which allows to translate textual addresses to coordinates or the opposite
 - ![](images/icons/tiles.svg#icon) **background tiles**, an easy way to add a background to your map
 
 
@@ -79,19 +81,19 @@ To get a sense of what the plugin can do, we'll start with the express tools. We
 
 To help us navigate the map and actually understand what we look at, we'll add a background layer.
 
-Click on the tiles button  ![](images/icons/tiles.svg#icon) and double click on one of the available XYZ layers. Depending on your API key, you may have just the default XYZ layer or additionnal layers provided by the TravelTime platform.
+Click on the tiles button ![](images/icons/tiles.svg#icon) and double click on one of the available XYZ layers. Depending on your API key, you may have just the default XYZ layer or additionnal layers provided by the TravelTime platform.
 
 The background layer should now be added to your project.
 
 ### 3. Your first time map
 
-Let's imagine the following scenario : you own a new pizzeria and are thinking of seting up a delivery service. Thus, you want to visualize the area that could be covered by bike delivery in less than 10 minutes, as you want to focus on very fast delivery.
+Let's imagine the following scenario : you own a new pizzeria and are thinking of setting up a delivery service. Thus, you want to visualize the area that could be covered by bike delivery in less than 10 minutes, as you want to focus on very fast delivery.
 
 Start by zooming in to a city (choose a popular city like London or New York, so we are sure we'll find some data later on).
 
 Activate the express time map tool by clicking on it's icon ![](images/icons/timemap_express.svg#icon). By clicking on the small arrow next to it, you can set the transportation mode to "biking" and the transportation time to 10 minutes. Then, click on the map on a location where you could locate your restaurant.
 
-You project should look like this (note that the background may look different):
+Your project should look like this (note that the background may look different):
 
 ![](images/tutorial_01/firsttimemap_01.png)
 
@@ -99,9 +101,9 @@ One important thing : notice the small icon next to `Output` in the legend ? Thi
 
 For now, we'll keep it like this. Just to keep things clear, right-click on the `Output` layer in the legend, select `Rename`, and call the layer `delivery zone - bike`.
 
-Let's study our delivery plan a bit more. Change the transportation mode to "driving", and we'll see how things would be if our deliveries where made by car. Click on the same point again, and compare the results.
+Let's study our delivery plan a bit more. Change the transportation mode to "driving", and we'll see how things would be if our deliveries were made by car. Click on the same point again, and compare the results.
 
-With "driving", the hour of the day has a great impact because of trafic conditions. Compare what you'd get at 6:30 PM with what you'd get at 8:30 PM, time time at which you can expect to do most of the deliveries.
+With "driving", the hour of the day has a great impact because of traffic conditions. Compare what you'd get at 6:30 PM with what you'd get at 8:30 PM, time time at which you can expect to do most of the deliveries.
 
 Try out a few more locations / time / transport type combinations. See how the polygon varies according to streets or obstacles, and how it differs from a simple radius. You can also switch the search mode to `arriving`, in which case the time represents the arrival time.
 
@@ -109,7 +111,7 @@ It seems our first guess was the best, as for short durations, the area covered 
 
 ### 4. Your first time filter
 
-Your pizzas are great, but the customers are still scarce. You want to make some advertizing at the nearby bus stops to invite customers to your restaurant just after they finished their day. Of course, there's no point in advertzing at stops that are too far away, as you estimate that customers wouldn't walk more than 10 minutes from their bus stop to get to your restaurant.
+Your pizzas are great, but the customers are still scarce. You want to make some advertising at the nearby bus stops to invite customers to your restaurant just after they finished their day. Of course, there's no point in advertzing at stops that are too far away, as you estimate that customers wouldn't walk more than 10 minutes from their bus stop to get to your restaurant.
 
 Let's see at what stations you should consider putting ads.
 
@@ -125,7 +127,7 @@ Make sure you've got a reasonable amount of points (should be less than 2000 poi
 
 Let's now filter these bus stops using the time filter express tool.
 
-Select the layer your just created, then activate the tool by clicking on the icon ![](images/icons/timefilter_express.svg#icon). Again by pressing on the small arrow next to the button, set 10 minutes by walking. Then click at the location you chose earlier.
+Select the layer you just created, then activate the tool by clicking on the icon ![](images/icons/timefilter_express.svg#icon). Again by pressing on the small arrow next to the button, set 10 minutes by walking. Then click at the location you chose earlier.
 
 The locations will now be filtered between those that are reachable and those that are not. Let's rename this layer `nearby bus stops`. Your project should look like this :
 
@@ -135,7 +137,7 @@ The locations will now be filtered between those that are reachable and those th
 
 ### 5. Your first route
 
-The customers are starting to flow in ! But some of them get lost on their way. It seems your pizzeria is a bit hard to find ! Let's create some maps that show the best route from some of the main attractions of the city.
+The customers are starting to flow in&nbsp;! But some of them get lost on their way. It seems your pizzeria is a bit hard to find&nbsp;! Let's create some maps that show the best route from some of the main attractions of the city.
 
 Activate the express route tool by clicking on it's icon ![](images/icons/route_express.svg#icon). Choose `public transport`.
 
@@ -145,7 +147,7 @@ Your project should now look like this :
 
 ![](images/tutorial_01/firstroute_01.png)
 
-Congratulations ! This concludes our first tutorial. Keep up the good work, an, you'll soon be the #1 pizza seller of your city.
+Congratulations&nbsp;! This concludes our first tutorial. Keep up the good work, an, you'll soon be the #1 pizza seller of your city.
 
 ## What next
 

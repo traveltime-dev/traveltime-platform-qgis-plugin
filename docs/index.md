@@ -1,10 +1,16 @@
 <link rel="stylesheet" type="text/css" href="style.css" />
 
-# Help Center ![](images/icons/general.svg#header) 
+# TravelTime platform plugin for QGIS ![](images/icons/general.svg#header) 
 
-This is the official help center for the TravelTime platform plugin for QGIS.
+This is the official home for the TravelTime platform plugin for QGIS.
 
-## Contents
+![](images/timemap_example.png)
+
+*Travel time is much more accurate than distance to make informed decisions, such as where to locate a new office, what type of transport to choose, or at what time a meeting should start.*
+
+*The TravelTime platform Plugin for QGIS adds several algorithms that aim to allow this type of analysis right in QGIS. It works by making use of the TravelTime platform API, an extremely fast web service for such computations.*
+
+## Help contents
 
 - **[The reference manual](reference.md)**
 Which contains detailed information about all aspects of the plugin, from installation to detailed configuration.
