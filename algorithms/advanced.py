@@ -673,7 +673,7 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         # to get hold of the layer in post processing
         self.sink_id = sink_id
 
-        return {"OUTPUT_RESULTS": sink_id}
+        return {"OUTPUT": sink_id}
 
     def postProcessAlgorithm(self, context, feedback):
         style_file = "style_filter.qml"
