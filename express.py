@@ -92,7 +92,10 @@ class ExpressTimeMapTool(QgsMapToolEmitPoint):
             processing.runAndLoadResults("ttp_v4:time_map", params, feedback=feedback)
         except QgsProcessingException as e:
             self.action.main.iface.messageBar().pushMessage(
-                "Error", ", ".join(feedback.fatal_errors), level=Qgis.Critical
+                "Error",
+                ", ".join(feedback.fatal_errors),
+                level=Qgis.Critical,
+                duration=0,
             )
 
 
@@ -178,7 +181,10 @@ class ExpressTimeFilterTool(QgsMapToolEmitPoint):
             )
         except QgsProcessingException as e:
             self.action.main.iface.messageBar().pushMessage(
-                "Error", ", ".join(feedback.fatal_errors), level=Qgis.Critical
+                "Error",
+                ", ".join(feedback.fatal_errors),
+                level=Qgis.Critical,
+                duration=0,
             )
 
 
@@ -281,7 +287,10 @@ class ExpressRouteTool(QgsMapToolEmitPoint):
             processing.runAndLoadResults("ttp_v4:routes", params, feedback=feedback)
         except QgsProcessingException as e:
             self.action.main.iface.messageBar().pushMessage(
-                "Error", ", ".join(feedback.fatal_errors), level=Qgis.Critical
+                "Error",
+                ", ".join(feedback.fatal_errors),
+                level=Qgis.Critical,
+                duration=0,
             )
 
         self.cleanup()
