@@ -1,5 +1,5 @@
 import os
-
+from functools import partial
 from qgis.PyQt.QtCore import Qt, QDateTime, QEvent, QPoint
 from qgis.PyQt.QtWidgets import (
     QAction,
@@ -11,6 +11,10 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from qgis.core import (
+    QgsApplication,
+    QgsProcessingContext,
+    QgsProcessingFeedback,
+    QgsProcessingAlgRunnerTask,
     QgsProcessingException,
     Qgis,
     QgsVectorLayer,
@@ -18,8 +22,10 @@ from qgis.core import (
     QgsGeometry,
     QgsProject,
     QgsProcessingFeedback,
+    QgsFeatureRequest,
     QgsWkbTypes,
     QgsMapLayer,
+    QgsPointXY,
 )
 from qgis.gui import QgsMapToolEmitPoint, QgsVertexMarker
 from qgis.PyQt import uic
@@ -28,17 +34,6 @@ import processing
 
 from .utils import tr, log
 from . import resources
-
-
-class Feedback(QgsProcessingFeedback):
-    def __init__(self):
-        super().__init__()
-        self.fatal_errors = []
-
-    def reportError(self, error, fatalError=False):
-        log(error)
-        if fatalError:
-            self.fatal_errors.append(error)
 
 
 def pointToLayer(coords):
@@ -56,131 +51,88 @@ def pointToLayer(coords):
     return layer
 
 
-class ExpressTimeMapTool(QgsMapToolEmitPoint):
-    def __init__(self, action, canvas):
-        super().__init__(canvas)
-        self.action = action
-        self.canvas = canvas
+class ExpressActionBase(QAction):
+    _icon = None  # to be defined by subclasses
+    _name = None  # to be defined by subclasses
+    _widget_ui = None  # to be defined by subclasses
+    _algorithm = None  # to be defined by subclasses
 
-        self.activated.connect(lambda: self.action.setChecked(True))
-        self.deactivated.connect(lambda: self.action.setChecked(False))
-
-    def canvasPressEvent(self, e):
-
-        DEPARR = (
-            "DEPARTURE"
-            if self.action.widget.deparrComboBox.currentIndex() == 0
-            else "ARRIVAL"
-        )
-
-        input_layer = pointToLayer(self.toMapCoordinates(self.canvas.mouseLastXY()))
-        time = self.action.widget.dateTimeEdit.dateTime().toUTC().toString(Qt.ISODate)
-        travel_time = self.action.widget.travelTimeSpinBox.value() * 60
-        transpt_type = self.action.widget.transptTypeComboBox.currentText()
-
-        params = {
-            "INPUT_" + DEPARR + "_SEARCHES": input_layer,
-            "INPUT_" + DEPARR + "_TIME": "'" + time + "'",
-            "INPUT_" + DEPARR + "_TRAVEL_TIME": travel_time,
-            "INPUT_" + DEPARR + "_TRNSPT_TYPE": "'" + transpt_type + "'",
-            "OUTPUT": "memory:",
-        }
-
-        feedback = Feedback()
-        try:
-            # TODO : use QgsProcessingAlgRunnerTask to do this as a bg task
-            processing.runAndLoadResults("ttp_v4:time_map", params, feedback=feedback)
-        except QgsProcessingException as e:
-            self.action.main.iface.messageBar().pushMessage(
-                "Error",
-                ", ".join(feedback.fatal_errors),
-                level=Qgis.Critical,
-                duration=0,
-            )
-
-
-class ExpressTimeMapWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-        uic.loadUi(
-            os.path.join(os.path.dirname(__file__), "ui", "ExpressTimeMapWidget.ui"),
-            self,
-        )
-
-        self.dateTimeEdit.setDateTime(QDateTime.currentDateTime())
-
-    # TODO : there's an annoying bug where mouse clicks are at wrong position after
-    # the mouse hoever the menu... This fixes it, but also hides the widget when
-    # selecting an option from a QComboBox
-    # def leaveEvent(self, evt):
-    #     self.parent().close()
-    #     return super().leaveEvent(evt)
-
-
-class ExpressTimeMapAction(QAction):
     def __init__(self, main):
-        super().__init__(resources.icon_time_map_express, tr("Quick time map"))
+        super().__init__(self._icon, self._name)
         self.setCheckable(True)
 
         self.main = main
 
-        self.widget = ExpressTimeMapWidget()
+        # Build the widget
+        self.widget = QWidget()
+        uic.loadUi(
+            os.path.join(os.path.dirname(__file__), "ui", self._widget_ui), self.widget
+        )
+        self.widget.dateTimeEdit.setDateTime(QDateTime.currentDateTime())
 
         self.widgetAction = QWidgetAction(self)
         self.widgetAction.setDefaultWidget(self.widget)
 
         self.menu = QMenu()
-        # self.menu.aboutToShow.connect(self.start_tool)
         self.menu.addAction(self.widgetAction)
         self.setMenu(self.menu)
 
+        # Build the tool
+        self.tool = QgsMapToolEmitPoint(self.main.iface.mapCanvas())
+        self.tool.activated.connect(lambda: self.setChecked(True))
+        self.tool.deactivated.connect(lambda: self.setChecked(False))
+        self.tool.canvasClicked.connect(self.tool_clicked)
+
+        # Connect the action
         self.triggered.connect(self.start_tool)
 
     def start_tool(self):
-        self.tool = ExpressTimeMapTool(self, self.main.iface.mapCanvas())
         self.main.iface.mapCanvas().setMapTool(self.tool)
 
-
-class ExpressTimeFilterTool(QgsMapToolEmitPoint):
-    def __init__(self, action, canvas):
-        super().__init__(canvas)
-        self.action = action
-        self.canvas = canvas
-
-        self.activated.connect(lambda: self.action.setChecked(True))
-        self.deactivated.connect(lambda: self.action.setChecked(False))
-
-    def canvasPressEvent(self, e):
+    def make_params(self, point):
 
         DEPARR = (
-            "DEPARTURE"
-            if self.action.widget.deparrComboBox.currentIndex() == 0
-            else "ARRIVAL"
+            "DEPARTURE" if self.widget.deparrComboBox.currentIndex() == 0 else "ARRIVAL"
         )
 
-        input_layer = pointToLayer(self.toMapCoordinates(self.canvas.mouseLastXY()))
-        locations_layer = self.action.main.iface.activeLayer()
-        time = self.action.widget.dateTimeEdit.dateTime().toUTC().toString(Qt.ISODate)
-        travel_time = self.action.widget.travelTimeSpinBox.value() * 60
-        transpt_type = self.action.widget.transptTypeComboBox.currentText()
+        input_layer = pointToLayer(point)
+        time = self.widget.dateTimeEdit.dateTime().toUTC().toString(Qt.ISODate)
+
+        transpt_type = self.widget.transptTypeComboBox.currentText()
 
         params = {
             "INPUT_" + DEPARR + "_SEARCHES": input_layer,
-            "INPUT_LOCATIONS": locations_layer,
             "INPUT_" + DEPARR + "_TIME": "'" + time + "'",
-            "INPUT_" + DEPARR + "_TRAVEL_TIME": travel_time,
             "INPUT_" + DEPARR + "_TRNSPT_TYPE": "'" + transpt_type + "'",
             "OUTPUT": "memory:",
         }
 
+        if hasattr(self.widget, "travelTimeSpinBox"):
+            travel_time = self.widget.travelTimeSpinBox.value() * 60
+            params.update({"INPUT_" + DEPARR + "_TRAVEL_TIME": travel_time})
+
+        return params
+
+    def tool_clicked(self, point):
+        params = self.make_params(point)
+
+        class Feedback(QgsProcessingFeedback):
+            def __init__(self):
+                super().__init__()
+                self.fatal_errors = []
+
+            def reportError(self, error, fatalError=False):
+                log(error)
+                if fatalError:
+                    self.fatal_errors.append(error)
+
         feedback = Feedback()
         try:
             # TODO : use QgsProcessingAlgRunnerTask to do this as a bg task
-            processing.runAndLoadResults(
-                "ttp_v4:time_filter", params, feedback=feedback
-            )
+            processing.runAndLoadResults(self._algorithm, params, feedback=feedback)
         except QgsProcessingException as e:
-            self.action.main.iface.messageBar().pushMessage(
+            print(e)
+            self.main.iface.messageBar().pushMessage(
                 "Error",
                 ", ".join(feedback.fatal_errors),
                 level=Qgis.Critical,
@@ -188,45 +140,23 @@ class ExpressTimeFilterTool(QgsMapToolEmitPoint):
             )
 
 
-class ExpressTimeFilterWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-        uic.loadUi(
-            os.path.join(os.path.dirname(__file__), "ui", "ExpressTimeFilterWidget.ui"),
-            self,
-        )
-
-        self.dateTimeEdit.setDateTime(QDateTime.currentDateTime())
-
-    # TODO : there's an annoying bug where mouse clicks are at wrong position after
-    # the mouse hoever the menu... This fixes it, but also hides the widget when
-    # selecting an option from a QComboBox
-    # def leaveEvent(self, evt):
-    #     self.parent().close()
-    #     return super().leaveEvent(evt)
+class ExpressTimeMapAction(ExpressActionBase):
+    _icon = resources.icon_time_map_express
+    _name = tr("Quick time map")
+    _widget_ui = "ExpressTimeMapWidget.ui"
+    _algorithm = "ttp_v4:time_map"
 
 
-class ExpressTimeFilterAction(QAction):
+class ExpressTimeFilterAction(ExpressActionBase):
+    _icon = resources.icon_time_filter_express
+    _name = tr("Quick time filter")
+    _widget_ui = "ExpressTimeFilterWidget.ui"
+    _algorithm = "ttp_v4:time_filter"
+
     def __init__(self, main):
-        super().__init__(resources.icon_time_filter_express, tr("Quick time filter"))
-        self.setCheckable(True)
+        super().__init__(main)
         self.setEnabled(False)
-
-        self.main = main
-
-        self.widget = ExpressTimeFilterWidget()
-
-        self.widgetAction = QWidgetAction(self)
-        self.widgetAction.setDefaultWidget(self.widget)
-
-        self.menu = QMenu()
-        # self.menu.aboutToShow.connect(self.start_tool)
-        self.menu.addAction(self.widgetAction)
-        self.setMenu(self.menu)
-
         self.main.iface.currentLayerChanged.connect(self.current_layer_changed)
-
-        self.triggered.connect(self.start_tool)
 
     def current_layer_changed(self, layer):
         self.setEnabled(
@@ -235,108 +165,45 @@ class ExpressTimeFilterAction(QAction):
             and layer.geometryType() == QgsWkbTypes.PointGeometry
         )
 
-    def start_tool(self):
-        self.tool = ExpressTimeFilterTool(self, self.main.iface.mapCanvas())
-        self.main.iface.mapCanvas().setMapTool(self.tool)
+    def make_params(self, point):
+        params = super().make_params(point)
+        params.update({"INPUT_LOCATIONS": self.main.iface.activeLayer()})
+        return params
 
 
-class ExpressRouteTool(QgsMapToolEmitPoint):
-    def __init__(self, action, canvas):
-        super().__init__(canvas)
-        self.action = action
-        self.canvas = canvas
+class ExpressRouteAction(ExpressActionBase):
+    _icon = resources.icon_routes_express
+    _name = tr("Quick route")
+    _widget_ui = "ExpressRouteWidget.ui"
+    _algorithm = "ttp_v4:routes"
 
-        self.activated.connect(lambda: self.action.setChecked(True))
-        self.deactivated.connect(lambda: self.action.setChecked(False))
-        self.deactivated.connect(self.cleanup)
-
-        self.point_a = None
+    def __init__(self, main):
+        super().__init__(main)
         self.marker = None
-
-    def canvasPressEvent(self, e):
-
-        if self.point_a is None:
-            self.point_a = self.toMapCoordinates(self.canvas.mouseLastXY())
-            self.marker = QgsVertexMarker(self.canvas)
-            self.marker.setCenter(self.point_a)
-            return
-
-        DEPARR = (
-            "DEPARTURE"
-            if self.action.widget.deparrComboBox.currentIndex() == 0
-            else "ARRIVAL"
-        )
-
-        input_layer = pointToLayer(self.point_a)
-        locations_layer = pointToLayer(self.toMapCoordinates(self.canvas.mouseLastXY()))
-        time = self.action.widget.dateTimeEdit.dateTime().toUTC().toString(Qt.ISODate)
-        transpt_type = self.action.widget.transptTypeComboBox.currentText()
-
-        params = {
-            "INPUT_" + DEPARR + "_SEARCHES": input_layer,
-            "INPUT_LOCATIONS": locations_layer,
-            "INPUT_" + DEPARR + "_TIME": time,
-            "INPUT_" + DEPARR + "_TRNSPT_TYPE": "'" + transpt_type + "'",
-            "OUTPUT_RESULT_TYPE": 1,
-            "OUTPUT": "memory:",
-        }
-
-        feedback = Feedback()
-        try:
-            # TODO : use QgsProcessingAlgRunnerTask to do this as a bg task
-            processing.runAndLoadResults("ttp_v4:routes", params, feedback=feedback)
-        except QgsProcessingException as e:
-            self.action.main.iface.messageBar().pushMessage(
-                "Error",
-                ", ".join(feedback.fatal_errors),
-                level=Qgis.Critical,
-                duration=0,
-            )
-
+        self.point_a = None
+        self.tool.deactivated.connect(self.cleanup)
         self.cleanup()
+
+    def tool_clicked(self, point):
+        if self.point_a is None:
+            self.point_a = QgsPointXY(point)
+            self.marker = QgsVertexMarker(self.main.iface.mapCanvas())
+            self.marker.setCenter(self.point_a)
+        else:
+            super().tool_clicked(point)
+            self.point_a = None
+            self.main.iface.mapCanvas().scene().removeItem(self.marker)
 
     def cleanup(self):
         if self.marker:
-            self.canvas.scene().removeItem(self.marker)
+            self.main.iface.mapCanvas().scene().removeItem(self.marker)
+        self.marker = None
         self.point_a = None
 
+    def make_params(self, point):
+        locations_layer = pointToLayer(self.point_a)
+        params = super().make_params(point)
+        params.update({"INPUT_LOCATIONS": locations_layer, "OUTPUT_RESULT_TYPE": 1})
+        log(params)
+        return params
 
-class ExpressRouteWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-        uic.loadUi(
-            os.path.join(os.path.dirname(__file__), "ui", "ExpressRouteWidget.ui"), self
-        )
-
-        self.dateTimeEdit.setDateTime(QDateTime.currentDateTime())
-
-    # TODO : there's an annoying bug where mouse clicks are at wrong position after
-    # the mouse hoever the menu... This fixes it, but also hides the widget when
-    # selecting an option from a QComboBox
-    # def leaveEvent(self, evt):
-    #     self.parent().close()
-    #     return super().leaveEvent(evt)
-
-
-class ExpressRouteAction(QAction):
-    def __init__(self, main):
-        super().__init__(resources.icon_routes_express, tr("Quick route"))
-        self.setCheckable(True)
-
-        self.main = main
-
-        self.widget = ExpressRouteWidget()
-
-        self.widgetAction = QWidgetAction(self)
-        self.widgetAction.setDefaultWidget(self.widget)
-
-        self.menu = QMenu()
-        # self.menu.aboutToShow.connect(self.start_tool)
-        self.menu.addAction(self.widgetAction)
-        self.setMenu(self.menu)
-
-        self.triggered.connect(self.start_tool)
-
-    def start_tool(self):
-        self.tool = ExpressRouteTool(self, self.main.iface.mapCanvas())
-        self.main.iface.mapCanvas().setMapTool(self.tool)
