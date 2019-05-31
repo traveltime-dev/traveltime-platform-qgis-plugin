@@ -19,7 +19,7 @@ Things continue to work well for your restaurant chain. Your shareholders now wa
 
 To convince them, you'll have to show them evidence...
 
-We'll build a model that computes the areas that area reachable by bike in 15 minutes that would be unreachable by car&nbsp;! What else could they ask for ?
+We'll build a model that computes the areas that area reachable by bike in 15 minutes that would be unreachable by car! What else could they ask for ?
 
 ### 1. Setup a project
 
@@ -71,7 +71,7 @@ If this is the case, click on save to project ![](images/qgis_icons/mAddToProjec
 
 ### 3. Run the processing model
 
-Running your processing model is very easy. It's just another algorithm&nbsp;! Search for it in the processing toolbox by typing it's name (`bike vs car`) and double click on it.
+Running your processing model is very easy. It's just another algorithm! Search for it in the processing toolbox by typing it's name (`bike vs car`) and double click on it.
 
 Choose the `my restaurants` layer as input, and click run.
 
@@ -112,12 +112,12 @@ If everything worked as expected, the layers should load and you'll get a nice i
 
 ![](images/tutorial_03/results2.png)
 
-What a dramatic result. To me, this looks like a pizza that went wrong&nbsp;! It seems you made a wise career choice !
+What a dramatic result. To me, this looks like a pizza that went wrong! It seems you made a wise career choice !
 
 
 ## That's it !
 
-Well done&nbsp;! You've completed the tutorials that are currently available. But there's more to discover&nbsp;! 
+Well done! You've completed the tutorials that are currently available. But there's more to discover! 
 
 The QGIS processing modeller offers much more, including the ability to iterate per feature (which could for instance be used to create one route layer per layer feature). The TravelTime platform plugin also offers a Geocoding algorithm, that we didn't look into as part of this tutorial.
 

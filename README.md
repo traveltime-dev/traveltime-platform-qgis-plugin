@@ -8,9 +8,9 @@ This plugin intends to make the TravelTime platform API available for ues in QGI
 
 This plugin is available in the official QGIS repository (you need to enable experimental plugins for beta releases).
 
-## Usage
+## Documentation
 
-Please read the plugin documentation, available both from within the plugin itself or [online](https://docs.traveltimeplatform.com/qgis). ( TODO : fix link )
+The documentation is available here : https://igeolise.github.io/traveltime-platform-qgis-plugin
 
 ## Bug reports
 

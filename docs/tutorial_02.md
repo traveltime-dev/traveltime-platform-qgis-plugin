@@ -66,7 +66,7 @@ When ready, click run. Your project should now look like this.
 
 ![](images/tutorial_02/what_a_mess.png)
 
-What a mess&nbsp;! It's quite hard to see anything at all... Let's see how to improve this.
+What a mess! It's quite hard to see anything at all... Let's see how to improve this.
 
 ### 4. Combination with other algorithms
 

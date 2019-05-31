@@ -198,9 +198,9 @@ Algorithms regrouped under the `Utilities` group provide access to the Geocoding
 
 This algorithm provides a simpified access to the time-map endpoint.
 
-It can be used to get information such as a service area polygon based on travel time of different means of transport.
+![](images/reference/example_timemap.png)
 
-[TODO : INSERT EXAMPLE]
+It can be used to get information such as a service area polygon based on travel time of different means of transport.
 
 #### Parameters description
 
@@ -212,7 +212,7 @@ It can be used to get information such as a service area polygon based on travel
 
 **Transportation type:** Which transportation types to consider.
 
-**Departure/Arrival time (UTC):** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or trafic condition may be different. 
+**Departure/Arrival time (UTC):** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
 
 **Travel time (in minutes):** The total duration from arrival to destination.
 
@@ -229,9 +229,9 @@ It can be used to get information such as a service area polygon based on travel
 
 This algorithm provides a simpified access to the time-filter endpoint.
 
-It can be used to get filter a point layer using a time search.
+![](images/reference/example_timefilter.png)
 
-[TODO : INSERT EXAMPLE]
+It can be used to get filter a point layer using a time search.
 
 #### Parameters description
 
@@ -243,7 +243,7 @@ It can be used to get filter a point layer using a time search.
 
 **Transportation type:** Which transportation types to consider.
 
-**Departure/Arrival time (UTC):** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or trafic condition may be different. 
+**Departure/Arrival time (UTC):** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
 
 **Travel time (in minutes):** The total duration from arrival to destination.
 
@@ -256,9 +256,9 @@ It can be used to get filter a point layer using a time search.
 
 This algorithm provides a simpified access to the route endpoint.
 
-It can be used to get the best routes between two sets of points.
+![](images/reference/example_route.png)
 
-[TODO : INSERT EXAMPLE]
+It can be used to get the best routes between two sets of points.
 
 #### Parameters description
 
@@ -270,7 +270,7 @@ It can be used to get the best routes between two sets of points.
 
 **Transportation type:** Which transportation types to consider.
 
-**Departure/Arrival time (UTC):** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or trafic condition may be different. 
+**Departure/Arrival time (UTC):** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
 
 **Locations:** The points layer to search from.
 
@@ -289,8 +289,6 @@ This algorithm provides advanced access to the time-map endpoint.
 As it has a lot of options, it is recommended for beginners to rather use the simplified version of this algorithm.
 
 It can be used to get information such as a service area polygon based on travel time of different means of transport.
-
-[TODO : INSERT EXAMPLE]
 
 #### Parameters description
 
@@ -332,8 +330,6 @@ This algorithm provides a simpified access to the geocoding endpoint.
 
 It can be used to assign geographical coordinates to textual data such as addresses.
 
-[TODO : INSERT EXAMPLE]
-
 #### Parameters description
 
 ![](images/reference/geocoding.png)
@@ -358,8 +354,6 @@ It can be used to assign geographical coordinates to textual data such as addres
 This algorithm provides a simpified access to the reverse geocoding endpoint.
 
 It can be used to assign a textual address to geographical coordinates.
-
-[TODO : INSERT EXAMPLE]
 
 #### Parameters description
 

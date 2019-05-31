@@ -6,7 +6,7 @@ This tutorial covers basic usage of the TravelTime platform Plugin for QGIS.
 
 ## What it is
 
-Travel time is much more accurate than distance to make informed decisions, such as where to locate a new office, what type of transport to choose, or at what time a meeting should start.
+Travel times are much more accurate than distance to make informed decisions, such as where to locate a new office, what type of transport to choose, or at what time a meeting should start.
 
 ![](images/tutorial_01/timemap_example.png)
 *This demonstrates the difference between a normal radius (blue) and a time based reachable area (pink)*
@@ -42,7 +42,7 @@ If the plugin was installed correctly, you should see a new tool bar.
 
 ![](images/tutorial_01/toolbar.png)
 
-There's one last step before being able to use the plugin : you need to get a free API key. This is required to be able to use the Travel Time web service. Open the configuration dialog ![](images/icons/settings.svg#icon), and click on the `Get free API key button`.
+There's one last step before being able to use the plugin : you need to get a free API key. This is required to be able to use the TravelTime web service. Open the configuration dialog ![](images/icons/settings.svg#icon), and click on the `Get free API key button`.
 
 This will open a web page. Fill in the form, and you will get your API key per email. Just copy and paste the `Application ID` and the `API Key` back in the configuration dialog in QGIS.
 
@@ -51,25 +51,23 @@ This will open a web page. Fill in the form, and you will get your API key per e
 ![](images/reference/limit_exceeded_express.png)  
 *An API limit error when running a map tool*
 
-TODO : Mention what the error will look like and the cache feature that allows to continue
-
-Congratulations&nbsp;! The plugin is now ready for use !
+Congratulations! The plugin is now ready for use !
 
 ## Quick overview
 
 The main feature of the plugin are three algorithms :
-- ![](images/icons/timemap_simple.svg#icon) **time map**, which allows to get a polygon corresponding to the area that can be covered in a certain amount of time by your chosen mode of transport
+- ![](images/icons/timemap_simple.svg#icon) **time map**, which allows to get a polygon corresponding to the area that can be covered in a certain amount of time by your chosen mode of transport.
 - ![](images/icons/timefilter_simple.svg#icon) **time filter**, which allows to filter a set of points according to the travel time from a certain origin. It calculates the travel time from one origin to up to 2,000 destinations in a single request.
-- ![](images/icons/route_simple.svg#icon)  **route**, which returns the door to door directions for an optimal route
+- ![](images/icons/route_simple.svg#icon)  **route**, which returns the door to door directions for an optimal route.
 
 Each of these algorithms comes in three versions :
-- ![](images/icons/timemap_advanced.svg#icon)  **advanced**, the most powerful, that matches as closely as possible the possibilities offered by the web service
-- ![](images/icons/timemap_simple.svg#icon)  **simplified**, a simplified version with fewer parameters, that is easier to use and still covers most use cases
+- ![](images/icons/timemap_advanced.svg#icon)  **advanced**, the most powerful, that matches as closely as possible the possibilities offered by the web service.
+- ![](images/icons/timemap_simple.svg#icon)  **simplified**, a simplified version with fewer parameters, that is easier to use and still covers most use cases.
 - ![](images/icons/timemap_express.svg#icon)  **express**, a map tool version, that allows to run with click inputs rather than layers, which is ideal for a quick start.
 
 Additionally, the plugin offers a few goodies :
-- ![](images/icons/geocoding.svg#icon) **geocoding** and ![](images/icons/geocoding_reversed.svg#icon) **reverse geocoding**, which allows to translate textual addresses to coordinates or the opposite
-- ![](images/icons/tiles.svg#icon) **background tiles**, an easy way to add a background to your map
+- ![](images/icons/geocoding.svg#icon) **geocoding** and ![](images/icons/geocoding_reversed.svg#icon) **reverse geocoding**, which allows to translate textual addresses to coordinates or the opposite.
+- ![](images/icons/tiles.svg#icon) **background tiles**, an easy way to add a background to your map.
 
 
 ## Quick start
@@ -140,7 +138,7 @@ The locations will now be filtered between those that are reachable and those th
 
 ### 5. Your first route
 
-The customers are starting to flow in&nbsp;! But some of them get lost on their way. It seems your pizzeria is a bit hard to find&nbsp;! Let's create some maps that show the best route from some of the main attractions of the city.
+The customers are starting to flow in! But some of them get lost on their way. It seems your pizzeria is a bit hard to find! Let's create some maps that show the best route from some of the main attractions of the city.
 
 Activate the express route tool by clicking on it's icon ![](images/icons/route_express.svg#icon). Choose `public transport`.
 
@@ -150,7 +148,7 @@ Your project should now look like this :
 
 ![](images/tutorial_01/firstroute_01.png)
 
-Congratulations&nbsp;! This concludes our first tutorial. Keep up the good work, an, you'll soon be the #1 pizza seller of your city.
+Congratulations! This concludes our first tutorial. Keep up the good work, an, you'll soon be the #1 pizza seller of your city.
 
 ## What next
 
