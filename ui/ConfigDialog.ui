@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>513</width>
-    <height>452</height>
+    <width>532</width>
+    <height>397</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Travel Time Platform Plugin Configuration</string>
+   <string>TravelTime platform Plugin Configuration</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -38,7 +38,7 @@
            <string notr="true">font-style:italic;color:gray;</string>
           </property>
           <property name="text">
-           <string>To use the Travel Time Platform API, you need an API key.</string>
+           <string>To use the TravelTime platform API, you need an API key.</string>
           </property>
           <property name="textFormat">
            <enum>Qt::PlainText</enum>
@@ -81,98 +81,32 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="warningGroupBox">
-     <property name="title">
-      <string>API usage warning</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <layout class="QFormLayout" name="formLayout_3">
-      <item row="0" column="0" colspan="2">
-       <widget class="QLabel" name="label_6">
-        <property name="styleSheet">
-         <string notr="true">font-style:italic;color:gray;</string>
-        </property>
-        <property name="text">
-         <string>To avoid hitting API usage limit without realizing, you can definie an alert. Execution will pause once the limit is reached.</string>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::PlainText</enum>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Warn for API usage after</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="warningSpinBox">
-        <property name="specialValueText">
-         <string/>
-        </property>
-        <property name="suffix">
-         <string> queries</string>
-        </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>5000</number>
-        </property>
-        <property name="value">
-         <number>10</number>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="2">
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="QSpinBox" name="countSpinBox">
-          <property name="styleSheet">
-           <string notr="true">background-color: rgba(255,255,255,0); font-style:italic;color:gray;</string>
-          </property>
-          <property name="frame">
-           <bool>false</bool>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-          <property name="buttonSymbols">
-           <enum>QAbstractSpinBox::NoButtons</enum>
-          </property>
-          <property name="suffix">
-           <string> queries have been made since last alert</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="countResetButton">
-          <property name="text">
-           <string>reset</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
       <string>Advanced</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QToolButton" name="clearCacheButton">
+          <property name="text">
+           <string>clear cache</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="cacheLabel">
+          <property name="styleSheet">
+           <string notr="true">background-color: rgba(255,255,255,0); font-style:italic;color:gray;</string>
+          </property>
+          <property name="text">
+           <string>current cache is 0.00 Mb</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item>
        <widget class="QCheckBox" name="logCallsCheckBox">
         <property name="text">
@@ -182,9 +116,6 @@
       </item>
       <item>
        <widget class="QCheckBox" name="disableHttpsCheckBox">
-        <property name="toolTip">
-         <string>Under certain circumstances (such as connection from an enterprise network), requests made from Python may fail because the SSL certificates can not be verified. If this happens, you can disable the verification by checking this box.</string>
-        </property>
         <property name="text">
          <string>Disable HTTPS certificate verification</string>
         </property>
@@ -205,6 +136,39 @@
       </item>
      </layout>
     </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QSpinBox" name="countSpinBox">
+       <property name="styleSheet">
+        <string notr="true">background-color: rgba(255,255,255,0); font-style:italic;color:gray;</string>
+       </property>
+       <property name="frame">
+        <bool>false</bool>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+       <property name="buttonSymbols">
+        <enum>QAbstractSpinBox::NoButtons</enum>
+       </property>
+       <property name="suffix">
+        <string> queries have been made so far</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="countResetButton">
+       <property name="text">
+        <string>reset</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <spacer name="verticalSpacer">

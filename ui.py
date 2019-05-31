@@ -1,7 +1,8 @@
 import os
 import webbrowser
-from qgis.PyQt.QtCore import Qt, QSettings, QDateTime, QDate, QTime
+from qgis.PyQt.QtCore import Qt, QSettings, QDateTime, QDate, QTime, QUrl
 from qgis.PyQt.QtWidgets import QDialog, QDateTimeEdit, QWidget
+from qgis.PyQt.QtWebKitWidgets import QWebView
 from qgis.PyQt import uic
 
 from processing.gui.AlgorithmDialog import AlgorithmDialog
@@ -9,6 +10,7 @@ from processing.gui.wrappers import WidgetWrapper
 
 from . import algorithms
 from . import auth
+from . import cache
 from .utils import tr, log
 
 
@@ -25,6 +27,7 @@ class ConfigDialog(QDialog):
         self.getKeyButton.pressed.connect(self.get_key)
         self.countResetButton.pressed.connect(self.reset_count)
         self.buttonBox.accepted.connect(self.accept)
+        self.clearCacheButton.pressed.connect(self.clear_cache)
 
     def showEvent(self, *args, **kwargs):
         super().showEvent(*args, **kwargs)
@@ -37,35 +40,38 @@ class ConfigDialog(QDialog):
 
         # Get the settings
         s = QSettings()
-        # warning enabled
-        self.warningGroupBox.setChecked(
-            s.value("travel_time_platform/warning_enabled", True, type=bool)
-        )
-        # warning limit
-        self.warningSpinBox.setValue(
-            s.value("travel_time_platform/warning_limit", 10, type=int)
-        )
         # current count
         self.refresh_count_display()
         # logs calls
         self.logCallsCheckBox.setChecked(
-            s.value("travel_time_platform/log_calls", False, type=bool)
+            s.value("traveltime_platform/log_calls", False, type=bool)
         )
         # disable https
         self.disableHttpsCheckBox.setChecked(
-            s.value("travel_time_platform/disable_https", False, type=bool)
+            s.value("traveltime_platform/disable_https", False, type=bool)
         )
+        # refresh current cache
+        self.refresh_cache_label()
 
     def get_key(self):
         webbrowser.open("http://docs.traveltimeplatform.com/overview/getting-keys/")
 
     def reset_count(self):
-        QSettings().setValue("travel_time_platform/current_count", 0)
+        QSettings().setValue("traveltime_platform/current_count", 0)
         self.refresh_count_display()
 
     def refresh_count_display(self):
-        c = QSettings().value("travel_time_platform/current_count", 0, type=int)
+        c = QSettings().value("traveltime_platform/current_count", 0, type=int)
         self.countSpinBox.setValue(c)
+
+    def clear_cache(self):
+        cache.instance.clear()
+        self.refresh_cache_label()
+
+    def refresh_cache_label(self):
+        self.cacheLabel.setText(
+            tr("Current cache size : {}").format(cache.instance.size())
+        )
 
     def accept(self, *args, **kwargs):
         # Save keys
@@ -75,17 +81,11 @@ class ConfigDialog(QDialog):
 
         # Save settings
         s = QSettings()
-        # warning enabled
-        s.setValue(
-            "travel_time_platform/warning_enabled", self.warningGroupBox.isChecked()
-        )
-        # warning limit
-        s.setValue("travel_time_platform/warning_limit", self.warningSpinBox.value())
         # logs calls
-        s.setValue("travel_time_platform/log_calls", self.logCallsCheckBox.isChecked())
+        s.setValue("traveltime_platform/log_calls", self.logCallsCheckBox.isChecked())
         # disable https
         s.setValue(
-            "travel_time_platform/disable_https", self.disableHttpsCheckBox.isChecked()
+            "traveltime_platform/disable_https", self.disableHttpsCheckBox.isChecked()
         )
 
         super().accept(*args, **kwargs)
@@ -100,36 +100,6 @@ class SplashScreen(QDialog):
 
         # self.setWindowFlag(Qt.WindowStaysOnTopHint)
 
-        self.main = main
-
-        # Load html files
-        html_path = os.path.join(HELP_DIR, "{tab}.{locale}.html")
-        locale = QSettings().value("locale/userLocale")[0:2]
-
-        css_path = os.path.join(HELP_DIR, "help.css")
-        css = open(css_path).read()
-
-        for tab_key, tab_name in [
-            ("01.about", tr("About")),
-            ("02.apikey", tr("API key")),
-            ("03.start", tr("Getting started")),
-            ("04.simplified", tr("TimeMap - Simplified")),
-            ("05.advanced", tr("TimeMap - Advanced")),
-            ("06.issues", tr("Troubleshooting")),
-        ]:
-
-            path = html_path.format(tab=tab_key, locale=locale)
-            if not os.path.isfile(path):
-                path = html_path.format(tab=tab_key, locale="en")
-
-            body = open(path, "r").read()
-            html = "<html><head><style>{css}</style></head><body>{body}</body></html>".format(
-                css=css, body=body
-            )
-            page = HelpWidget(self.main, html)
-
-            self.tabWidget.addTab(page, tab_name)
-
         self.buttonBox.accepted.connect(self.accept)
 
     def showEvent(self, *args, **kwargs):
@@ -139,7 +109,7 @@ class SplashScreen(QDialog):
         s = QSettings()
         # warning enabled
         self.dontShowAgainCheckBox.setChecked(
-            s.value("travel_time_platform/spashscreen_dontshowagain", False, type=bool)
+            s.value("traveltime_platform/spashscreen_dontshowagain", False, type=bool)
         )
 
     def accept(self, *args, **kwargs):
@@ -147,44 +117,38 @@ class SplashScreen(QDialog):
         s = QSettings()
         # warning enabled
         s.setValue(
-            "travel_time_platform/spashscreen_dontshowagain",
+            "traveltime_platform/spashscreen_dontshowagain",
             self.dontShowAgainCheckBox.isChecked(),
         )
         super().accept(*args, **kwargs)
 
 
 class HelpWidget(QWidget):
-    def __init__(self, main, html, *args, **kwargs):
+    def __init__(self, main, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        uic.loadUi(
-            os.path.join(os.path.dirname(__file__), "ui", "HelpContent.ui"), self
-        )
+        uic.loadUi(os.path.join(os.path.dirname(__file__), "ui", "HelpDialog.ui"), self)
+
+        self.closeButton.pressed.connect(self.close)
+        self.openBrowserButton.pressed.connect(self.open_in_browser)
+        self.homeButton.pressed.connect(self.reset_url)
 
         self.main = main
-        self.htmlWidget.anchorClicked.connect(self.open_link)
-        self.htmlWidget.setText(html)
-        self.htmlWidget.setSearchPaths([HELP_DIR])
 
-    def open_link(self, url):
+        self.webview = QWebView()
+        self.reset_url()
 
-        # self.main.splash_screen.hide()
+        self.contentWidget.layout().addWidget(self.webview)
 
-        if url.url() == "#show_config":
-            self.main.show_config()
-        elif url.url() == "#show_toolbox":
-            self.main.show_toolbox()
-        elif url.url() == "#run_simple":
-            # See https://github.com/qgis/QGIS/blob/final-3_6_1/python/plugins/processing/gui/ProcessingToolbox.py#L240-L270
-            alg = algorithms.TimeMapSimpleAlgorithm().create()
-            dlg = alg.createCustomParametersWidget(self.main.iface.mainWindow())
-            if not dlg:
-                dlg = AlgorithmDialog(alg, False, self.main.iface.mainWindow())
-            dlg.show()
-            dlg.exec_()
-        elif url.url()[0:4] == "http":
-            webbrowser.open(url.url())
-        else:
-            log("Unknown url : {}".format(url.url()), "TimeTravelPlatform")
+    def reset_url(self):
+        self.webview.setUrl(
+            QUrl(
+                "https://igeolise.github.io/traveltime-platform-qgis-plugin/index.html#help-contents"
+            )
+        )
+
+    def open_in_browser(self):
+        webbrowser.open(self.webview.url().toString())
+        self.close()
 
 
 class IsoDateTimeWidgetWrapper(WidgetWrapper):

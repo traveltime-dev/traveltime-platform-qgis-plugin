@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>671</width>
-    <height>502</height>
+    <width>524</width>
+    <height>315</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Travel Time Platform</string>
+   <string>TravelTime platform</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <property name="spacing">
     <number>0</number>
    </property>
@@ -30,22 +30,42 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QTabWidget" name="tabWidget">
+    <widget class="QWidget" name="widget_2" native="true">
      <property name="styleSheet">
-      <string notr="true">QTabWidget::pane { border: 0; background-color: rgba(19,28,76)}; </string>
+      <string notr="true">background-color: rgba(19,28,76);</string>
      </property>
-     <property name="tabPosition">
-      <enum>QTabWidget::South</enum>
-     </property>
-     <property name="tabShape">
-      <enum>QTabWidget::Rounded</enum>
-     </property>
-     <property name="currentIndex">
-      <number>-1</number>
-     </property>
-     <property name="usesScrollButtons">
-      <bool>false</bool>
-     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap>../resources/ttp_banner.svg</pixmap>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTextBrowser" name="textBrowser">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="lineWidth">
+         <number>0</number>
+        </property>
+        <property name="html">
+         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; font-weight:600; color:#ffffff;&quot;&gt;TravelTime platform plugin for QGIS&lt;/span&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt;The TravelTime API helps users find locations by journey time rather than using &lt;/span&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; font-style:italic; color:#ffffff;&quot;&gt;as the crow flies&lt;/span&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt; distance. Time-based searching gives users more opportunities for personalisation and delivers a more relevant search. &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt;The plugin adds a toolbar offering easy access to all features. &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt;Please click on the help button to help you get started.&lt;span style=&quot; font-family:'sans-serif'; font-size:11pt; color:#ffffff;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

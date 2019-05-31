@@ -5,6 +5,7 @@ import collections
 from qgis.PyQt.QtCore import QSettings
 
 from qgis.core import (
+    Qgis,
     QgsProcessingAlgorithm,
     QgsProcessingParameterNumber,
     QgsProcessingException,
@@ -13,12 +14,12 @@ from qgis.core import (
     QgsExpression,
 )
 
-from ..libraries import requests_cache
 from ..libraries import iso3166
 
 from .. import auth
+from .. import cache
 
-from ..utils import tr, log
+from ..utils import tr, log, TTP_VERSION
 
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
@@ -36,17 +37,6 @@ TRANSPORTATION_TYPES = [
     "cycling+ferry",
 ]
 COUNTRIES = [(None, "-")] + list([(c.alpha2, c.name) for c in iso3166.countries])
-
-cached_requests = requests_cache.core.CachedSession(
-    # Regular
-    cache_name="ttp_cache",
-    backend="memory",
-    # # Persisting (use for development, to avoid hitting API limit)
-    # cache_name=os.path.join(os.path.dirname(os.path.dirname(__file__)), "cachefile"),
-    # backend="sqlite",
-    expire_after=86400,
-    allowable_methods=("GET", "POST"),
-)
 
 
 class AlgorithmBase(QgsProcessingAlgorithm):
@@ -68,8 +58,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             parameter.setFlags(
                 parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced
             )
-        if help_text:
-            self.parameters_help[advanced][parameter.description()] = help_text
+        self.parameters_help[advanced][parameter.description()] = help_text
 
         return super().addParameter(parameter, *args, **kwargs)
 
@@ -121,7 +110,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         if not APP_ID or not API_KEY:
             feedback.reportError(
                 tr(
-                    "You need a Travel Time Platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin's setting dialog."
+                    "You need a TravelTime platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin's setting dialog."
                 ).format("http://docs.traveltimeplatform.com/overview/getting-keys/"),
                 fatalError=True,
             )
@@ -130,12 +119,13 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         headers = {
             "Content-type": "application/json",
             "Accept": self.accept_header,
+            "User-Agent": "QGIS / {} / {}".format(Qgis.QGIS_VERSION, TTP_VERSION),
             "X-Application-Id": APP_ID,
             "X-Api-Key": API_KEY,
         }
 
         feedback.pushDebugInfo("Making request to API endpoint...")
-        print_query = bool(QSettings().value("travel_time_platform/log_calls", False))
+        print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
         if print_query:
             log("Making request")
             log("url: {}".format(self.url))
@@ -146,7 +136,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         try:
 
             disable_https = QSettings().value(
-                "travel_time_platform/disable_https", False, type=bool
+                "traveltime_platform/disable_https", False, type=bool
             )
             if disable_https:
                 feedback.pushInfo(
@@ -155,7 +145,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                     )
                 )
 
-            response = cached_requests.request(
+            response = cache.instance.cached_requests.request(
                 self.method,
                 self.url,
                 data=json_data,
@@ -169,8 +159,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             else:
                 feedback.pushDebugInfo("Got response from API endpoint...")
                 QSettings().setValue(
-                    "travel_time_platform/current_count",
-                    int(QSettings().value("travel_time_platform/current_count", 0)) + 1,
+                    "traveltime_platform/current_count",
+                    int(QSettings().value("traveltime_platform/current_count", 0)) + 1,
                 )
 
             if print_query:
@@ -231,40 +221,6 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             log(e)
             raise QgsProcessingException("Could not decode response") from None
 
-    def processAlgorithmEnforceLimit(
-        self, queries_count, parameters, context, feedback
-    ):
-        s = QSettings()
-        enabled = bool(s.value("travel_time_platform/warning_enabled", True))
-        count = int(s.value("travel_time_platform/current_count", 0))
-        limit = int(s.value("travel_time_platform/warning_limit", 10)) + 1
-
-        feedback.pushDebugInfo("Checking API limit warnings...")
-
-        if enabled and count + queries_count >= limit:
-            feedback.reportError(
-                tr(
-                    "WARNING : API usage warning limit reached ({} calls remaining, {} calls planned) !"
-                ).format(limit - count - 1, queries_count),
-                fatalError=True,
-            )
-            feedback.reportError(
-                tr(
-                    "To continue, disable or increase the limit in the plugin settings, or reset the queries counter."
-                ),
-                fatalError=True,
-            )
-            raise QgsProcessingException("API usage limit warning")
-
-        if enabled:
-            feedback.pushInfo(
-                tr(
-                    "API usage warning limit not reached yet ({} calls remaining, {} calls planned)..."
-                ).format(limit - count - 1, queries_count)
-            )
-        else:
-            feedback.pushInfo(tr("API usage warning limit disabled..."))
-
     def createInstance(self):
         return self.__class__()
 
@@ -293,16 +249,15 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         if self.parameters_help[False]:
             help_string += "<h2>Parameters description</h2>" + "".join(
                 [
-                    "\n<b>{}</b>: {}".format(key, val)
+                    "\n<b>{}</b>: {}".format(key, val or "-")
                     for key, val in self.parameters_help[False].items()
                 ]
             )
         if self.parameters_help[True]:
             help_string += "<h2>Advanced parameters description</h2>" + "".join(
                 [
-                    "\n<b>{}</b>: {}".format(key, val)
+                    "\n<b>{}</b>: {}".format(key, val or "-")
                     for key, val in self.parameters_help[True].items()
                 ]
             )
         return help_string
-

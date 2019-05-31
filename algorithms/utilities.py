@@ -86,10 +86,6 @@ class GeocodingAlgorithmBase(AlgorithmBase):
                 ).format(source_data.featureCount())
             )
 
-        # NOTE : this is disabled, as geocoding queries don't count towards the quota
-        # # Make sure we don't hit the API limit
-        # self.processAlgorithmEnforceLimit(len(slices), parameters, context, feedback)
-
         # Configure output
         output_fields = QgsFields(source_data.fields())
         response_attributes = [
@@ -264,4 +260,3 @@ class ReverseGeocodingAlgorithm(GeocodingAlgorithmBase):
         focus_point = xform.transform(feature.geometry().asPoint())
         params = {"lat": focus_point.y(), "lng": focus_point.x()}
         return params
-
