@@ -61,6 +61,19 @@ By default, the toolbar appears at the top of the window. You can drag and drop 
 
 The same actions are also available from the `plugin menu`.
 
+## API limit
+
+At some point, you **will** hit the API limit, which will cause some queries to fail.
+
+![](images/reference/limit_exceeded_express.png)  
+*An API limit error when running a map tool*
+
+![](images/reference/limit_exceeded_processing.png)  
+*An API limit error when running an algorithm*
+
+Each API key has a quota of queries that can be done. Currently, for free keys, this is around 10 searches / minute. Once this quota is reached, all subsequent queries fail for the cooldown period.
+
+All successful queries are saved in a cache file on your computer. This means that after the cooldown period, you can rerun your algorithm, and it will only make calls to the API for the new queries, so that you can finish running your algorithm event if it failed before.
 
 ## Express tools
 
@@ -108,11 +121,6 @@ The main settings dialog can be open using the ![](images/icons/settings.svg#ico
 ![](images/reference/config.png)
 
 **App ID** and **API Key** : enter your App ID and API Key here. You need to do this step to be able to use the TravelTime web service. You can get the ID and the Key by email by clicking on the **Get a free API key** button and filling out the web form. 
-
-**API usage warning** : this section allows to configure a warning limit for API usage. By default, free API keys have a relatively low limit of 10 queries / minutes, after which queries will be refused. To avoid hitting this limit without noticing, the plugin refused to run algorithms that would go over the limit defined here. You can :
-- disable the warning completely by unchecking the box
-- increase the number of queries after which the limit kicks in
-- reset the queries count
 
 **Clear cache** : this button allows to clear the request cache. All requests are saved to a cache file, to avoid the need of hitting the API if an identical request was already made. By clearing the cache, all saved queries will be deleted. This shouldn't be necessary unless you have a very high usage of the application and the cache file gets too big.
 
@@ -387,9 +395,9 @@ This means that the plugin could not connect to the webservice. Make sure you ar
 
 Before using the TravelTime platform plugin, you need to get and configure an API key. Please refer to the [configuration dialog](#settings-dialog) section about how to get and configure an API key.
 
-##### WARNING : API usage warning limit reached
+##### You have exceeded your request limit
 
-This means the algorithm got stopped because of the API limit warning. Please refer to the [configuration dialog](#settings-dialog) section about how to configure the API limit warning.
+This means the algorithm got stopped because you reached you API quote. Please refer to the [API limit section](#api-limit) that explains the issue in more details.
 
 ##### Application Id or API Key is invalid
 

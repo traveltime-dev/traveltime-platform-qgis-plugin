@@ -40,14 +40,6 @@ class ConfigDialog(QDialog):
 
         # Get the settings
         s = QSettings()
-        # warning enabled
-        self.warningGroupBox.setChecked(
-            s.value("traveltime_platform/warning_enabled", True, type=bool)
-        )
-        # warning limit
-        self.warningSpinBox.setValue(
-            s.value("traveltime_platform/warning_limit", 10, type=int)
-        )
         # current count
         self.refresh_count_display()
         # logs calls
@@ -89,12 +81,6 @@ class ConfigDialog(QDialog):
 
         # Save settings
         s = QSettings()
-        # warning enabled
-        s.setValue(
-            "traveltime_platform/warning_enabled", self.warningGroupBox.isChecked()
-        )
-        # warning limit
-        s.setValue("traveltime_platform/warning_limit", self.warningSpinBox.value())
         # logs calls
         s.setValue("traveltime_platform/log_calls", self.logCallsCheckBox.isChecked())
         # disable https

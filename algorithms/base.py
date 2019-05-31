@@ -223,40 +223,6 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             log(e)
             raise QgsProcessingException("Could not decode response") from None
 
-    def processAlgorithmEnforceLimit(
-        self, queries_count, parameters, context, feedback
-    ):
-        s = QSettings()
-        enabled = bool(s.value("traveltime_platform/warning_enabled", True))
-        count = int(s.value("traveltime_platform/current_count", 0))
-        limit = int(s.value("traveltime_platform/warning_limit", 10)) + 1
-
-        feedback.pushDebugInfo("Checking API limit warnings...")
-
-        if enabled and count + queries_count >= limit:
-            feedback.reportError(
-                tr(
-                    "WARNING : API usage warning limit reached ({} calls remaining, {} calls planned) !"
-                ).format(limit - count - 1, queries_count),
-                fatalError=True,
-            )
-            feedback.reportError(
-                tr(
-                    "To continue, disable or increase the limit in the plugin settings, or reset the queries counter."
-                ),
-                fatalError=True,
-            )
-            raise QgsProcessingException("API usage limit warning") from None
-
-        if enabled:
-            feedback.pushInfo(
-                tr(
-                    "API usage warning limit not reached yet ({} calls remaining, {} calls planned)..."
-                ).format(limit - count - 1, queries_count)
-            )
-        else:
-            feedback.pushInfo(tr("API usage warning limit disabled..."))
-
     def createInstance(self):
         return self.__class__()
 

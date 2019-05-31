@@ -230,9 +230,6 @@ class _SearchAlgorithmBase(AlgorithmBase):
                 ).format(len(slices))
             )
 
-        # Make sure we don't hit the API limit
-        self.processAlgorithmEnforceLimit(len(slices), parameters, context, feedback)
-
         return slices
 
     def _processAlgorithmYieldSlices(self, parameters, context, feedback):
