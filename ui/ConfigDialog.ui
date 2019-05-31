@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>513</width>
-    <height>481</height>
+    <width>532</width>
+    <height>397</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -116,9 +116,6 @@
       </item>
       <item>
        <widget class="QCheckBox" name="disableHttpsCheckBox">
-        <property name="toolTip">
-         <string>Under certain circumstances (such as connection from an enterprise network), requests made from Python may fail because the SSL certificates can not be verified. If this happens, you can disable the verification by checking this box.</string>
-        </property>
         <property name="text">
          <string>Disable HTTPS certificate verification</string>
         </property>
