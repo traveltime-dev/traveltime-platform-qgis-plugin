@@ -260,4 +260,3 @@ class ReverseGeocodingAlgorithm(GeocodingAlgorithmBase):
         focus_point = xform.transform(feature.geometry().asPoint())
         params = {"lat": focus_point.y(), "lng": focus_point.x()}
         return params
-

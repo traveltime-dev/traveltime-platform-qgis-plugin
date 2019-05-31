@@ -4,7 +4,8 @@ import os
 import collections
 from qgis.PyQt.QtCore import QSettings
 
-from qgis.core import (Qgis,
+from qgis.core import (
+    Qgis,
     QgsProcessingAlgorithm,
     QgsProcessingParameterNumber,
     QgsProcessingException,
@@ -115,13 +116,10 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             )
             raise QgsProcessingException("App ID or api key not set")
 
-
-
-
         headers = {
             "Content-type": "application/json",
             "Accept": self.accept_header,
-            "User-Agent": 'QGIS / {} / {}'.format(Qgis.QGIS_VERSION, TTP_VERSION),
+            "User-Agent": "QGIS / {} / {}".format(Qgis.QGIS_VERSION, TTP_VERSION),
             "X-Application-Id": APP_ID,
             "X-Api-Key": API_KEY,
         }
@@ -263,4 +261,3 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 ]
             )
         return help_string
-
