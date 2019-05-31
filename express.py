@@ -126,18 +126,35 @@ class ExpressActionBase(QAction):
                 if fatalError:
                     self.fatal_errors.append(error)
 
+        alg = QgsApplication.processingRegistry().algorithmById(self._algorithm)
+        context = QgsProcessingContext()
         feedback = Feedback()
-        try:
-            # TODO : use QgsProcessingAlgRunnerTask to do this as a bg task
-            processing.runAndLoadResults(self._algorithm, params, feedback=feedback)
-        except QgsProcessingException as e:
-            print(e)
-            self.main.iface.messageBar().pushMessage(
-                "Error",
-                ", ".join(feedback.fatal_errors),
-                level=Qgis.Critical,
-                duration=0,
-            )
+
+        def task_finished(context, successful, results):
+            if successful:
+                output_layer = context.getMapLayer(results["OUTPUT"])
+                if output_layer and output_layer.isValid():
+                    QgsProject.instance().addMapLayer(
+                        context.takeResultLayer(output_layer.id())
+                    )
+            else:
+                self.main.iface.messageBar().pushMessage(
+                    "Error",
+                    ", ".join(feedback.fatal_errors),
+                    level=Qgis.Critical,
+                    duration=10,
+                )
+
+        # TODO : THIS CRASHES A LOT... WHY ???
+        task = QgsProcessingAlgRunnerTask(alg, params, context, feedback)
+        # for a strage reason, we get more crashes without these log
+        log("a")
+        task.executed.connect(partial(task_finished, context))
+        # for a strage reason, we get more crashes without these log
+        log("b")
+        QgsApplication.taskManager().addTask(task)
+        # for a strage reason, we get more crashes without these log
+        log("c")
 
 
 class ExpressTimeMapAction(ExpressActionBase):
