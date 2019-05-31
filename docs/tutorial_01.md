@@ -46,7 +46,10 @@ There's one last step before being able to use the plugin : you need to get a fr
 
 This will open a web page. Fill in the form, and you will get your API key per email. Just copy and paste the `Application ID` and the `API Key` back in the configuration dialog in QGIS.
 
-> Just a note : each API key has a limited quota of requests that can be done in a certain amount of time. This means that your API key may be blocked for some time if you make too many requests over a short period of time. To avoid hitting this limit without noticing, the plugin has a warning feature, that will notify you after a certain number of queries has been made. You can configure or even disable this limit in the same configuration dialog.
+> Just a note : each API key has a limited quota of requests that can be done in a certain amount of time. This means that your API key may be blocked for some time if you make too many requests over a short period of time. If this happens, just wait a minute or so before doing your next queries. Also make sure to use small datasets, as by default, with the free API key, you can only make up to 10 queries per minute.
+
+![](images/reference/limit_exceeded_express.png)  
+*An API limit error when running a map tool*
 
 TODO : Mention what the error will look like and the cache feature that allows to continue
 

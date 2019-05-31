@@ -43,6 +43,11 @@ Click OK, and you should now have less points than before, representing only piz
 
 ### 3. Running the algorithm
 
+> Just a note : the limitation of the number of queries you can make, which we saw already in tutorial 1, also applies when running the algorithms from the toolbox. The error will look a bit different though.
+
+![](images/reference/limit_exceeded_processing.png)  
+*An API limit error when running an algorithm*
+
 We'll now feed in this layer into the Simplified Time map algorithm.
 
 Make sure the `amenity restaurants` is selected in the layer, then press the selection icon ![](images/qgis_icons/mActionSelectRectangle.svg#icon). Drag a rectangle on the map to select the pizzerias  that you own. Make sure you have a select a reasonable amount of pizzerias (5-15).
