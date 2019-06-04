@@ -40,6 +40,6 @@ tags=travel,time,platform,api,distance
 homepage=https://igeolise.github.io/traveltime-platform-qgis-plugin
 tracker=https://github.com/igeolise/traveltime-platform-qgis-plugin/issues
 repository=https://github.com/igeolise/traveltime-platform-qgis-plugin
-icon=resources/ttp_icon.svg
+icon=resources/icons/general.svg
 experimental=True
 deprecated=False

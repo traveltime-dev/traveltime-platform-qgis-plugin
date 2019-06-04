@@ -41,7 +41,7 @@
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap>../resources/ttp_banner.svg</pixmap>
+         <pixmap>../resources/TravelTime_logo_horizontal_invert.svg</pixmap>
         </property>
        </widget>
       </item>
