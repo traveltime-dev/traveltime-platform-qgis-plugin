@@ -71,6 +71,16 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         else:
             return None
 
+    def processAlgorithm(self, parameters, context, feedback):
+        feedback.pushDebugInfo("TravelTime Plugin Version : {}".format(TTP_VERSION))
+        feedback.pushDebugInfo(
+            "TravelTime Algorithm : {}".format(self.__class__.__name__)
+        )
+        return self.doProcessAlgorithm(parameters, context, feedback)
+
+    def doProcessAlgorithm(self, parameters, context, feedback):
+        raise NotImplemented("Method must be reimplemented by subclass")
+
     def processAlgorithmConfigureParams(self, parameters, context, feedback):
         """Helper method that sets up all expressions parameter"""
         self.expressions_context = self.createExpressionContext(parameters, context)
