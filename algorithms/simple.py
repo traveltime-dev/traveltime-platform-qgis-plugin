@@ -91,9 +91,7 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             "OUTPUT": "memory:results",
         }
 
-    def processAlgorithm(self, parameters, context, feedback):
-
-        feedback.pushDebugInfo("Starting TimeMapSimpleAlgorithm...")
+    def doProcessAlgorithm(self, parameters, context, feedback):
 
         # Configure common expressions inputs
         self.processAlgorithmConfigureParams(parameters, context, feedback)

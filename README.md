@@ -1,4 +1,4 @@
-# ![resources/ttp_banner.svg](resources/ttp_banner_whitebackground.svg)
+# ![](resources/TravelTime_logo_horizontal.svg)
 
 This is the repository for the TravelTime platform plugin for QGIS.
 

@@ -369,9 +369,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
             ),
         )
 
-    def processAlgorithm(self, parameters, context, feedback):
-
-        feedback.pushDebugInfo("Starting {}...".format(self.__class__.__name__))
+    def doProcessAlgorithm(self, parameters, context, feedback):
 
         # Configure common expressions inputs
         self.processAlgorithmConfigureParams(parameters, context, feedback)
@@ -532,9 +530,7 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
             ),
         )
 
-    def processAlgorithm(self, parameters, context, feedback):
-
-        feedback.pushDebugInfo("Starting {}...".format(self.__class__.__name__))
+    def doProcessAlgorithm(self, parameters, context, feedback):
 
         # Configure common expressions inputs
         self.processAlgorithmConfigureParams(parameters, context, feedback)
@@ -770,9 +766,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
             ),
         )
 
-    def processAlgorithm(self, parameters, context, feedback):
-
-        feedback.pushDebugInfo("Starting {}...".format(self.__class__.__name__))
+    def doProcessAlgorithm(self, parameters, context, feedback):
 
         # Configure common expressions inputs
         self.processAlgorithmConfigureParams(parameters, context, feedback)

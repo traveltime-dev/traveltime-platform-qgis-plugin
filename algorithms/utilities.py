@@ -67,9 +67,7 @@ class GeocodingAlgorithmBase(AlgorithmBase):
             )
         )
 
-    def processAlgorithm(self, parameters, context, feedback):
-
-        feedback.pushDebugInfo("Starting Geocoding...")
+    def doProcessAlgorithm(self, parameters, context, feedback):
 
         # Configure common expressions inputs
         self.processAlgorithmConfigureParams(parameters, context, feedback)
