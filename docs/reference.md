@@ -6,6 +6,8 @@ This reference manual covers all features of the TravelTime platform plugin for 
 
 For an introduction about how to use it, you may prefer to have a look at the tutorials first.
 
+To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
+
 ## Installation
 
 ### Requirements

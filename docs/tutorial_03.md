@@ -4,6 +4,8 @@
 
 This tutorial intends to showcase how far it is possible to go using the TravelTime platform algorithms in conjunction with QGIS's capabilities.
 
+To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
+
 ## What we'll cover
 
 During this tutorial, we'll cover :

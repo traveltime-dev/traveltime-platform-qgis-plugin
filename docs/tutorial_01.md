@@ -4,6 +4,8 @@
 
 This tutorial covers basic usage of the TravelTime platform Plugin for QGIS.
 
+To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
+
 ## What it is
 
 Travel times are much more accurate than distance to make informed decisions, such as where to locate a new office, what type of transport to choose, or at what time a meeting should start.

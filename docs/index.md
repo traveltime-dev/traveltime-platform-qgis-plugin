@@ -10,6 +10,8 @@ This is the official home for the TravelTime platform plugin for QGIS.
 
 *The TravelTime platform Plugin for QGIS adds several algorithms that aim to allow this type of analysis right in QGIS. It works by making use of the TravelTime platform API, an extremely fast web service for such computations.*
 
+To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
+
 ## Help contents
 
 - **[The reference manual](reference.md)**
