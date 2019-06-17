@@ -106,7 +106,7 @@ For now, we'll keep it like this. Just to keep things clear, right-click on the 
 
 Let's study our delivery plan a bit more. Change the transportation mode to "driving", and we'll see how things would be if our deliveries were made by car. Click on the same point again, and compare the results.
 
-With "driving", the hour of the day has a great impact because of traffic conditions. Compare what you'd get at 6:30 PM with what you'd get at 8:30 PM, time time at which you can expect to do most of the deliveries.
+With "driving", the hour of the day has a great impact because of traffic conditions. Compare what you'd get at 6:30 PM with what you'd get at 8:30 PM, time at which you can expect to do most of the deliveries.
 
 Try out a few more locations / time / transport type combinations. See how the polygon varies according to streets or obstacles, and how it differs from a simple radius. You can also switch the search mode to `arriving`, in which case the time represents the arrival time.
 
