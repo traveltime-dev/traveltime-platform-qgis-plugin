@@ -196,5 +196,4 @@ class Main:
         self.splash_screen.show()
 
     def show_help(self):
-        self.help_dialog.raise_()
         self.help_dialog.show()
