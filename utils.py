@@ -6,7 +6,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import QgsFeature, QgsGeometry, QgsMessageLog
 
 # TODO : parse this from metadata.txt
-TTP_VERSION = "1.0.0"
+TTP_VERSION = "1.0.1"
 
 
 def now_iso():

@@ -4,6 +4,8 @@
 
 This tutorial covers intermediate usage of the TravelTime platform plugin. It looks at how to use the algorithms from the processing toolbox.
 
+To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
+
 ## What we'll cover
 
 During this tutorial, we'll cover :

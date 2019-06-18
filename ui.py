@@ -2,8 +2,14 @@ import os
 import webbrowser
 from qgis.PyQt.QtCore import Qt, QSettings, QDateTime, QDate, QTime, QUrl
 from qgis.PyQt.QtWidgets import QDialog, QDateTimeEdit, QWidget
-from qgis.PyQt.QtWebKitWidgets import QWebView
 from qgis.PyQt import uic
+
+try:
+    from qgis.PyQt.QtWebKitWidgets import QWebView
+
+    webkit_available = True
+except (ModuleNotFoundError, ImportError):
+    webkit_available = False
 
 from processing.gui.AlgorithmDialog import AlgorithmDialog
 from processing.gui.wrappers import WidgetWrapper
@@ -124,6 +130,9 @@ class SplashScreen(QDialog):
 
 
 class HelpWidget(QWidget):
+
+    home = "https://igeolise.github.io/traveltime-platform-qgis-plugin/index.html#help-contents"
+
     def __init__(self, main, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(os.path.join(os.path.dirname(__file__), "ui", "HelpDialog.ui"), self)
@@ -134,17 +143,22 @@ class HelpWidget(QWidget):
 
         self.main = main
 
-        self.webview = QWebView()
-        self.reset_url()
+        if webkit_available:
+            self.webview = QWebView()
+            self.reset_url()
+            self.contentWidget.layout().addWidget(self.webview)
+        else:
+            self.webview = None
 
-        self.contentWidget.layout().addWidget(self.webview)
+    def show(self):
+        if self.webview:
+            self.raise_()
+            super().show()
+        else:
+            webbrowser.open(self.home)
 
     def reset_url(self):
-        self.webview.setUrl(
-            QUrl(
-                "https://igeolise.github.io/traveltime-platform-qgis-plugin/index.html#help-contents"
-            )
-        )
+        self.webview.setUrl(QUrl(self.home))
 
     def open_in_browser(self):
         webbrowser.open(self.webview.url().toString())

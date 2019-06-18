@@ -6,11 +6,13 @@ This reference manual covers all features of the TravelTime platform plugin for 
 
 For an introduction about how to use it, you may prefer to have a look at the tutorials first.
 
+To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
+
 ## Installation
 
 ### Requirements
 
-This plugins works on QGIS version 3.0 or higher.
+This plugin works on QGIS version 3.0 or higher.
 
 ### Install
 
@@ -46,7 +48,7 @@ By default, the toolbar appears at the top of the window. You can drag and drop 
 
 ![](images/icons/toolbox.svg#icon) Open the QGIS processing toolbox showing available algorithms.
 
-![](images/icons/timemap_express.svg#icon) ![](images/icons/timefilter_express.svg#icon) ![](images/icons/route_express.svg#icon) Express tools (map tools versions of the algorithms)
+![](images/icons/timemap_express.svg#icon) ![](images/icons/timefilter_express.svg#icon) ![](images/icons/route_express.svg#icon) Quick tools (map tools versions of the algorithms)
 
 ![](images/icons/tiles.svg#icon) Show [background tiles](#background-tiles)
 
@@ -79,10 +81,10 @@ All successful queries are saved in a cache file on your computer. This means th
 
 *Express tools* are map tools that allow to run the algorithms directly using click inputs on the map. These tools are the perfect way to get started with the plugin.
 
-### ![](images/icons/timemap_express.svg#icon) Time Map Express
+### ![](images/icons/timemap_express.svg#icon) Quick Time Map
 
 
-This runs the *express time map* tool. In the background, the advanced time map algorithm will be run. This algorithm returns a **polygon** layer representing the area that can be reached from one point, or the area from which a point can be reached.
+This runs the *quick time map* tool. In the background, the advanced time map algorithm will be run. This algorithm returns a **polygon** layer representing the area that can be reached from one point, or the area from which a point can be reached.
 
 Usage : click the action, then click somewhere on the map canvas to create a time map. A new layer will be added to the project with the time time. That layer is a "temporary layer". If you need to save it, right click on it in the legend, and choose `Make permanent`.
 
@@ -93,7 +95,7 @@ Configuration : click on the small arrow, then configure using the following wid
 
 ### ![](images/icons/timefilter_express.svg#icon) Time Filter Express
 
-This runs the *express time filter* tool. In the background, the advanced time filter algorithm will be run. This algorithm allows to filter a **point** layer according to a time map search.
+This runs the *quick time filter* tool. In the background, the advanced time filter algorithm will be run. This algorithm allows to filter a **point** layer according to a time map search.
 
 Usage : first, select a **point** layer in the legend, then click the action, then click somewhere on the map canvas to create a time map. A new layer will be added to the project with the reachable and unreachable points. That layer is a "temporary layer". If you need to save it, right click on it in the legend, and choose `Make permanent`.
 
@@ -105,7 +107,7 @@ Configuration : click on the small arrow, then configure using the following wid
 ### ![](images/icons/route_express.svg#icon) Route Express
 
 
-This runs the *express route* tool. In the background, the advanced route algorithm will be run. This algorithm allows to compute the best route between points.
+This runs the *quick route* tool. In the background, the advanced route algorithm will be run. This algorithm allows to compute the best route between points.
 
 Usage : click the action, then click somewhere on the map canvas to define the starting point, and click again to define the destination point. A new layer will be added to the project containing the route. That layer is a "temporary layer". If you need to save it, right click on it in the legend, and choose `Make permanent`.
 

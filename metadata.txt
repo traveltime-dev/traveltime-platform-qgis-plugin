@@ -10,7 +10,7 @@ author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
 # DONT FORGET TO ALSO CHANGE THE VERSION IN utils.py
-version=1.0.0
+version=1.0.1
 
 # Optional items:
 changelog=- 2019-02-12 : version 0.1-alpha
@@ -39,6 +39,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - removed : api warning logic
     - 2019-06-12 : version 1.0.0
         - official release
+    - 2019-06-18 : version 1.0.1
+        - fix : required module not available on some platforms
 tags=travel,time,platform,api,distance
 homepage=https://igeolise.github.io/traveltime-platform-qgis-plugin
 tracker=https://github.com/igeolise/traveltime-platform-qgis-plugin/issues
