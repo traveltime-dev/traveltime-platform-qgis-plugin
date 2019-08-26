@@ -6,6 +6,7 @@ from qgis.PyQt.QtCore import (
     Qt,
     QSettings,
     QCoreApplication,
+    QLocale,
     QTranslator,
     QSize,
     QItemSelectionModel,
@@ -44,7 +45,7 @@ class Main:
 
         self.plugin_dir = os.path.dirname(__file__)
 
-        locale = QSettings().value("locale/userLocale")[0:2]
+        locale = QSettings().value("locale/userLocale", QLocale().name())[0:2]
         locale_path = os.path.join(
             self.plugin_dir, "i18n", "traveltime_platform_{}.qm".format(locale)
         )
