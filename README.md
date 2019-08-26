@@ -10,7 +10,7 @@ This plugin is available in the official QGIS repository (you need to enable exp
 
 ## Documentation
 
-The documentation is available here : https://igeolise.github.io/traveltime-platform-qgis-plugin
+The documentation is available here : https://qgis.traveltimeplatform.com/
 
 ## Bug reports
 
