@@ -87,7 +87,6 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             "INPUT_{}_SEARCHES".format(mode): search_layer,
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
             "INPUT_{}_TIME".format(mode): "'" + self.params["INPUT_TIME"] + "'",
-            "OUTPUT_RESULT_TYPE": self.params["OUTPUT_RESULT_TYPE"],
             "OUTPUT": "memory:results",
         }
 
