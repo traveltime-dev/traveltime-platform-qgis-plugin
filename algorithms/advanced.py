@@ -9,6 +9,7 @@ from qgis.core import (
     QgsFeatureSink,
     QgsCoordinateTransform,
     QgsProcessing,
+    QgsProcessingParameterBoolean,
     QgsProcessingParameterFeatureSource,
     QgsProcessingParameterFeatureSink,
     QgsProcessingParameterExpression,
@@ -36,11 +37,16 @@ from ..utils import tr
 
 from .base import AlgorithmBase, EPSG4326
 
+# Constants to define behaviour of available properties
+PROPERTY_DEFAULT_NO = 0
+PROPERTY_DEFAULT_YES = 1
+PROPERTY_ALWAYS = 2
+
 
 class _SearchAlgorithmBase(AlgorithmBase):
     """Base class for the algorithms that share properties such as departure/arrival_searches"""
 
-    search_properties = []
+    available_properties = {}
 
     def initAlgorithm(self, config):
         """Base setup of the algorithm.
@@ -218,6 +224,22 @@ class _SearchAlgorithmBase(AlgorithmBase):
                 ),
             )
 
+        for prop, behaviour in self.available_properties.items():
+            if behaviour == PROPERTY_ALWAYS:
+                continue
+            self.addParameter(
+                QgsProcessingParameterBoolean(
+                    "PROPERTIES_" + prop.upper(),
+                    "Properties / {}".format(prop),
+                    optional=True,
+                    defaultValue=(behaviour == PROPERTY_DEFAULT_YES),
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Retrieve the property '{}'. Make sure this property is available in the region of your searches."
+                ).format(prop),
+            )
+
         # Define output parameters
         self.addParameter(
             QgsProcessingParameterFeatureSink(
@@ -324,8 +346,7 @@ class _SearchAlgorithmBase(AlgorithmBase):
                         "travel_time": self.eval_expr(
                             "INPUT_" + DEPARR + "_TRAVEL_TIME"
                         ),
-                        # TODO : allow to edit properties
-                        "properties": self.search_properties,
+                        "properties": self.enabled_properties(),
                     }
                     range_width = self.eval_expr("INPUT_" + DEPARR + "_RANGE_WIDTH")
                     if range_width:
@@ -339,10 +360,19 @@ class _SearchAlgorithmBase(AlgorithmBase):
                     # feedback.setProgress(int(current * total))
         return data
 
+    def enabled_properties(self):
+        """Returns the list of properties that are enabled"""
+        return [
+            prop
+            for prop, behaviour in self.available_properties.items()
+            if behaviour == PROPERTY_ALWAYS or self.params["PROPERTIES_" + prop.upper()]
+        ]
+
 
 class TimeMapAlgorithm(_SearchAlgorithmBase):
     url = "https://api.traveltimeapp.com/v4/time-map"
     accept_header = "application/vnd.wkt+json"
+    available_properties = {"is_only_walking": PROPERTY_DEFAULT_YES}
     output_type = QgsProcessing.TypeVectorPolygon
 
     _name = "time_map"
@@ -433,7 +463,8 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
     def processAlgorithmOutput(self, results, parameters, context, feedback):
         output_fields = QgsFields()
         output_fields.append(QgsField("id", QVariant.String, "text", 255))
-        output_fields.append(QgsField("properties", QVariant.String, "text", 255))
+        for prop in self.enabled_properties():
+            output_fields.append(QgsField(prop, QVariant.String, "text", 255))
 
         (sink, sink_id) = self.parameterAsSink(
             parameters,
@@ -448,8 +479,11 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
 
         for result in results:
             feature = QgsFeature(output_fields)
-            feature.setAttribute(0, result["search_id"])
-            feature.setAttribute(1, json.dumps(result["properties"]))
+            feature.setAttribute("id", result["search_id"])
+            for prop in self.enabled_properties():
+                feature.setAttribute(
+                    "prop_" + prop, json.dumps(result["properties"][prop])
+                )
             feature.setGeometry(QgsGeometry.fromWkt(result["shape"]))
 
             # Add a feature in the sink
@@ -492,8 +526,13 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
 class TimeFilterAlgorithm(_SearchAlgorithmBase):
     url = "https://api.traveltimeapp.com/v4/time-filter"
     accept_header = "application/json"
-    # search_properties = ["travel_time", "distance", "distance_breakdown", "fares", "route"]
-    search_properties = ["travel_time", "distance", "distance_breakdown", "route"]
+    available_properties = {
+        "travel_time": PROPERTY_DEFAULT_YES,
+        "distance": PROPERTY_DEFAULT_YES,
+        "distance_breakdown": PROPERTY_DEFAULT_NO,
+        "fares": PROPERTY_DEFAULT_NO,
+        "route": PROPERTY_DEFAULT_NO,
+    }
     output_type = QgsProcessing.TypeVectorPoint
 
     _name = "time_filter"
@@ -634,7 +673,9 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         output_fields = QgsFields(locations.fields())
         output_fields.append(QgsField("search_id", QVariant.String, "text", 255))
         output_fields.append(QgsField("reachable", QVariant.Int, "int", 255))
-        output_fields.append(QgsField("properties", QVariant.String, "text", 255))
+
+        for prop in self.enabled_properties():
+            output_fields.append(QgsField("prop_" + prop, QVariant.String, "text", 255))
 
         output_crs = locations.sourceCrs()
         output_type = locations.wkbType()
@@ -655,19 +696,20 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
             )
 
         for result in results:
+
             for location in result["locations"]:
                 feature = clone_feature(location["id"])
-                feature.setAttribute(len(output_fields) - 3, result["search_id"])
-                feature.setAttribute(len(output_fields) - 2, 1)
-                feature.setAttribute(
-                    len(output_fields) - 1, json.dumps(location["properties"])
-                )
+                feature.setAttribute("search_id", result["search_id"])
+                feature.setAttribute("reachable", 1)
+                for prop in self.enabled_properties():
+                    feature.setAttribute(
+                        "prop_" + prop, json.dumps(location["properties"][0][prop])
+                    )
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
             for id_ in result["unreachable"]:
                 feature = clone_feature(id_)
-                feature.setAttribute(len(output_fields) - 3, result["search_id"])
-                feature.setAttribute(len(output_fields) - 2, 0)
-                feature.setAttribute(len(output_fields) - 1, None)
+                feature.setAttribute("search_id", result["search_id"])
+                feature.setAttribute("reachable", 0)
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
         feedback.pushDebugInfo("TimeFilterAlgorithm done !")
@@ -709,8 +751,12 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
 class RoutesAlgorithm(_SearchAlgorithmBase):
     url = "https://api.traveltimeapp.com/v4/routes"
     accept_header = "application/json"
-    # search_properties = ["travel_time", "distance", "route", "fares"]
-    search_properties = ["travel_time", "distance", "route"]
+    available_properties = {
+        "travel_time": PROPERTY_DEFAULT_YES,
+        "distance": PROPERTY_DEFAULT_YES,
+        "fares": PROPERTY_DEFAULT_NO,
+        "route": PROPERTY_ALWAYS,
+    }
     output_type = QgsProcessing.TypeVectorLine
 
     _name = "routes"
@@ -869,19 +915,23 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
     def processAlgorithmOutput(self, results, parameters, context, feedback):
         output_fields = QgsFields()
         result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
+        output_fields.append(QgsField("search_id", QVariant.String, "text", 255))
+        output_fields.append(QgsField("location_id", QVariant.String, "text", 255))
+
         if result_type == "BY_ROUTE" or result_type == "BY_DURATION":
-            output_fields.append(QgsField("search_id", QVariant.String, "text", 255))
-            output_fields.append(QgsField("location_id", QVariant.String, "text", 255))
-            output_fields.append(QgsField("travel_time", QVariant.Double, "text", 255))
-            output_fields.append(QgsField("distance", QVariant.Double, "text", 255))
-            output_fields.append(
-                QgsField("departure_time", QVariant.String, "text", 255)
-            )
-            output_fields.append(QgsField("arrival_time", QVariant.String, "text", 255))
+            for prop in self.enabled_properties():
+                output_fields.append(
+                    QgsField("prop_" + prop, QVariant.String, "text", 255)
+                )
         else:
-            output_fields.append(QgsField("type", QVariant.String, "text", 255))
-            output_fields.append(QgsField("mode", QVariant.String, "text", 255))
-            output_fields.append(QgsField("directions", QVariant.String, "text", 255))
+            output_fields.append(QgsField("part_id", QVariant.Int, "int", 255))
+            output_fields.append(QgsField("part_type", QVariant.String, "text", 255))
+            output_fields.append(QgsField("part_mode", QVariant.String, "text", 255))
+            output_fields.append(
+                QgsField("part_directions", QVariant.String, "text", 255)
+            )
+            output_fields.append(QgsField("part_distance", QVariant.Int, "int", 255))
+            output_fields.append(QgsField("part_travel_time", QVariant.Int, "int", 255))
 
         output_crs = EPSG4326
         output_type = QgsWkbTypes.LineString
@@ -906,16 +956,14 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
                     # Create the feature
                     feature = QgsFeature(output_fields)
                     feature.setGeometry(geom)
-                    feature.setAttribute(0, result["search_id"])
-                    feature.setAttribute(1, location["id"])
-                    feature.setAttribute(2, location["properties"][0]["travel_time"])
-                    feature.setAttribute(3, location["properties"][0]["distance"])
-                    feature.setAttribute(
-                        4, location["properties"][0]["route"]["departure_time"]
-                    )
-                    feature.setAttribute(
-                        5, location["properties"][0]["route"]["arrival_time"]
-                    )
+                    feature.setAttribute("search_id", result["search_id"])
+                    feature.setAttribute("location_id", location["id"])
+
+                    for prop in self.enabled_properties():
+                        feature.setAttribute(
+                            "prop_" + prop, json.dumps(location["properties"][0][prop])
+                        )
+
                     sink.addFeature(feature, QgsFeatureSink.FastInsert)
                 else:
                     for part in location["properties"][0]["route"]["parts"]:
@@ -929,9 +977,17 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
                         # Create the feature
                         feature_d = QgsFeature(output_fields)
                         feature_d.setGeometry(geom)
-                        feature_d.setAttribute(0, part["type"])
-                        feature_d.setAttribute(1, part["mode"])
-                        feature_d.setAttribute(2, part["directions"])
+
+                        feature_d.setAttribute("search_id", result["search_id"])
+                        feature_d.setAttribute("location_id", location["id"])
+
+                        feature_d.setAttribute("part_id", part["id"])
+                        feature_d.setAttribute("part_type", part["type"])
+                        feature_d.setAttribute("part_mode", part["mode"])
+                        feature_d.setAttribute("part_directions", part["directions"])
+                        feature_d.setAttribute("part_distance", part["distance"])
+                        feature_d.setAttribute("part_travel_time", part["travel_time"])
+
                         sink.addFeature(feature_d, QgsFeatureSink.FastInsert)
 
         feedback.pushDebugInfo("TimeFilterAlgorithm done !")

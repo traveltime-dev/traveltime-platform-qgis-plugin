@@ -251,6 +251,8 @@ It can be used to get filter a point layer using a time search.
 
 **Locations:** The points layer to search from.
 
+**Load fares information:** Load informations about fares in the resulting attributes.
+
 **Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
 
 
@@ -275,6 +277,8 @@ It can be used to get the best routes between two sets of points.
 **Departure/Arrival time (UTC):** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
 
 **Locations:** The points layer to search from.
+
+**Load fares information:** Load informations about fares in the resulting attributes.
 
 **Output style:** 
 - BY_ROUTE : return one linestring per route

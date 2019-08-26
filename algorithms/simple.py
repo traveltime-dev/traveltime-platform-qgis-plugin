@@ -5,6 +5,7 @@ from qgis.PyQt.QtGui import QColor
 
 from qgis.core import (
     QgsProcessing,
+    QgsProcessingParameterBoolean,
     QgsProcessingParameterFeatureSource,
     QgsProcessingParameterFeatureSink,
     QgsProcessingParameterEnum,
@@ -257,6 +258,7 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
                     self.params["INPUT_TRAVEL_TIME"] * 60
                 ),
                 "INPUT_LOCATIONS": locations_layer,
+                "PROPERTIES_FARES": self.params["PROPERTIES_FARES"],
             }
         )
 
@@ -283,6 +285,15 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             )
         )
 
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                "PROPERTIES_FARES", tr("Load fares information"), optional=True
+            ),
+            help_text=tr(
+                "Retrieve the fares. Currently, this is only supported in the UK."
+            ),
+        )
+
     def postProcessAlgorithm(self, context, feedback):
         style_file = "style_filter.qml"
         style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
@@ -305,7 +316,7 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         "This algorithms provides a simpified access to the routes endpoint.\n\nPlease see the help on {url} for more details on how to use it."
     ).format(url=_helpUrl)
 
-    RESULT_TYPE = ["BY_ROUTE", "BY_DURATION", "BY_TYPE"]
+    RESULT_TYPE = ["NORMAL", "DURATION", "DETAILED"]
 
     def processAlgorithmPrepareSubParameters(self, parameters, context, feedback):
         params = super().processAlgorithmPrepareSubParameters(
@@ -319,6 +330,7 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         params.update(
             {
                 "INPUT_LOCATIONS": locations_layer,
+                "PROPERTIES_FARES": self.params["PROPERTIES_FARES"],
                 "OUTPUT_RESULT_TYPE": self.params["OUTPUT_RESULT_TYPE"],
             }
         )
@@ -336,11 +348,20 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         )
 
         self.addParameter(
+            QgsProcessingParameterBoolean(
+                "PROPERTIES_FARES", tr("Load fares information"), optional=True
+            ),
+            help_text=tr(
+                "Retrieve the fares. Currently, this is only supported in the UK."
+            ),
+        )
+
+        self.addParameter(
             QgsProcessingParameterEnum(
                 "OUTPUT_RESULT_TYPE", tr("Output style"), options=self.RESULT_TYPE
             ),
             help_text=tr(
-                "BY_ROUTE and BY_DURATION will return a simple linestring for each route. BY_TYPE will return several segments for each type of transportation for each route."
+                "NORMAL and DURATION will return a simple linestring for each route. DETAILED will return several segments for each type of transportation for each route."
             ),
         )
 
@@ -350,7 +371,7 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
 
         feedback.pushInfo("result type is : " + result_type)
 
-        if result_type == "BY_ROUTE":
+        if result_type == "NORMAL":
             exp = "'from ' || search_id || ' to ' || location_id"
             # We get all uniques routes
             expression = QgsExpression(exp)
@@ -372,7 +393,7 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             renderer = QgsCategorizedSymbolRenderer(exp, categories)
             layer.setRenderer(renderer)
         else:
-            if result_type == "BY_DURATION":
+            if result_type == "DURATION":
                 style_file = "style_route_duration.qml"
             else:
                 style_file = "style_route_mode.qml"
