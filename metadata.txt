@@ -10,7 +10,7 @@ author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
 # DONT FORGET TO ALSO CHANGE THE VERSION IN utils.py
-version=1.0.1
+version=1.0.2
 
 # Optional items:
 changelog=- 2019-02-12 : version 0.1-alpha
@@ -41,6 +41,9 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - official release
     - 2019-06-18 : version 1.0.1
         - fix : required module not available on some platforms
+    - 2019-08-26 : version 1.0.2
+        - fix : fixed bug preventing loading under certain circumstances
+        - fix : fixed bug preventing from using timefilter-simple
 tags=travel,time,platform,api,distance
 homepage=https://igeolise.github.io/traveltime-platform-qgis-plugin
 tracker=https://github.com/igeolise/traveltime-platform-qgis-plugin/issues
