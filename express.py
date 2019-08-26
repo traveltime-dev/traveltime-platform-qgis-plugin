@@ -203,7 +203,7 @@ class ExpressRouteAction(ExpressActionBase):
     def make_params(self, point):
         locations_layer = pointToLayer(self.point_a)
         params = super().make_params(point)
-        params.update({"INPUT_LOCATIONS": locations_layer, "OUTPUT_RESULT_TYPE": 1})
+        params.update({"INPUT_LOCATIONS": locations_layer, "OUTPUT_RESULT_TYPE": 2})
         log(params)
         return params
 

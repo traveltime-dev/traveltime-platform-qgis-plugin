@@ -1,7 +1,9 @@
 import json
 import os
 import math
+import random
 from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtGui import QColor
 
 from qgis.core import (
     QgsFeatureSink,
@@ -19,8 +21,12 @@ from qgis.core import (
     QgsFeature,
     QgsGeometry,
     QgsExpression,
+    QgsExpressionContext,
     QgsFeatureRequest,
     QgsProcessingUtils,
+    QgsCategorizedSymbolRenderer,
+    QgsLineSymbol,
+    QgsRendererCategory,
 )
 
 from .. import resources
@@ -717,7 +723,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         "This algorithms allows to use the routes endpoint from the TravelTime platform API.\n\nIt matches the endpoint data structure as closely as possible. The key difference with the API is that the routes are automatically computd on ALL locations, while the API technically allows to specify which locations to filter for each search.\n\nPlease see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
     ).format(url=_helpUrl)
 
-    RESULT_TYPE = ["NORMAL", "DETAILED"]
+    RESULT_TYPE = ["BY_ROUTE", "BY_DURATION", "BY_TYPE"]
 
     def initAlgorithm(self, config):
 
@@ -762,7 +768,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
                 defaultValue=0,
             ),
             help_text=tr(
-                "Normal will return a simple linestring for each route. Detailed will return several segments for each type of transportation for each route."
+                "BY_ROUTE and BY_DURATION will return a simple linestring for each route. BY_TYPE will return several segments for each type of transportation for each route."
             ),
         )
 
@@ -863,7 +869,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
     def processAlgorithmOutput(self, results, parameters, context, feedback):
         output_fields = QgsFields()
         result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
-        if result_type == "NORMAL":
+        if result_type == "BY_ROUTE" or result_type == "BY_DURATION":
             output_fields.append(QgsField("search_id", QVariant.String, "text", 255))
             output_fields.append(QgsField("location_id", QVariant.String, "text", 255))
             output_fields.append(QgsField("travel_time", QVariant.Double, "text", 255))
@@ -887,7 +893,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         for result in results:
             for location in result["locations"]:
 
-                if result_type == "NORMAL":
+                if result_type == "BY_ROUTE" or result_type == "BY_DURATION":
 
                     # Create the geom
                     geom = QgsLineString()
@@ -936,14 +942,39 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         return {"OUTPUT": sink_id}
 
     def postProcessAlgorithm(self, context, feedback):
-        if self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]] == "NORMAL":
-            style_file = "style_route_duration.qml"
+        layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
+        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
+
+        feedback.pushInfo("result type is : " + result_type)
+
+        if result_type == "BY_ROUTE":
+            exp = "'from ' || search_id || ' to ' || location_id"
+            # We get all uniques routes
+            expression = QgsExpression(exp)
+            exp_ctx = QgsExpressionContext()
+
+            values = set()
+            for f in layer.getFeatures():
+                exp_ctx.setFeature(f)
+                values.add(expression.evaluate(exp_ctx))
+
+            categories = []
+            for value in sorted(values):
+                symbol = QgsLineSymbol()
+                symbol.setWidth(1)
+                symbol.setColor(QColor.fromHsl(random.randint(0, 359), 255, 127))
+                category = QgsRendererCategory(value, symbol, value)
+                categories.append(category)
+
+            renderer = QgsCategorizedSymbolRenderer(exp, categories)
+            layer.setRenderer(renderer)
         else:
-            style_file = "style_route_mode.qml"
-        style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
-        QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(
-            style_path
-        )
+            if result_type == "BY_DURATION":
+                style_file = "style_route_duration.qml"
+            else:
+                style_file = "style_route_mode.qml"
+            style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
+            layer.loadNamedStyle(style_path)
         return super().postProcessAlgorithm(context, feedback)
 
     def _processAlgorithmYieldSlices(self, parameters, context, feedback):

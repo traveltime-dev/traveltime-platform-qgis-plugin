@@ -277,8 +277,9 @@ It can be used to get the best routes between two sets of points.
 **Locations:** The points layer to search from.
 
 **Output style:** 
-- NORMAL : return one linestring per route
-- DETAILED : return one linestring per route segment (allows to map mulimodal routes)
+- BY_ROUTE : return one linestring per route
+- BY_DURATION : return one linestring per route, broken down by travel time
+- BY_TYPE : return one linestring per route segment (allows to map mulimodal routes)
 
 **Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
 

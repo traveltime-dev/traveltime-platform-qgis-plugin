@@ -1,4 +1,7 @@
 import os
+import random
+
+from qgis.PyQt.QtGui import QColor
 
 from qgis.core import (
     QgsProcessing,
@@ -9,6 +12,11 @@ from qgis.core import (
     QgsFeature,
     QgsFeatureRequest,
     QgsProcessingUtils,
+    QgsExpression,
+    QgsExpressionContext,
+    QgsLineSymbol,
+    QgsRendererCategory,
+    QgsCategorizedSymbolRenderer,
 )
 
 import processing
@@ -297,7 +305,7 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         "This algorithms provides a simpified access to the routes endpoint.\n\nPlease see the help on {url} for more details on how to use it."
     ).format(url=_helpUrl)
 
-    RESULT_TYPE = ["NORMAL", "DETAILED"]
+    RESULT_TYPE = ["BY_ROUTE", "BY_DURATION", "BY_TYPE"]
 
     def processAlgorithmPrepareSubParameters(self, parameters, context, feedback):
         params = super().processAlgorithmPrepareSubParameters(
@@ -332,17 +340,42 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
                 "OUTPUT_RESULT_TYPE", tr("Output style"), options=self.RESULT_TYPE
             ),
             help_text=tr(
-                "Normal will return a simple linestring for each route. Detailed will return several segments for each type of transportation for each route."
+                "BY_ROUTE and BY_DURATION will return a simple linestring for each route. BY_TYPE will return several segments for each type of transportation for each route."
             ),
         )
 
     def postProcessAlgorithm(self, context, feedback):
-        if self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]] == "NORMAL":
-            style_file = "style_route_duration.qml"
+        layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
+        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
+
+        feedback.pushInfo("result type is : " + result_type)
+
+        if result_type == "BY_ROUTE":
+            exp = "'from ' || search_id || ' to ' || location_id"
+            # We get all uniques routes
+            expression = QgsExpression(exp)
+            exp_ctx = QgsExpressionContext()
+
+            values = set()
+            for f in layer.getFeatures():
+                exp_ctx.setFeature(f)
+                values.add(expression.evaluate(exp_ctx))
+
+            categories = []
+            for value in sorted(values):
+                symbol = QgsLineSymbol()
+                symbol.setWidth(1)
+                symbol.setColor(QColor.fromHsl(random.randint(0, 359), 255, 127))
+                category = QgsRendererCategory(value, symbol, value)
+                categories.append(category)
+
+            renderer = QgsCategorizedSymbolRenderer(exp, categories)
+            layer.setRenderer(renderer)
         else:
-            style_file = "style_route_mode.qml"
-        style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
-        QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(
-            style_path
-        )
+            if result_type == "BY_DURATION":
+                style_file = "style_route_duration.qml"
+            else:
+                style_file = "style_route_mode.qml"
+            style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
+            layer.loadNamedStyle(style_path)
         return super().postProcessAlgorithm(context, feedback)
