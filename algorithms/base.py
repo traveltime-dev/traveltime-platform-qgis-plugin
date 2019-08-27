@@ -20,7 +20,7 @@ from .. import constants
 from .. import auth
 from .. import cache
 
-from ..utils import tr, log, TTP_VERSION
+from ..utils import tr, log
 
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
@@ -73,7 +73,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             return None
 
     def processAlgorithm(self, parameters, context, feedback):
-        feedback.pushDebugInfo("TravelTime Plugin Version : {}".format(TTP_VERSION))
+        feedback.pushDebugInfo("TravelTime Plugin Version : {}".format(constants.TTP_VERSION))
         feedback.pushDebugInfo(
             "TravelTime Algorithm : {}".format(self.__class__.__name__)
         )
@@ -132,7 +132,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         headers = {
             "Content-type": "application/json",
             "Accept": self.accept_header,
-            "User-Agent": "QGIS / {} / {}".format(Qgis.QGIS_VERSION, TTP_VERSION),
+            "User-Agent": "QGIS / {} / {}".format(Qgis.QGIS_VERSION, constants.TTP_VERSION),
             "X-Application-Id": APP_ID,
             "X-Api-Key": API_KEY,
         }

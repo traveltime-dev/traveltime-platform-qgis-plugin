@@ -9,7 +9,7 @@ category=Vector
 author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
-# DONT FORGET TO ALSO CHANGE THE VERSION IN utils.py
+# DONT FORGET TO ALSO CHANGE THE VERSION IN constants.py
 version=1.0.2
 
 # Optional items:
