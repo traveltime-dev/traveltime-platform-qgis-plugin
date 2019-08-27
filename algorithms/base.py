@@ -75,7 +75,9 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             return None
 
     def processAlgorithm(self, parameters, context, feedback):
-        feedback.pushDebugInfo("TravelTime Plugin Version : {}".format(constants.TTP_VERSION))
+        feedback.pushDebugInfo(
+            "TravelTime Plugin Version : {}".format(constants.TTP_VERSION)
+        )
         feedback.pushDebugInfo(
             "TravelTime Algorithm : {}".format(self.__class__.__name__)
         )
@@ -136,15 +138,15 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         headers = {
             "Content-type": "application/json",
             "Accept": self.accept_header,
-            "User-Agent": "QGIS / {} / {}".format(Qgis.QGIS_VERSION, constants.TTP_VERSION),
+            "User-Agent": "QGIS / {} / {}".format(
+                Qgis.QGIS_VERSION, constants.TTP_VERSION
+            ),
             "X-Application-Id": APP_ID,
             "X-Api-Key": API_KEY,
         }
 
         endpoint = QSettings().value(
-            "traveltime_platform/custom_endpoint",
-            constants.DEFAULT_ENDPOINT,
-            type=str,
+            "traveltime_platform/custom_endpoint", constants.DEFAULT_ENDPOINT, type=str
         )
         full_url = endpoint + self.url
 
