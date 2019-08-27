@@ -10,8 +10,10 @@ from qgis.core import (
     QgsProcessingParameterNumber,
     QgsProcessingException,
     QgsProcessingParameterDefinition,
+    QgsProcessingUtils,
     QgsCoordinateReferenceSystem,
     QgsExpression,
+    QgsLayerMetadata,
 )
 
 from ..libraries import iso3166
@@ -77,6 +79,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         feedback.pushDebugInfo(
             "TravelTime Algorithm : {}".format(self.__class__.__name__)
         )
+        # We save parameters to the instance to access it in postprocess
+        self.raw_parameters = parameters
         return self.doProcessAlgorithm(parameters, context, feedback)
 
     def doProcessAlgorithm(self, parameters, context, feedback):
@@ -240,6 +244,29 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             )
             log(e)
             raise QgsProcessingException("Could not decode response") from None
+
+    def postProcessAlgorithm(self, context, feedback):
+        # Save the metadata
+        if hasattr(self, "sink_id") and self.sink_id is not None:
+            layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
+            metadata = QgsLayerMetadata()
+            metadata.setAbstract(
+                "This layer was generated using the '{}' algorithm from the TravelTime Platform plugin.".format(
+                    self.displayName()
+                )
+            )
+            metadata.setKeywords(
+                {
+                    "TTP_VERSION": [constants.TTP_VERSION],
+                    "TTP_ALGORITHM": [self.id()],
+                    "TTP_PARAMS": [
+                        json.dumps(self.raw_parameters, default=lambda o: None)
+                    ],
+                }
+            )
+            layer.setMetadata(metadata)
+
+        return super().postProcessAlgorithm(context, feedback)
 
     def createInstance(self):
         return self.__class__()

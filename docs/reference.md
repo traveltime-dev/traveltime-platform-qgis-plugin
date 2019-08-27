@@ -48,6 +48,8 @@ By default, the toolbar appears at the top of the window. You can drag and drop 
 
 ![](images/icons/toolbox.svg#icon) Open the QGIS processing toolbox showing available algorithms.
 
+![](images/icons/rerun.svg#icon) When a layer that was created from an algorithm is selected, this allows to reopen the dialog with the same parameters (very useful to slightly change parameters).
+
 ![](images/icons/timemap_express.svg#icon) ![](images/icons/timefilter_express.svg#icon) ![](images/icons/route_express.svg#icon) Quick tools (map tools versions of the algorithms)
 
 ![](images/icons/tiles.svg#icon) Show [background tiles](#background-tiles)

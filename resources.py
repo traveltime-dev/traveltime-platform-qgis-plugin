@@ -10,6 +10,7 @@ def icon(icon_name):
 logo = icon("TravelTime_logo_horizontal_grey.svg")
 
 icon_toolbox = icon("icons/toolbox.svg")
+icon_rerun = icon("icons/rerun.svg")
 icon_tiles = icon("icons/tiles.svg")
 icon_config = icon("icons/settings.svg")
 icon_general = icon("icons/general.svg")

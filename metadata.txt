@@ -48,6 +48,7 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - backwards incompatible changes :
             - output structure changed for the properties
             - "OUTPUT_STYLE" parameters changed for the Route algorithms
+        - feature : added rerun algorithm
         - feature : added one output style for routes algorithm
         - feature : support loading of fare data
         - feature : allow customization of endpoint
