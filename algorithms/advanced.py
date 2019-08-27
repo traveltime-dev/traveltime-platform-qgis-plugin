@@ -370,7 +370,7 @@ class _SearchAlgorithmBase(AlgorithmBase):
 
 
 class TimeMapAlgorithm(_SearchAlgorithmBase):
-    url = "https://api.traveltimeapp.com/v4/time-map"
+    url = "/v4/time-map"
     accept_header = "application/vnd.wkt+json"
     available_properties = {"is_only_walking": PROPERTY_DEFAULT_YES}
     output_type = QgsProcessing.TypeVectorPolygon
@@ -524,7 +524,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
 
 
 class TimeFilterAlgorithm(_SearchAlgorithmBase):
-    url = "https://api.traveltimeapp.com/v4/time-filter"
+    url = "/v4/time-filter"
     accept_header = "application/json"
     available_properties = {
         "travel_time": PROPERTY_DEFAULT_YES,
@@ -749,7 +749,7 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
 
 
 class RoutesAlgorithm(_SearchAlgorithmBase):
-    url = "https://api.traveltimeapp.com/v4/routes"
+    url = "/v4/routes"
     accept_header = "application/json"
     available_properties = {
         "travel_time": PROPERTY_DEFAULT_YES,

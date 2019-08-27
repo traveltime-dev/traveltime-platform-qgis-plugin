@@ -130,6 +130,8 @@ The main settings dialog can be open using the ![](images/icons/settings.svg#ico
 
 **Disable HTTPS certificate verification** : under certain circumstances (such as connection from an enterprise network), requests made from Python may fail because the SSL certificates can not be verified. If this happens, you can disable the verification by checking this box. Please be aware that this makes your requests to the API more vulnerable to interception by an attacker.
 
+**Customize endpoint** : if you are not using the default TravelTime Platform API endpoint, you can customize it here.
+
 ## Help dialog
 
 The online help dialog can be open using the ![](images/icons/help.svg#icon) icon.

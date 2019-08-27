@@ -184,7 +184,7 @@ class GeocodingAlgorithmBase(AlgorithmBase):
 
 class GeocodingAlgorithm(GeocodingAlgorithmBase):
     input_type = QgsProcessing.TypeVector
-    url = "https://api.traveltimeapp.com/v4/geocoding/search"
+    url = "/v4/geocoding/search"
     method = "GET"
 
     _name = "geocoding"
@@ -236,7 +236,7 @@ class GeocodingAlgorithm(GeocodingAlgorithmBase):
 
 class ReverseGeocodingAlgorithm(GeocodingAlgorithmBase):
     input_type = QgsProcessing.TypeVectorPoint
-    url = "https://api.traveltimeapp.com/v4/geocoding/reverse"
+    url = "/v4/geocoding/reverse"
     method = "GET"
 
     _name = "reverse_geocoding"

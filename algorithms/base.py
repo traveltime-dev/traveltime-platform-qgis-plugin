@@ -16,6 +16,7 @@ from qgis.core import (
 
 from ..libraries import iso3166
 
+from .. import constants
 from .. import auth
 from .. import cache
 
@@ -136,11 +137,18 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             "X-Api-Key": API_KEY,
         }
 
+        endpoint = QSettings().value(
+            "traveltime_platform/custom_endpoint",
+            constants.DEFAULT_ENDPOINT,
+            type=str,
+        )
+        full_url = endpoint + self.url
+
         feedback.pushDebugInfo("Making request to API endpoint...")
         print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
         if print_query:
             log("Making request")
-            log("url: {}".format(self.url))
+            log("url: {}".format(full_url))
             log("headers: {}".format(headers))
             log("params: {}".format(str(params)))
             log("data: {}".format(json_data))
@@ -159,7 +167,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
             response = cache.instance.cached_requests.request(
                 self.method,
-                self.url,
+                full_url,
                 data=json_data,
                 params=params,
                 headers=headers,
