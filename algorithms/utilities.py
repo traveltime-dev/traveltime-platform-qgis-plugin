@@ -155,11 +155,10 @@ class GeocodingAlgorithmBase(AlgorithmBase):
 
                 # Add our attributes
                 props = result["properties"]
-                for i, attr in enumerate(response_attributes):
+                for attr in response_attributes:
                     output_fields.append(QgsField(attr, QVariant.String, "text", 255))
                     newfeature.setAttribute(
-                        len(source_data.fields()) + i,
-                        props[attr] if attr in props else None,
+                        "geocoded_" + attr, props[attr] if attr in props else None
                     )
 
                 # Add our geometry
