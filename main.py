@@ -111,6 +111,16 @@ class Main:
 
         self.toolbar.addSeparator()
 
+        # Express geoclick action
+        self.express_geoclick_lineedit = QLineEdit()
+        self.express_geoclick_action = express.ExpressGeoclickAction(
+            self, self.express_geoclick_lineedit
+        )
+        self.toolbar.addWidget(self.express_geoclick_lineedit)
+        self.toolbar.addAction(self.express_geoclick_action)
+
+        self.toolbar.addSeparator()
+
         # Show tiles action
         self.action_show_tiles = QAction(
             resources.icon_tiles, tr("Add a background layer"), self.iface.mainWindow()

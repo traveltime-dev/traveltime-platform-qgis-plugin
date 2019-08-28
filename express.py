@@ -1,6 +1,7 @@
 import os
 from functools import partial
-from qgis.PyQt.QtCore import Qt, QDateTime, QEvent, QPoint
+from qgis.PyQt.QtCore import Qt, QDateTime, QEvent, QPoint, QVariant, QPoint
+from qgis.PyQt.QtGui import QMouseEvent
 from qgis.PyQt.QtWidgets import (
     QAction,
     QWidget,
@@ -8,6 +9,8 @@ from qgis.PyQt.QtWidgets import (
     QMenu,
     QVBoxLayout,
     QPushButton,
+    QLineEdit,
+    QToolBar,
 )
 
 from qgis.core import (
@@ -26,13 +29,16 @@ from qgis.core import (
     QgsWkbTypes,
     QgsMapLayer,
     QgsPointXY,
+    QgsField,
+    QgsCoordinateTransform,
+    QgsReferencedPointXY,
 )
-from qgis.gui import QgsMapToolEmitPoint, QgsVertexMarker
+from qgis.gui import QgsMapToolEmitPoint, QgsVertexMarker, QgsMapMouseEvent
 from qgis.PyQt import uic
 
 import processing
 
-from .utils import tr, log
+from .utils import tr, log, EPSG4326
 from . import resources
 
 
@@ -51,24 +57,59 @@ def pointToLayer(coords):
     return layer
 
 
+def transform(src_crs, dst_crs, point):
+    xform = QgsCoordinateTransform(src_crs, dst_crs, QgsProject.instance())
+    return xform.transform(point)
+
+
+class Feedback(QgsProcessingFeedback):
+    """To provide feedback to the message bar from the express tools"""
+
+    def __init__(self, iface):
+        super().__init__()
+        self.iface = iface
+        self.fatal_errors = []
+
+    def reportError(self, error, fatalError=False):
+        log(error)
+        if fatalError:
+            self.fatal_errors.append(error)
+
+    def pushToUser(self, exception):
+        log(exception)
+        self.iface.messageBar().pushMessage(
+            "Error", ", ".join(self.fatal_errors), level=Qgis.Critical, duration=0
+        )
+
+
 class ExpressActionBase(QAction):
     _icon = None  # to be defined by subclasses
     _name = None  # to be defined by subclasses
-    _widget_ui = None  # to be defined by subclasses
-    _algorithm = None  # to be defined by subclasses
 
     def __init__(self, main):
         super().__init__(self._icon, self._name)
-        self.setCheckable(True)
-
         self.main = main
+
+        # Connect the action
+        self.triggered.connect(self.start_tool)
+
+    def start_tool(self):
+        raise NotImplementedError("Not implemented")
+
+
+class ExpressActionToolBase(ExpressActionBase):
+    _algorithm = None  # to be defined by subclasses
+    _widget_ui = None  # to be defined by subclasses
+
+    def __init__(self, main):
+        super().__init__(main)
+        self.setCheckable(True)
 
         # Build the widget
         self.widget = QWidget()
         uic.loadUi(
             os.path.join(os.path.dirname(__file__), "ui", self._widget_ui), self.widget
         )
-        self.widget.dateTimeEdit.setDateTime(QDateTime.currentDateTime())
 
         self.widgetAction = QWidgetAction(self)
         self.widgetAction.setDefaultWidget(self.widget)
@@ -77,14 +118,14 @@ class ExpressActionBase(QAction):
         self.menu.addAction(self.widgetAction)
         self.setMenu(self.menu)
 
+        # Init form values
+        self.widget.dateTimeEdit.setDateTime(QDateTime.currentDateTime())
+
         # Build the tool
         self.tool = QgsMapToolEmitPoint(self.main.iface.mapCanvas())
         self.tool.activated.connect(lambda: self.setChecked(True))
         self.tool.deactivated.connect(lambda: self.setChecked(False))
         self.tool.canvasClicked.connect(self.tool_clicked)
-
-        # Connect the action
-        self.triggered.connect(self.start_tool)
 
     def start_tool(self):
         self.main.iface.mapCanvas().setMapTool(self.tool)
@@ -116,38 +157,22 @@ class ExpressActionBase(QAction):
     def tool_clicked(self, point):
         params = self.make_params(point)
 
-        class Feedback(QgsProcessingFeedback):
-            def __init__(self):
-                super().__init__()
-                self.fatal_errors = []
-
-            def reportError(self, error, fatalError=False):
-                log(error)
-                if fatalError:
-                    self.fatal_errors.append(error)
-
-        feedback = Feedback()
+        feedback = Feedback(self.main.iface)
         try:
             # TODO : use QgsProcessingAlgRunnerTask to do this as a bg task
             processing.runAndLoadResults(self._algorithm, params, feedback=feedback)
         except QgsProcessingException as e:
-            print(e)
-            self.main.iface.messageBar().pushMessage(
-                "Error",
-                ", ".join(feedback.fatal_errors),
-                level=Qgis.Critical,
-                duration=0,
-            )
+            feedback.pushToUser(e)
 
 
-class ExpressTimeMapAction(ExpressActionBase):
+class ExpressTimeMapAction(ExpressActionToolBase):
     _icon = resources.icon_time_map_express
     _name = tr("Quick time map")
     _widget_ui = "ExpressTimeMapWidget.ui"
     _algorithm = "ttp_v4:time_map"
 
 
-class ExpressTimeFilterAction(ExpressActionBase):
+class ExpressTimeFilterAction(ExpressActionToolBase):
     _icon = resources.icon_time_filter_express
     _name = tr("Quick time filter")
     _widget_ui = "ExpressTimeFilterWidget.ui"
@@ -171,7 +196,7 @@ class ExpressTimeFilterAction(ExpressActionBase):
         return params
 
 
-class ExpressRouteAction(ExpressActionBase):
+class ExpressRouteAction(ExpressActionToolBase):
     _icon = resources.icon_routes_express
     _name = tr("Quick route")
     _widget_ui = "ExpressRouteWidget.ui"
@@ -207,3 +232,87 @@ class ExpressRouteAction(ExpressActionBase):
         log(params)
         return params
 
+
+class ExpressGeoclickAction(ExpressActionBase):
+    _icon = resources.icon_geoclick
+    _name = tr("Geocoded click : simulate mouse clicks using a textual address")
+
+    def __init__(self, main, lineEdit):
+        super().__init__(main)
+        self.marker = None
+        self.setEnabled(False)
+
+        # Create a QLineEdit next to the action
+        self.lineEdit = lineEdit
+        lineEdit.setMaximumWidth(150)
+        lineEdit.setPlaceholderText(tr("Enter an address..."))
+
+        self.lineEdit.textChanged.connect(self.text_changed)
+        self.lineEdit.returnPressed.connect(self.start_tool)
+
+    def start_tool(self):
+
+        address = self.lineEdit.text()
+
+        # create a temporary memory layer with 1 feature
+        vl = QgsVectorLayer("Point?crs=EPSG:4326", "temporary_points", "memory")
+        vl.startEditing()
+        vl.dataProvider().addAttributes([QgsField("address", QVariant.String)])
+        f = QgsFeature(vl.dataProvider().fields())
+        f.setAttribute("address", address)
+        vl.dataProvider().addFeature(f)
+        vl.commitChanges()
+
+        # run the geocoding algorithm
+        center = QgsReferencedPointXY(
+            self.main.iface.mapCanvas().center(), QgsProject.instance().crs()
+        )
+        params = {
+            "INPUT_DATA": vl,
+            "OUTPUT_RESULT_TYPE": 1,
+            "INPUT_QUERY_FIELD": '"address"',
+            "INPUT_FOCUS": center,
+            "OUTPUT": "memory:",
+        }
+
+        feedback = Feedback(self.main.iface)
+        try:
+            # TODO : use QgsProcessingAlgRunnerTask to do this as a bg task
+            result = processing.run("ttp_v4:geocoding", params, feedback=feedback)
+            layer = result["OUTPUT"]
+        except QgsProcessingException as e:
+            feedback.pushToUser(e)
+            return
+
+        # Get the point in the project's CRS
+        point = transform(
+            layer.crs(), QgsProject.instance().crs(), layer.extent().center()
+        )
+
+        # Center to point
+        self.main.iface.mapCanvas().setCenter(point)
+
+        # Draw a marker
+        if self.marker is not None:
+            self.main.iface.mapCanvas().scene().removeItem(self.marker)
+        self.marker = QgsVertexMarker(self.main.iface.mapCanvas())
+        self.marker.setCenter(point)
+
+        # Emulate a mouse click
+        mapTool = self.main.iface.mapCanvas().mapTool()
+
+        event = QgsMapMouseEvent(
+            self.main.iface.mapCanvas(),
+            QEvent.MouseButtonPress,
+            mapTool.toCanvasCoordinates(point),
+            Qt.LeftButton,
+        )
+        event.setMapPoint(point)
+        mapTool.canvasPressEvent(event)
+        mapTool.canvasReleaseEvent(event)
+
+    def text_changed(self, text):
+        self.setEnabled(bool(text))
+        if self.marker is not None:
+            self.main.iface.mapCanvas().scene().removeItem(self.marker)
+            self.marker = None

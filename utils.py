@@ -3,7 +3,15 @@ import time
 
 from qgis.PyQt.QtCore import QCoreApplication
 
-from qgis.core import QgsFeature, QgsGeometry, QgsMessageLog
+from qgis.core import (
+    QgsFeature,
+    QgsGeometry,
+    QgsMessageLog,
+    QgsCoordinateReferenceSystem,
+)
+
+
+EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
 
 
 def now_iso():
