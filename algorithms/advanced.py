@@ -463,8 +463,9 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
     def processAlgorithmOutput(self, results, parameters, context, feedback):
         output_fields = QgsFields()
         output_fields.append(QgsField("id", QVariant.String, "text", 255))
+
         for prop in self.enabled_properties():
-            output_fields.append(QgsField(prop, QVariant.String, "text", 255))
+            output_fields.append(QgsField("prop_" + prop, QVariant.String, "text", 255))
 
         (sink, sink_id) = self.parameterAsSink(
             parameters,
