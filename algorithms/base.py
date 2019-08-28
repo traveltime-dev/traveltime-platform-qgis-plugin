@@ -14,6 +14,7 @@ from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsExpression,
     QgsLayerMetadata,
+    QgsMapLayer,
 )
 
 from ..libraries import iso3166
@@ -252,18 +253,28 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         if hasattr(self, "sink_id") and self.sink_id is not None:
             layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
             metadata = QgsLayerMetadata()
+
+            def serialize(o):
+                if isinstance(o, QgsMapLayer):
+                    return o.dataUrl()
+                else:
+                    return None
+
+            params_json = json.dumps(self.raw_parameters, default=serialize)
+            params_readable = "\n".join(
+                k + ": " + str(v) for k, v in json.loads(params_json).items()
+            )
+
             metadata.setAbstract(
-                "This layer was generated using the '{}' algorithm from the TravelTime Platform plugin.".format(
-                    self.displayName()
+                "This layer was generated using the '{}' algorithm from the TravelTime Platform plugin version {}. The following parameters were used : \n{}".format(
+                    self.displayName(), constants.TTP_VERSION, params_readable
                 )
             )
             metadata.setKeywords(
                 {
                     "TTP_VERSION": [constants.TTP_VERSION],
                     "TTP_ALGORITHM": [self.id()],
-                    "TTP_PARAMS": [
-                        json.dumps(self.raw_parameters, default=lambda o: None)
-                    ],
+                    "TTP_PARAMS": [params_json],
                 }
             )
             layer.setMetadata(metadata)
