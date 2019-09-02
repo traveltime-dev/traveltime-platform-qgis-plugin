@@ -48,9 +48,15 @@ By default, the toolbar appears at the top of the window. You can drag and drop 
 
 ![](images/icons/toolbox.svg#icon) Open the QGIS processing toolbox showing available algorithms.
 
-![](images/icons/rerun.svg#icon) When a layer that was created from an algorithm is selected, this allows to reopen the dialog with the same parameters (very useful to slightly change parameters).
+![](images/icons/rerun.svg#icon) [Rerun algorithm tool](#rerun-algorithm) (to re-run a previously run algorithm)
 
-![](images/icons/timemap_express.svg#icon) ![](images/icons/timefilter_express.svg#icon) ![](images/icons/route_express.svg#icon) Quick tools (map tools versions of the algorithms)
+![](images/icons/timemap_express.svg#icon) [Quick time map](#quick-time-map) (map tool version of the the time map algorithm)
+
+![](images/icons/timefilter_express.svg#icon) [Quick time filter](#quick-time-filter) (map tool version of the the map filter algorithm)
+
+![](images/icons/route_express.svg#icon) [Quick route](#quick-route) (map tool version of the the route algorithm)
+
+![](images/icons/geoclick.svg#icon) [Geoclick](#geoclick) (simulate mouse clicks using the geocoder)
 
 ![](images/icons/tiles.svg#icon) Show [background tiles](#background-tiles)
 
@@ -79,12 +85,15 @@ Each API key has a quota of queries that can be done. Currently, for free keys, 
 
 All successful queries are saved in a cache file on your computer. This means that after the cooldown period, you can rerun your algorithm, and it will only make calls to the API for the new queries, so that you can finish running your algorithm event if it failed before.
 
-## Express tools
+## Tools
 
-*Express tools* are map tools that allow to run the algorithms directly using click inputs on the map. These tools are the perfect way to get started with the plugin.
+### ![](images/icons/rerun.svg#icon) Rerun algorithm
+
+Re-opens the algorithm dialog with the same settings. To use this tool, you need to select a layer that was created from one of the algorithms in the legend.
+
+This feature is very useful to tweak your queries without having to reset all parameters manually.
 
 ### ![](images/icons/timemap_express.svg#icon) Quick Time Map
-
 
 This runs the *quick time map* tool. In the background, the advanced time map algorithm will be run. This algorithm returns a **polygon** layer representing the area that can be reached from one point, or the area from which a point can be reached.
 
@@ -95,7 +104,7 @@ Configuration : click on the small arrow, then configure using the following wid
 ![](images/reference/express_timemap_config.png)
 
 
-### ![](images/icons/timefilter_express.svg#icon) Time Filter Express
+### ![](images/icons/timefilter_express.svg#icon) Quick Time Filter
 
 This runs the *quick time filter* tool. In the background, the advanced time filter algorithm will be run. This algorithm allows to filter a **point** layer according to a time map search.
 
@@ -106,7 +115,7 @@ Configuration : click on the small arrow, then configure using the following wid
 ![](images/reference/express_timefilter_config.png)
 
 
-### ![](images/icons/route_express.svg#icon) Route Express
+### ![](images/icons/route_express.svg#icon) Quick Route
 
 
 This runs the *quick route* tool. In the background, the advanced route algorithm will be run. This algorithm allows to compute the best route between points.
@@ -116,6 +125,18 @@ Usage : click the action, then click somewhere on the map canvas to define the s
 Configuration : click on the small arrow, then configure using the following widget.
 
 ![](images/reference/express_route_config.png)
+
+
+### ![](images/icons/geoclick.svg#icon) Geoclick
+
+
+This runs the *geoclick* tool.
+
+Usage : with any map tool enabled, enter an address in the input field next to the button, then click on the button. This will simulate a mouse click on the map at the address that you entered. It can be used with any map tool, including the quick tools.
+
+In the background, the geocoding algorithm will be run.
+
+![](images/reference/geoclick.png)
 
 
 ## Settings dialog
