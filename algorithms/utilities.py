@@ -143,8 +143,9 @@ class GeocodingAlgorithmBase(AlgorithmBase):
             elif result_type == "BEST_MATCH":
                 # We only keep the result wit the best score
                 results = sorted(
-                    response_geojson["features"], key=lambda f: f["properties"]["score"]
-                )[-1:]
+                    response_geojson["features"],
+                    key=lambda f: -f["properties"]["score"],
+                )[0:1]
 
             for result in results:
                 newfeature = QgsFeature(output_fields)
