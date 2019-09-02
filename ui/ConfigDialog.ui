@@ -20,7 +20,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap>../resources/icons/general.svg</pixmap>
+      <pixmap>../resources/TravelTime_logo_graytext.svg</pixmap>
      </property>
     </widget>
    </item>
