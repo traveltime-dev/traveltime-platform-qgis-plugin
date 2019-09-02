@@ -63,7 +63,10 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
         )
         self.addParameter(
             QgsProcessingParameterEnum(
-                "INPUT_SEARCH_TYPE", tr("Search type"), options=["departure", "arrival"]
+                "INPUT_SEARCH_TYPE",
+                tr("Search type"),
+                options=["departure", "arrival"],
+                defaultValue="departure",
             )
         )
         self.addParameter(
@@ -71,6 +74,7 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
                 "INPUT_TRNSPT_TYPE",
                 tr("Transportation type"),
                 options=TRANSPORTATION_TYPES,
+                defaultValue="public_transport",
             )
         )
         self.addParameter(
@@ -211,7 +215,10 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
 
         self.addParameter(
             QgsProcessingParameterEnum(
-                "OUTPUT_RESULT_TYPE", tr("Result aggregation"), options=self.RESULT_TYPE
+                "OUTPUT_RESULT_TYPE",
+                tr("Result aggregation"),
+                options=self.RESULT_TYPE,
+                defaultValue=self.RESULT_TYPE[0],
             ),
             help_text=tr(
                 "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
@@ -370,7 +377,10 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
 
         self.addParameter(
             QgsProcessingParameterEnum(
-                "OUTPUT_RESULT_TYPE", tr("Output style"), options=self.RESULT_TYPE
+                "OUTPUT_RESULT_TYPE",
+                tr("Output style"),
+                options=self.RESULT_TYPE,
+                defaultValue=self.RESULT_TYPE[0],
             ),
             help_text=tr(
                 "NORMAL and DURATION will return a simple linestring for each route. DETAILED will return several segments for each type of transportation for each route."
