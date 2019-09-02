@@ -99,7 +99,7 @@ This runs the *quick time map* tool. In the background, the advanced time map al
 
 Usage : click the action, then click somewhere on the map canvas to create a time map. A new layer will be added to the project with the time time. That layer is a "temporary layer". If you need to save it, right click on it in the legend, and choose `Make permanent`.
 
-Configuration : click on the small arrow, then configure using the following widget.
+Configuration : click on the small arrow, then configure using the following widget. The time parameter uses your system local time, so you need to manually convert the time if you are working in different time zone.
 
 ![](images/reference/express_timemap_config.png)
 
@@ -110,7 +110,7 @@ This runs the *quick time filter* tool. In the background, the advanced time fil
 
 Usage : first, select a **point** layer in the legend, then click the action, then click somewhere on the map canvas to create a time map. A new layer will be added to the project with the reachable and unreachable points. That layer is a "temporary layer". If you need to save it, right click on it in the legend, and choose `Make permanent`.
 
-Configuration : click on the small arrow, then configure using the following widget.
+Configuration : click on the small arrow, then configure using the following widget. The time parameter uses your system local time, so you need to manually convert the time if you are working in different time zone.
 
 ![](images/reference/express_timefilter_config.png)
 
@@ -122,7 +122,7 @@ This runs the *quick route* tool. In the background, the advanced route algorith
 
 Usage : click the action, then click somewhere on the map canvas to define the starting point, and click again to define the destination point. A new layer will be added to the project containing the route. That layer is a "temporary layer". If you need to save it, right click on it in the legend, and choose `Make permanent`.
 
-Configuration : click on the small arrow, then configure using the following widget.
+Configuration : click on the small arrow, then configure using the following widget. The time parameter uses your system local time, so you need to manually convert the time if you are working in different time zone.
 
 ![](images/reference/express_route_config.png)
 
@@ -239,7 +239,9 @@ It can be used to get information such as a service area polygon based on travel
 
 **Transportation type:** Which transportation types to consider.
 
-**Departure/Arrival time (UTC):** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
+**Departure/Arrival time:** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
+
+**Time zone:** Define the time zone of the departure/arrival time. 
 
 **Travel time (in minutes):** The total duration from arrival to destination.
 
@@ -270,7 +272,9 @@ It can be used to get filter a point layer using a time search.
 
 **Transportation type:** Which transportation types to consider.
 
-**Departure/Arrival time (UTC):** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
+**Departure/Arrival time:** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
+
+**Time zone:** Define the time zone of the departure/arrival time. 
 
 **Travel time (in minutes):** The total duration from arrival to destination.
 
@@ -299,7 +303,9 @@ It can be used to get the best routes between two sets of points.
 
 **Transportation type:** Which transportation types to consider.
 
-**Departure/Arrival time (UTC):** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
+**Departure/Arrival time:** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
+
+**Time zone:** Define the time zone of the departure/arrival time. 
 
 **Locations:** The points layer to search from.
 

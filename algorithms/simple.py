@@ -1,6 +1,7 @@
 import os
 import random
 
+from qgis.PyQt.QtCore import Qt, QDateTime, QTimeZone
 from qgis.PyQt.QtGui import QColor
 
 from qgis.core import (
@@ -25,6 +26,7 @@ import processing
 from .. import resources
 from .. import parameters
 
+from .. import utils
 from ..utils import tr
 
 from .base import AlgorithmBase
@@ -72,8 +74,14 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             )
         )
         self.addParameter(
-            parameters.ParameterIsoDateTime(
-                "INPUT_TIME", tr("Departure/Arrival time (UTC)")
+            parameters.ParameterIsoDateTime("INPUT_TIME", tr("Departure/Arrival time"))
+        )
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                "SETTINGS_TIMEZONE",
+                tr("Timezone"),
+                options=utils.timezones,
+                defaultValue=utils.timezones.index(utils.default_timezone),
             )
         )
 
@@ -92,10 +100,14 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
 
         trnspt_type = TRANSPORTATION_TYPES[self.params["INPUT_TRNSPT_TYPE"]]
 
+        time = QDateTime.fromString(self.params["INPUT_TIME"], Qt.ISODate)
+        timezone_code = utils.timezones[self.params["SETTINGS_TIMEZONE"]]
+        time.setTimeZone(QTimeZone(timezone_code.encode("ascii")))
+
         return {
             "INPUT_{}_SEARCHES".format(mode): search_layer,
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
-            "INPUT_{}_TIME".format(mode): "'" + self.params["INPUT_TIME"] + "'",
+            "INPUT_{}_TIME".format(mode): "'" + time.toString(Qt.ISODate) + "'",
             "OUTPUT": "memory:results",
         }
 

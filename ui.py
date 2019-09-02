@@ -185,9 +185,8 @@ class IsoDateTimeWidgetWrapper(WidgetWrapper):
     def createWidget(self):
         now = QTime.currentTime()
         curdate = QDateTime(QDate.currentDate(), QTime(now.hour(), 0))
-        dateEdit = QDateTimeEdit(curdate.toUTC())
+        dateEdit = QDateTimeEdit(curdate)
         dateEdit.setDisplayFormat("yyyy-MM-dd HH:mm")
-        dateEdit.setTimeSpec(Qt.TimeZone)
         return dateEdit
 
     def setValue(self, value):
