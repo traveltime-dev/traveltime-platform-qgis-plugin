@@ -105,7 +105,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             elif p.type() == "enum":
                 param = self.parameterAsEnum(parameters, p.name(), context)
             elif p.type() == "boolean":
-                param = self.parameterAsBoolean(parameters, p.name(), context)
+                param = self.parameterAsBool(parameters, p.name(), context)
             elif p.type() == "string":
                 param = self.parameterAsString(parameters, p.name(), context)
             elif p.type() == "ttp_datetime":
