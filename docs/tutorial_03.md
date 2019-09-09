@@ -6,6 +6,8 @@ This tutorial intends to showcase how far it is possible to go using the TravelT
 
 To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/JnDBEJVUoHE" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ## What we'll cover
 
 During this tutorial, we'll cover :
