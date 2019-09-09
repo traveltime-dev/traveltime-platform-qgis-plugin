@@ -12,7 +12,7 @@ To learn more about TravelTime platform and to discuss commercial licences visit
 
 Travel times are much more accurate than distance to make informed decisions, such as where to locate a new office, what type of transport to choose, or at what time a meeting should start.
 
-![](images/tutorial_01/timemap_example.png)
+![](images/tutorial_01/timemap_example.png)  
 *This demonstrates the difference between a normal radius (blue) and a time based reachable area (pink)*
 
 The TravelTime platform Plugin for QGIS adds several algorithms that aim to allow this type of analysis right in QGIS. It works by making use of the TravelTime platform API, an extremely fast web service for such computations.
