@@ -28,6 +28,7 @@ from qgis.core import (
     QgsCategorizedSymbolRenderer,
     QgsLineSymbol,
     QgsRendererCategory,
+    NULL,
 )
 
 from .. import resources
@@ -483,7 +484,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
             feature.setAttribute("id", result["search_id"])
             for prop in self.enabled_properties():
                 feature.setAttribute(
-                    "prop_" + prop, json.dumps(result["properties"][prop])
+                    "prop_" + prop, result["properties"].get(prop, NULL)
                 )
             feature.setGeometry(QgsGeometry.fromWkt(result["shape"]))
 
