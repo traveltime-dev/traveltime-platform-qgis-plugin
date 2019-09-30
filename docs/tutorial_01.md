@@ -6,6 +6,10 @@ This tutorial covers basic usage of the TravelTime platform Plugin for QGIS.
 
 To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
 
+## Video version
+
+This is the video version of the first tutorial. The exact same tutorial is also available in written form below.
+
 <iframe width="560" height="315" src="https://www.youtube.com/embed/HAALMHZQzFM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## What it is
