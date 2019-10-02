@@ -1,7 +1,12 @@
 import os
+import random
+
+from qgis.PyQt.QtCore import Qt, QDateTime, QTimeZone
+from qgis.PyQt.QtGui import QColor
 
 from qgis.core import (
     QgsProcessing,
+    QgsProcessingParameterBoolean,
     QgsProcessingParameterFeatureSource,
     QgsProcessingParameterFeatureSink,
     QgsProcessingParameterEnum,
@@ -9,6 +14,11 @@ from qgis.core import (
     QgsFeature,
     QgsFeatureRequest,
     QgsProcessingUtils,
+    QgsExpression,
+    QgsExpressionContext,
+    QgsLineSymbol,
+    QgsRendererCategory,
+    QgsCategorizedSymbolRenderer,
 )
 
 import processing
@@ -16,6 +26,7 @@ import processing
 from .. import resources
 from .. import parameters
 
+from .. import utils
 from ..utils import tr
 
 from .base import AlgorithmBase
@@ -52,7 +63,10 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
         )
         self.addParameter(
             QgsProcessingParameterEnum(
-                "INPUT_SEARCH_TYPE", tr("Search type"), options=["departure", "arrival"]
+                "INPUT_SEARCH_TYPE",
+                tr("Search type"),
+                options=["departure", "arrival"],
+                defaultValue="departure",
             )
         )
         self.addParameter(
@@ -60,11 +74,18 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
                 "INPUT_TRNSPT_TYPE",
                 tr("Transportation type"),
                 options=TRANSPORTATION_TYPES,
+                defaultValue="public_transport",
             )
         )
         self.addParameter(
-            parameters.ParameterIsoDateTime(
-                "INPUT_TIME", tr("Departure/Arrival time (UTC)")
+            parameters.ParameterIsoDateTime("INPUT_TIME", tr("Departure/Arrival time"))
+        )
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                "SETTINGS_TIMEZONE",
+                tr("Timezone"),
+                options=utils.timezones,
+                defaultValue=utils.timezones.index(utils.default_timezone),
             )
         )
 
@@ -83,10 +104,14 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
 
         trnspt_type = TRANSPORTATION_TYPES[self.params["INPUT_TRNSPT_TYPE"]]
 
+        time = QDateTime.fromString(self.params["INPUT_TIME"], Qt.ISODate)
+        timezone_code = utils.timezones[self.params["SETTINGS_TIMEZONE"]]
+        time.setTimeZone(QTimeZone(timezone_code.encode("ascii")))
+
         return {
             "INPUT_{}_SEARCHES".format(mode): search_layer,
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
-            "INPUT_{}_TIME".format(mode): "'" + self.params["INPUT_TIME"] + "'",
+            "INPUT_{}_TIME".format(mode): "'" + time.toString(Qt.ISODate) + "'",
             "OUTPUT": "memory:results",
         }
 
@@ -190,7 +215,10 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
 
         self.addParameter(
             QgsProcessingParameterEnum(
-                "OUTPUT_RESULT_TYPE", tr("Result aggregation"), options=self.RESULT_TYPE
+                "OUTPUT_RESULT_TYPE",
+                tr("Result aggregation"),
+                options=self.RESULT_TYPE,
+                defaultValue=self.RESULT_TYPE[0],
             ),
             help_text=tr(
                 "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
@@ -249,6 +277,7 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
                     self.params["INPUT_TRAVEL_TIME"] * 60
                 ),
                 "INPUT_LOCATIONS": locations_layer,
+                "PROPERTIES_FARES": self.params["PROPERTIES_FARES"],
             }
         )
 
@@ -275,6 +304,15 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             )
         )
 
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                "PROPERTIES_FARES", tr("Load fares information"), optional=True
+            ),
+            help_text=tr(
+                "Retrieve the fares. Currently, this is only supported in the UK."
+            ),
+        )
+
     def postProcessAlgorithm(self, context, feedback):
         style_file = "style_filter.qml"
         style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
@@ -297,7 +335,7 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         "This algorithms provides a simpified access to the routes endpoint.\n\nPlease see the help on {url} for more details on how to use it."
     ).format(url=_helpUrl)
 
-    RESULT_TYPE = ["NORMAL", "DETAILED"]
+    RESULT_TYPE = ["NORMAL", "DURATION", "DETAILED"]
 
     def processAlgorithmPrepareSubParameters(self, parameters, context, feedback):
         params = super().processAlgorithmPrepareSubParameters(
@@ -311,6 +349,7 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         params.update(
             {
                 "INPUT_LOCATIONS": locations_layer,
+                "PROPERTIES_FARES": self.params["PROPERTIES_FARES"],
                 "OUTPUT_RESULT_TYPE": self.params["OUTPUT_RESULT_TYPE"],
             }
         )
@@ -328,21 +367,58 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         )
 
         self.addParameter(
-            QgsProcessingParameterEnum(
-                "OUTPUT_RESULT_TYPE", tr("Output style"), options=self.RESULT_TYPE
+            QgsProcessingParameterBoolean(
+                "PROPERTIES_FARES", tr("Load fares information"), optional=True
             ),
             help_text=tr(
-                "Normal will return a simple linestring for each route. Detailed will return several segments for each type of transportation for each route."
+                "Retrieve the fares. Currently, this is only supported in the UK."
+            ),
+        )
+
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                "OUTPUT_RESULT_TYPE",
+                tr("Output style"),
+                options=self.RESULT_TYPE,
+                defaultValue=self.RESULT_TYPE[0],
+            ),
+            help_text=tr(
+                "NORMAL and DURATION will return a simple linestring for each route. DETAILED will return several segments for each type of transportation for each route."
             ),
         )
 
     def postProcessAlgorithm(self, context, feedback):
-        if self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]] == "NORMAL":
-            style_file = "style_route_duration.qml"
+        layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
+        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
+
+        feedback.pushInfo("result type is : " + result_type)
+
+        if result_type == "NORMAL":
+            exp = "'from ' || search_id || ' to ' || location_id"
+            # We get all uniques routes
+            expression = QgsExpression(exp)
+            exp_ctx = QgsExpressionContext()
+
+            values = set()
+            for f in layer.getFeatures():
+                exp_ctx.setFeature(f)
+                values.add(expression.evaluate(exp_ctx))
+
+            categories = []
+            for value in sorted(values):
+                symbol = QgsLineSymbol()
+                symbol.setWidth(1)
+                symbol.setColor(QColor.fromHsl(random.randint(0, 359), 255, 127))
+                category = QgsRendererCategory(value, symbol, value)
+                categories.append(category)
+
+            renderer = QgsCategorizedSymbolRenderer(exp, categories)
+            layer.setRenderer(renderer)
         else:
-            style_file = "style_route_mode.qml"
-        style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
-        QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(
-            style_path
-        )
+            if result_type == "DURATION":
+                style_file = "style_route_duration.qml"
+            else:
+                style_file = "style_route_mode.qml"
+            style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
+            layer.loadNamedStyle(style_path)
         return super().postProcessAlgorithm(context, feedback)

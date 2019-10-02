@@ -143,8 +143,9 @@ class GeocodingAlgorithmBase(AlgorithmBase):
             elif result_type == "BEST_MATCH":
                 # We only keep the result wit the best score
                 results = sorted(
-                    response_geojson["features"], key=lambda f: f["properties"]["score"]
-                )[-1:]
+                    response_geojson["features"],
+                    key=lambda f: -f["properties"]["score"],
+                )[0:1]
 
             for result in results:
                 newfeature = QgsFeature(output_fields)
@@ -155,11 +156,10 @@ class GeocodingAlgorithmBase(AlgorithmBase):
 
                 # Add our attributes
                 props = result["properties"]
-                for i, attr in enumerate(response_attributes):
+                for attr in response_attributes:
                     output_fields.append(QgsField(attr, QVariant.String, "text", 255))
                     newfeature.setAttribute(
-                        len(source_data.fields()) + i,
-                        props[attr] if attr in props else None,
+                        "geocoded_" + attr, props[attr] if attr in props else None
                     )
 
                 # Add our geometry
@@ -184,7 +184,7 @@ class GeocodingAlgorithmBase(AlgorithmBase):
 
 class GeocodingAlgorithm(GeocodingAlgorithmBase):
     input_type = QgsProcessing.TypeVector
-    url = "https://api.traveltimeapp.com/v4/geocoding/search"
+    url = "/v4/geocoding/search"
     method = "GET"
 
     _name = "geocoding"
@@ -236,7 +236,7 @@ class GeocodingAlgorithm(GeocodingAlgorithmBase):
 
 class ReverseGeocodingAlgorithm(GeocodingAlgorithmBase):
     input_type = QgsProcessing.TypeVectorPoint
-    url = "https://api.traveltimeapp.com/v4/geocoding/reverse"
+    url = "/v4/geocoding/reverse"
     method = "GET"
 
     _name = "reverse_geocoding"

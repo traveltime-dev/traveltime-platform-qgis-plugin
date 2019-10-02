@@ -1,6 +1,7 @@
 import os.path
 import requests
 import functools
+import json
 
 from qgis.PyQt.QtCore import (
     Qt,
@@ -28,6 +29,8 @@ from qgis.PyQt.QtWidgets import (
 )
 from qgis.core import Qgis, QgsApplication
 from qgis.gui import QgsFilterLineEdit
+
+import processing
 
 from .provider import Provider
 from .utils import tr, log
@@ -83,6 +86,15 @@ class Main:
         self.toolbar.addAction(self.action_show_toolbox)
         self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_toolbox)
 
+        # Rerun algorithm action
+        self.action_rerun = QAction(
+            resources.icon_rerun, tr("Run again"), self.iface.mainWindow()
+        )
+        self.action_rerun.triggered.connect(self.rerun_algorithm)
+        self.toolbar.addAction(self.action_rerun)
+        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_rerun)
+        self.action_rerun.setEnabled(False)
+
         self.toolbar.addSeparator()
 
         # Express timemap action
@@ -96,6 +108,16 @@ class Main:
         # Express route action
         self.express_route_action = express.ExpressRouteAction(self)
         self.toolbar.addAction(self.express_route_action)
+
+        self.toolbar.addSeparator()
+
+        # Express geoclick action
+        self.express_geoclick_lineedit = QLineEdit()
+        self.express_geoclick_action = express.ExpressGeoclickAction(
+            self, self.express_geoclick_lineedit
+        )
+        self.toolbar.addWidget(self.express_geoclick_lineedit)
+        self.toolbar.addAction(self.express_geoclick_action)
 
         self.toolbar.addSeparator()
 
@@ -134,6 +156,9 @@ class Main:
         ):
             self.show_splash()
 
+        # Connect layerchanged
+        self.iface.currentLayerChanged.connect(self.current_layer_changed)
+
     def unload(self):
         # Remove GUI elements
         del self.toolbar
@@ -144,6 +169,9 @@ class Main:
 
         # Remove the provider from the registry
         QgsApplication.processingRegistry().removeProvider(self.provider)
+
+        # Disconnect actions
+        self.iface.currentLayerChanged.disconnect(self.current_layer_changed)
 
     def show_toolbox(self):
         toolBox = self.iface.mainWindow().findChild(QDockWidget, "ProcessingToolbox")
@@ -163,6 +191,14 @@ class Main:
             searchBox.textChanged.emit("TravelTime platform")
         else:
             searchBox.setValue("TravelTime platform")
+
+    def rerun_algorithm(self):
+        alg_id = self.iface.activeLayer().metadata().keywords()["TTP_ALGORITHM"][0]
+        params = json.loads(
+            self.iface.activeLayer().metadata().keywords()["TTP_PARAMS"][0]
+        )
+        self._dlg = processing.createAlgorithmDialog(alg_id, params)
+        self._dlg.show()
 
     def show_tiles(self):
         self.tilesManager.add_tiles_to_browser()
@@ -198,3 +234,8 @@ class Main:
 
     def show_help(self):
         self.help_dialog.show()
+
+    def current_layer_changed(self, layer):
+        self.action_rerun.setEnabled(
+            layer is not None and ("TTP_VERSION" in layer.metadata().keywords())
+        )

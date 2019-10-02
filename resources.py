@@ -10,11 +10,13 @@ def icon(icon_name):
 logo = icon("TravelTime_logo_horizontal_grey.svg")
 
 icon_toolbox = icon("icons/toolbox.svg")
+icon_rerun = icon("icons/rerun.svg")
 icon_tiles = icon("icons/tiles.svg")
 icon_config = icon("icons/settings.svg")
 icon_general = icon("icons/general.svg")
 icon_geocoding = icon("icons/geocoding.svg")
 icon_reverse_geocoding = icon("icons/geocoding_reversed.svg")
+icon_geoclick = icon("icons/geoclick.svg")
 icon_help = icon("icons/help.svg")
 icon_routes_advanced = icon("icons/route_advanced.svg")
 icon_routes_simple = icon("icons/route_simple.svg")

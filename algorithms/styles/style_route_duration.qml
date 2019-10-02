@@ -1,6 +1,6 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
 <qgis styleCategories="Symbology" version="3.6.3-Noosa">
-  <renderer-v2 symbollevels="1" graduatedMethod="GraduatedColor" forceraster="0" type="graduatedSymbol" enableorderby="0" attr="travel_time/60">
+  <renderer-v2 symbollevels="1" graduatedMethod="GraduatedColor" forceraster="0" type="graduatedSymbol" enableorderby="0" attr="prop_travel_time/60">
     <ranges>
       <range upper="5.000000000000000" render="true" lower="0.000000000000000" label="0-5 min" symbol="0"/>
       <range upper="15.000000000000000" render="true" lower="5.000000000000000" label="5-15 min" symbol="1"/>

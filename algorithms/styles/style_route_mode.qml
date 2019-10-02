@@ -2,12 +2,12 @@
 <qgis styleCategories="Symbology" version="3.4.8-Madeira">
   <renderer-v2 forceraster="0" enableorderby="0" type="RuleRenderer" symbollevels="0">
     <rules key="{4002b40a-e1d8-4a97-9bc9-b3ba6df00d1b}">
-      <rule symbol="0" key="{e1c8ab00-f94b-4759-b593-ab22b3045139}" filter="&quot;mode&quot; = 'bus'" label="bus"/>
-      <rule symbol="1" key="{1d7dc893-d0d5-45ea-a116-63c5e8e2d8b5}" filter="&quot;mode&quot; = 'train' or &quot;mode&quot; = 'rail_national' or &quot;mode&quot; = 'rail_overground'" label="train"/>
-      <rule symbol="2" key="{676f181e-5c40-4894-a444-d8ffadd62e9c}" filter="&quot;mode&quot; = 'rail_underground'" label="underground train"/>
-      <rule symbol="3" key="{64036c55-c4dc-4a2c-8ecd-4e0f1f391d81}" filter="&quot;mode&quot; = 'bike'" label="bike"/>
-      <rule symbol="4" key="{c1ec2a6d-19a3-4323-aeaa-8f312a37ee3b}" filter="&quot;mode&quot; = 'walk'" label="walk"/>
-      <rule symbol="5" key="{275b5e81-90c1-4a58-adfd-b908c7db06be}" filter="&quot;mode&quot; = 'car'" label="car"/>
+      <rule symbol="0" key="{e1c8ab00-f94b-4759-b593-ab22b3045139}" filter="&quot;part_mode&quot; = 'bus'" label="bus"/>
+      <rule symbol="1" key="{1d7dc893-d0d5-45ea-a116-63c5e8e2d8b5}" filter="&quot;part_mode&quot; = 'train' or &quot;part_mode&quot; = 'rail_national' or &quot;part_mode&quot; = 'rail_overground'" label="train"/>
+      <rule symbol="2" key="{676f181e-5c40-4894-a444-d8ffadd62e9c}" filter="&quot;part_mode&quot; = 'rail_underground'" label="underground train"/>
+      <rule symbol="3" key="{64036c55-c4dc-4a2c-8ecd-4e0f1f391d81}" filter="&quot;part_mode&quot; = 'bike'" label="bike"/>
+      <rule symbol="4" key="{c1ec2a6d-19a3-4323-aeaa-8f312a37ee3b}" filter="&quot;part_mode&quot; = 'walk'" label="walk"/>
+      <rule symbol="5" key="{275b5e81-90c1-4a58-adfd-b908c7db06be}" filter="&quot;part_mode&quot; = 'car'" label="car"/>
     </rules>
     <symbols>
       <symbol type="line" alpha="1" force_rhr="0" name="0" clip_to_extent="1">

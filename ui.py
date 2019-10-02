@@ -14,6 +14,7 @@ except (ModuleNotFoundError, ImportError):
 from processing.gui.AlgorithmDialog import AlgorithmDialog
 from processing.gui.wrappers import WidgetWrapper
 
+from . import constants
 from . import algorithms
 from . import auth
 from . import cache
@@ -34,6 +35,7 @@ class ConfigDialog(QDialog):
         self.countResetButton.pressed.connect(self.reset_count)
         self.buttonBox.accepted.connect(self.accept)
         self.clearCacheButton.pressed.connect(self.clear_cache)
+        self.endpointResetButton.pressed.connect(self.reset_endpoint)
 
     def showEvent(self, *args, **kwargs):
         super().showEvent(*args, **kwargs)
@@ -48,6 +50,8 @@ class ConfigDialog(QDialog):
         s = QSettings()
         # current count
         self.refresh_count_display()
+        # endpoint
+        self.refresh_endpoint_display()
         # logs calls
         self.logCallsCheckBox.setChecked(
             s.value("traveltime_platform/log_calls", False, type=bool)
@@ -69,6 +73,16 @@ class ConfigDialog(QDialog):
     def refresh_count_display(self):
         c = QSettings().value("traveltime_platform/current_count", 0, type=int)
         self.countSpinBox.setValue(c)
+
+    def reset_endpoint(self):
+        QSettings().remove("traveltime_platform/custom_endpoint")
+        self.refresh_endpoint_display()
+
+    def refresh_endpoint_display(self):
+        e = QSettings().value(
+            "traveltime_platform/custom_endpoint", constants.DEFAULT_ENDPOINT, type=str
+        )
+        self.endpointLineEdit.setText(e)
 
     def clear_cache(self):
         cache.instance.clear()
@@ -93,6 +107,8 @@ class ConfigDialog(QDialog):
         s.setValue(
             "traveltime_platform/disable_https", self.disableHttpsCheckBox.isChecked()
         )
+        # endpoint
+        s.setValue("traveltime_platform/custom_endpoint", self.endpointLineEdit.text())
 
         super().accept(*args, **kwargs)
 
@@ -169,9 +185,8 @@ class IsoDateTimeWidgetWrapper(WidgetWrapper):
     def createWidget(self):
         now = QTime.currentTime()
         curdate = QDateTime(QDate.currentDate(), QTime(now.hour(), 0))
-        dateEdit = QDateTimeEdit(curdate.toUTC())
+        dateEdit = QDateTimeEdit(curdate)
         dateEdit.setDisplayFormat("yyyy-MM-dd HH:mm")
-        dateEdit.setTimeSpec(Qt.TimeZone)
         return dateEdit
 
     def setValue(self, value):

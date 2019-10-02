@@ -10,16 +10,20 @@ from qgis.core import (
     QgsProcessingParameterNumber,
     QgsProcessingException,
     QgsProcessingParameterDefinition,
+    QgsProcessingUtils,
     QgsCoordinateReferenceSystem,
     QgsExpression,
+    QgsLayerMetadata,
+    QgsMapLayer,
 )
 
 from ..libraries import iso3166
 
+from .. import constants
 from .. import auth
 from .. import cache
 
-from ..utils import tr, log, TTP_VERSION
+from ..utils import tr, log
 
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
@@ -72,10 +76,14 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             return None
 
     def processAlgorithm(self, parameters, context, feedback):
-        feedback.pushDebugInfo("TravelTime Plugin Version : {}".format(TTP_VERSION))
+        feedback.pushDebugInfo(
+            "TravelTime Plugin Version : {}".format(constants.TTP_VERSION)
+        )
         feedback.pushDebugInfo(
             "TravelTime Algorithm : {}".format(self.__class__.__name__)
         )
+        # We save parameters to the instance to access it in postprocess
+        self.raw_parameters = parameters
         return self.doProcessAlgorithm(parameters, context, feedback)
 
     def doProcessAlgorithm(self, parameters, context, feedback):
@@ -96,6 +104,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 param = self.parameterAsSource(parameters, p.name(), context)
             elif p.type() == "enum":
                 param = self.parameterAsEnum(parameters, p.name(), context)
+            elif p.type() == "boolean":
+                param = self.parameterAsBool(parameters, p.name(), context)
             elif p.type() == "string":
                 param = self.parameterAsString(parameters, p.name(), context)
             elif p.type() == "ttp_datetime":
@@ -129,16 +139,23 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         headers = {
             "Content-type": "application/json",
             "Accept": self.accept_header,
-            "User-Agent": "QGIS / {} / {}".format(Qgis.QGIS_VERSION, TTP_VERSION),
+            "User-Agent": "QGIS / {} / {}".format(
+                Qgis.QGIS_VERSION, constants.TTP_VERSION
+            ),
             "X-Application-Id": APP_ID,
             "X-Api-Key": API_KEY,
         }
+
+        endpoint = QSettings().value(
+            "traveltime_platform/custom_endpoint", constants.DEFAULT_ENDPOINT, type=str
+        )
+        full_url = endpoint + self.url
 
         feedback.pushDebugInfo("Making request to API endpoint...")
         print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
         if print_query:
             log("Making request")
-            log("url: {}".format(self.url))
+            log("url: {}".format(full_url))
             log("headers: {}".format(headers))
             log("params: {}".format(str(params)))
             log("data: {}".format(json_data))
@@ -157,7 +174,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
             response = cache.instance.cached_requests.request(
                 self.method,
-                self.url,
+                full_url,
                 data=json_data,
                 params=params,
                 headers=headers,
@@ -230,6 +247,39 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             )
             log(e)
             raise QgsProcessingException("Could not decode response") from None
+
+    def postProcessAlgorithm(self, context, feedback):
+        # Save the metadata
+        if hasattr(self, "sink_id") and self.sink_id is not None:
+            layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
+            metadata = QgsLayerMetadata()
+
+            def serialize(o):
+                if isinstance(o, QgsMapLayer):
+                    return o.dataUrl()
+                else:
+                    return None
+
+            params_json = json.dumps(self.raw_parameters, default=serialize)
+            params_readable = "\n".join(
+                k + ": " + str(v) for k, v in json.loads(params_json).items()
+            )
+
+            metadata.setAbstract(
+                "This layer was generated using the '{}' algorithm from the TravelTime Platform plugin version {}. The following parameters were used : \n{}".format(
+                    self.displayName(), constants.TTP_VERSION, params_readable
+                )
+            )
+            metadata.setKeywords(
+                {
+                    "TTP_VERSION": [constants.TTP_VERSION],
+                    "TTP_ALGORITHM": [self.id()],
+                    "TTP_PARAMS": [params_json],
+                }
+            )
+            layer.setMetadata(metadata)
+
+        return super().postProcessAlgorithm(context, feedback)
 
     def createInstance(self):
         return self.__class__()

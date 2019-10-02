@@ -9,8 +9,8 @@ category=Vector
 author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
-# DONT FORGET TO ALSO CHANGE THE VERSION IN utils.py
-version=1.0.2
+# DONT FORGET TO ALSO CHANGE THE VERSION IN constants.py
+version=1.1.0
 
 # Optional items:
 changelog=- 2019-02-12 : version 0.1-alpha
@@ -44,8 +44,19 @@ changelog=- 2019-02-12 : version 0.1-alpha
     - 2019-08-26 : version 1.0.2
         - fix : fixed bug preventing loading under certain circumstances
         - fix : fixed bug preventing from using timefilter-simple
+    - 2019-10-02 : version 1.1.0
+        - backwards incompatible changes :
+            - output structure changed for the properties
+            - "OUTPUT_STYLE" parameters changed for the Route algorithms
+        - feature : added "rerun" algorithm
+        - feature : added geoclick tool
+        - feature : allow to specify timezones in simplified algorithms
+        - feature : support loading of fare data
+        - feature : allow customization of endpoint
+        - feature : added one output style for routes algorithm
+
 tags=travel,time,platform,api,distance
-homepage=https://igeolise.github.io/traveltime-platform-qgis-plugin
+homepage=https://qgis.traveltimeplatform.com/
 tracker=https://github.com/igeolise/traveltime-platform-qgis-plugin/issues
 repository=https://github.com/igeolise/traveltime-platform-qgis-plugin
 icon=resources/icons/general.svg

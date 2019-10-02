@@ -1,12 +1,20 @@
 import datetime
 import time
 
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, QTimeZone
 
-from qgis.core import QgsFeature, QgsGeometry, QgsMessageLog
+from qgis.core import (
+    QgsFeature,
+    QgsGeometry,
+    QgsMessageLog,
+    QgsCoordinateReferenceSystem,
+)
 
-# TODO : parse this from metadata.txt
-TTP_VERSION = "1.0.2"
+
+EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
+
+timezones = list([t.data().decode("utf-8") for t in QTimeZone.availableTimeZoneIds()])
+default_timezone = QTimeZone.systemTimeZoneId().data().decode("utf-8")
 
 
 def now_iso():
