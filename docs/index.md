@@ -1,4 +1,7 @@
-<link rel="stylesheet" type="text/css" href="style.css" />
+---
+title: "Make QGIS Isochrones with the TravelTime plugin"
+description: "Create QGIS isochrones with drive time, walking, cycling or public transport. Adjust the polygon by changing the maximum travel time and start location."
+---
 
 # TravelTime platform plugin for QGIS ![](images/icons/general.svg#header) 
 

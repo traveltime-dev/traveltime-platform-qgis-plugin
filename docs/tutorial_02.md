@@ -1,4 +1,7 @@
-<link rel="stylesheet" type="text/css" href="style.css" />
+---
+title: "Using algorithms | Travel time isochrone QGIS tutorial 2/3"
+description: "Learn how to use the simplified and advance algorithms to make travel time polygons using the toolbox."
+---
 
 # Tutorial 02. Using the algorithms ![](images/icons/general.svg#header)
 

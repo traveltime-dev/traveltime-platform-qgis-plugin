@@ -1,4 +1,7 @@
-<link rel="stylesheet" type="text/css" href="style.css" />
+---
+title: "QGIS isochrones using TravelTime | Reference Manual"
+description: "This reference manual covers all features of the TravelTime platform plugin for QGIS."
+---
 
 # Reference manual ![](images/icons/general.svg#header) 
 
