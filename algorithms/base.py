@@ -66,6 +66,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
         return super().addParameter(parameter, *args, **kwargs)
 
+    def has_param(self, key):
+        """Helper to check whether the algorithm has the specified param"""
+
+        return any(p.name() == key for p in self.parameterDefinitions())
+
     def eval_expr(self, key):
         """Helper to evaluate an expression from the input.
 

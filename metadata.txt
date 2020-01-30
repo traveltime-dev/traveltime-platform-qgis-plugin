@@ -54,6 +54,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - feature : support loading of fare data
         - feature : allow customization of endpoint
         - feature : added one output style for routes algorithm
+    - 2020-xx-yy : version 1.2.0
+        - fix : fixed bug preventing to use the search range parameters in TimeFilter and Route algorithms
 
 tags=travel,time,platform,api,distance
 homepage=https://qgis.traveltimeplatform.com/

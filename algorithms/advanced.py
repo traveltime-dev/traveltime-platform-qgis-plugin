@@ -14,6 +14,7 @@ from qgis.core import (
     QgsProcessingParameterFeatureSink,
     QgsProcessingParameterExpression,
     QgsProcessingParameterEnum,
+    QgsProcessingParameterNumber,
     QgsWkbTypes,
     QgsPoint,
     QgsLineString,
@@ -224,6 +225,19 @@ class _SearchAlgorithmBase(AlgorithmBase):
                     "Travel time in seconds. Maximum value is 14400 (4 hours)"
                 ),
             )
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                "INPUT_SEARCH_RANGE_MAX_RESULTS",
+                "Max results when search range enabled",
+                defaultValue=1,
+                minValue=1,
+                maxValue=5,
+            ),
+            advanced=True,
+            help_text=tr(
+                "Maximum number of results to return if a range is specified. Max is 5 results."
+            ),
+        )
 
         for prop, behaviour in self.available_properties.items():
             if behaviour == PROPERTY_ALWAYS:
@@ -351,9 +365,12 @@ class _SearchAlgorithmBase(AlgorithmBase):
                     }
                     range_width = self.eval_expr("INPUT_" + DEPARR + "_RANGE_WIDTH")
                     if range_width:
-                        search_data.update(
-                            {"range": {"enabled": True, "width": range_width}}
-                        )
+                        range_data_dict = {"enabled": True, "width": range_width}
+                        if self.has_param("INPUT_SEARCH_RANGE_MAX_RESULTS"):
+                            range_data_dict["max_results"] = self.params[
+                                "INPUT_SEARCH_RANGE_MAX_RESULTS"
+                            ]
+                        search_data.update({"range": range_data_dict})
 
                     data[deparr + "_searches"].append(search_data)
 
@@ -405,6 +422,8 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
             ),
         )
+
+        self.removeParameter("INPUT_SEARCH_RANGE_MAX_RESULTS")
 
     def doProcessAlgorithm(self, parameters, context, feedback):
 
@@ -700,14 +719,15 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         for result in results:
 
             for location in result["locations"]:
-                feature = clone_feature(location["id"])
-                feature.setAttribute("search_id", result["search_id"])
-                feature.setAttribute("reachable", 1)
-                for prop in self.enabled_properties():
-                    feature.setAttribute(
-                        "prop_" + prop, json.dumps(location["properties"][0][prop])
-                    )
-                sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                for properties in location["properties"]:
+                    feature = clone_feature(location["id"])
+                    feature.setAttribute("search_id", result["search_id"])
+                    feature.setAttribute("reachable", 1)
+                    for prop in self.enabled_properties():
+                        feature.setAttribute(
+                            "prop_" + prop, json.dumps(properties[prop])
+                        )
+                    sink.addFeature(feature, QgsFeatureSink.FastInsert)
             for id_ in result["unreachable"]:
                 feature = clone_feature(id_)
                 feature.setAttribute("search_id", result["search_id"])
@@ -944,53 +964,58 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
 
         for result in results:
             for location in result["locations"]:
+                for properties in location["properties"]:
 
-                if result_type == "BY_ROUTE" or result_type == "BY_DURATION":
-
-                    # Create the geom
-                    geom = QgsLineString()
-                    for part in location["properties"][0]["route"]["parts"]:
-                        for coord in part["coords"]:
-                            point = QgsPoint(coord["lng"], coord["lat"])
-                            if geom.endPoint() != point:
-                                geom.addVertex(point)
-
-                    # Create the feature
-                    feature = QgsFeature(output_fields)
-                    feature.setGeometry(geom)
-                    feature.setAttribute("search_id", result["search_id"])
-                    feature.setAttribute("location_id", location["id"])
-
-                    for prop in self.enabled_properties():
-                        feature.setAttribute(
-                            "prop_" + prop, json.dumps(location["properties"][0][prop])
-                        )
-
-                    sink.addFeature(feature, QgsFeatureSink.FastInsert)
-                else:
-                    for part in location["properties"][0]["route"]["parts"]:
+                    if result_type == "BY_ROUTE" or result_type == "BY_DURATION":
 
                         # Create the geom
                         geom = QgsLineString()
-                        for coord in part["coords"]:
-                            point = QgsPoint(coord["lng"], coord["lat"])
-                            geom.addVertex(point)
+                        for part in properties["route"]["parts"]:
+                            for coord in part["coords"]:
+                                point = QgsPoint(coord["lng"], coord["lat"])
+                                if geom.endPoint() != point:
+                                    geom.addVertex(point)
 
                         # Create the feature
-                        feature_d = QgsFeature(output_fields)
-                        feature_d.setGeometry(geom)
+                        feature = QgsFeature(output_fields)
+                        feature.setGeometry(geom)
+                        feature.setAttribute("search_id", result["search_id"])
+                        feature.setAttribute("location_id", location["id"])
 
-                        feature_d.setAttribute("search_id", result["search_id"])
-                        feature_d.setAttribute("location_id", location["id"])
+                        for prop in self.enabled_properties():
+                            feature.setAttribute(
+                                "prop_" + prop, json.dumps(properties[prop])
+                            )
 
-                        feature_d.setAttribute("part_id", part["id"])
-                        feature_d.setAttribute("part_type", part["type"])
-                        feature_d.setAttribute("part_mode", part["mode"])
-                        feature_d.setAttribute("part_directions", part["directions"])
-                        feature_d.setAttribute("part_distance", part["distance"])
-                        feature_d.setAttribute("part_travel_time", part["travel_time"])
+                        sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                    else:
+                        for part in properties["route"]["parts"]:
 
-                        sink.addFeature(feature_d, QgsFeatureSink.FastInsert)
+                            # Create the geom
+                            geom = QgsLineString()
+                            for coord in part["coords"]:
+                                point = QgsPoint(coord["lng"], coord["lat"])
+                                geom.addVertex(point)
+
+                            # Create the feature
+                            feature_d = QgsFeature(output_fields)
+                            feature_d.setGeometry(geom)
+
+                            feature_d.setAttribute("search_id", result["search_id"])
+                            feature_d.setAttribute("location_id", location["id"])
+
+                            feature_d.setAttribute("part_id", part["id"])
+                            feature_d.setAttribute("part_type", part["type"])
+                            feature_d.setAttribute("part_mode", part["mode"])
+                            feature_d.setAttribute(
+                                "part_directions", part["directions"]
+                            )
+                            feature_d.setAttribute("part_distance", part["distance"])
+                            feature_d.setAttribute(
+                                "part_travel_time", part["travel_time"]
+                            )
+
+                            sink.addFeature(feature_d, QgsFeatureSink.FastInsert)
 
         feedback.pushDebugInfo("TimeFilterAlgorithm done !")
 
