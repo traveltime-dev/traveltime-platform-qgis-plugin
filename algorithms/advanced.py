@@ -531,10 +531,6 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                             )
                         )
 
-                        feedback.pushDebugInfo(
-                            "Trying to find feature using : " + expr.expression()
-                        )
-
                         # this should return an iterator with only one feature
                         existing_features = input_layer.getFeatures(
                             QgsFeatureRequest(expr)
@@ -759,8 +755,6 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
 
         output_crs = locations.sourceCrs()
         output_type = locations.wkbType()
-
-        QgsWkbTypes.MultiPolygon
 
         (sink, sink_id) = self.parameterAsSink(
             parameters, "OUTPUT", context, output_fields, output_type, output_crs
