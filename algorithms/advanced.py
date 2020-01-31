@@ -15,6 +15,7 @@ from qgis.core import (
     QgsProcessingParameterExpression,
     QgsProcessingParameterEnum,
     QgsProcessingParameterNumber,
+    QgsProcessingParameterField,
     QgsWkbTypes,
     QgsPoint,
     QgsLineString,
@@ -414,15 +415,18 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         # Define all common DEPARTURE and ARRIVAL parameters
         super().initAlgorithm(config)
 
-        self.addParameter(
-            QgsProcessingParameterBoolean(
-                "KEEP_EXISTING_COLUMNS", "Keep existing columns", defaultValue=False
-            ),
-            advanced=True,
-            help_text=tr(
-                "When set to true, existing columns of the input will be kept in the output."
-            ),
-        )
+        for DEPARR in ["DEPARTURE", "ARRIVAL"]:
+            self.addParameter(
+                QgsProcessingParameterField(
+                    "INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP",
+                    "{} / [fields to keep]".format(DEPARR.title()),
+                    optional=True,
+                    allowMultiple=True,
+                    parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
+                ),
+                advanced=True,
+                help_text=tr("Set which fields should be joined back in the output layer."),
+            )
 
         # Define additional input parameters
         self.addParameter(
@@ -482,18 +486,16 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         for prop in self.enabled_properties():
             output_fields.append(QgsField("prop_" + prop, QVariant.String, "text", 255))
 
-        if self.params["KEEP_EXISTING_COLUMNS"]:
-            existing_columns = {}
-            for deparr in ["departure", "arrival"]:
-                DEPARR = deparr.upper()
-                input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
-                existing_columns[deparr] = []
-                if input_layer is not None:
-                    for old_field in input_layer.fields():
-                        new_field = QgsField(old_field)
-                        new_field.setName("original_" + deparr + "_" + old_field.name())
-                        output_fields.append(new_field)
-                        existing_columns[deparr].append(old_field.name())
+        for deparr in ["departure", "arrival"]:
+            DEPARR = deparr.upper()
+            input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
+            if not input_layer:
+                continue
+            for field_name in self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
+                old_field = input_layer.fields().field(field_name)
+                new_field = QgsField(old_field)
+                new_field.setName("original_" + deparr + "_" + old_field.name())
+                output_fields.append(new_field)
 
         (sink, sink_id) = self.parameterAsSink(
             parameters,
@@ -517,47 +519,41 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                     )
                 feature.setGeometry(QgsGeometry.fromWkt(result["shape"]))
 
-                if self.params["KEEP_EXISTING_COLUMNS"]:
-                    # dirty section where we join back columns from the input layer
-                    for deparr in ["departure", "arrival"]:
-                        DEPARR = deparr.upper()
-                        if existing_columns[deparr]:
-                            input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
+                # dirty section where we join back columns from the input layer
+                for deparr in ["departure", "arrival"]:
+                    DEPARR = deparr.upper()
+                    input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
+                    if input_layer and self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
 
-                            expr = QgsExpression(
-                                "{expr} = '{id}'".format(
-                                    expr=self.params[
-                                        "INPUT_" + DEPARR + "_ID"
-                                    ].expression(),
-                                    id=result["search_id"],
-                                )
+                        expr = QgsExpression(
+                            "{expr} = '{id}'".format(
+                                expr=self.params["INPUT_" + DEPARR + "_ID"].expression(), id=result["search_id"],
                             )
+                        )
 
-                            feedback.pushDebugInfo(
-                                "Trying to find feature using : " + expr.expression()
-                            )
+                        feedback.pushDebugInfo(
+                            "Trying to find feature using : " + expr.expression()
+                        )
 
-                            # this should return an iterator with only one feature
-                            existing_features = input_layer.getFeatures(
-                                QgsFeatureRequest(expr)
-                            )
+                        # this should return an iterator with only one feature
+                        existing_features = input_layer.getFeatures(
+                            QgsFeatureRequest(expr)
+                        )
+                        try:
                             existing_feature = existing_features.__next__()
-
-                            # assert we found exactly 1 feature
-                            try:
-                                existing_features.__next__()
-                                raise Exception(
-                                    "Matched more than 1 features while joining columns from input data ! Make sure you choose unique ids."
-                                )
-                            except StopIteration:
-                                # this is expected
-                                pass
-
-                            for field_name in existing_columns[deparr]:
+                            for field_name in self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
                                 feature.setAttribute(
                                     "original_" + deparr + "_" + field_name,
                                     existing_feature.attribute(field_name),
                                 )
+                            break
+                        except StopIteration:
+                            continue
+                else:
+                    # We didn't find result id in an input layer...
+                    feedback.reportError(
+                        "Couldn't find source feature for result {} (using following expression : {}).".format(result["search_id"], expr.expression())
+                    )
 
                 # Add a feature in the sink
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)

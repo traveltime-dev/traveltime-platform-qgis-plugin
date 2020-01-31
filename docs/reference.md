@@ -325,7 +325,7 @@ The parameters match closely the API. They are best documented on [the API docum
 
 All parameters are expressions, which allow you to freely use the QGIS expression engine to define each of those parameters, which includes access to all features attributes.
 
-The `Keep existing columns` parameter allows to include the input columns in the output.
+The `[fields to keep]` parameter allows to specify fields from the inputs to keep in the output.
 
 #### Differences with the API
 
