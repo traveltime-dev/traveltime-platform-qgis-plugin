@@ -298,6 +298,10 @@ class _SearchAlgorithmBase(AlgorithmBase):
                 "search_slice_end": (i + 1) * slicing_size,
             }
 
+    def processAlgorithmRemixData(self, data, parameters, context, feedback):
+        """To be overriden by subclasses : allow to edit the data object before sending to the API"""
+        return data
+    
     def processAlgorithmPrepareSearchData(
         self, slicing_start, slicing_end, parameters, context, feedback
     ):
@@ -460,26 +464,6 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         # Configure output
         return self.processAlgorithmOutput(results, parameters, context, feedback)
 
-    def processAlgorithmRemixData(self, data, parameters, context, feedback):
-        """To be overriden by subclasses : allow to edit the data object before sending to the API"""
-
-        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
-
-        if result_type != "NORMAL":
-            search_ids = []
-            for deparr in ["departure", "arrival"]:
-                if deparr + "_searches" in data:
-                    for d in data[deparr + "_searches"]:
-                        search_ids.append(d["id"])
-            if result_type == "UNION":
-                data["unions"] = [{"id": "union_all", "search_ids": search_ids}]
-            elif result_type == "INTERSECTION":
-                data["intersections"] = [
-                    {"id": "intersection_all", "search_ids": search_ids}
-                ]
-
-        return data
-
     def processAlgorithmOutput(self, results, parameters, context, feedback):
         output_fields = QgsFields()
         output_fields.append(QgsField("id", QVariant.String, "text", 255))
@@ -498,25 +482,38 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
 
         result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
 
+        aggregate_geom = None
         for result in results:
-            feature = QgsFeature(output_fields)
-            feature.setAttribute("id", result["search_id"])
-            for prop in self.enabled_properties():
-                feature.setAttribute(
-                    "prop_" + prop, result["properties"].get(prop, NULL)
-                )
-            feature.setGeometry(QgsGeometry.fromWkt(result["shape"]))
+            if result_type == "NORMAL":
+                feature = QgsFeature(output_fields)
+                feature.setAttribute("id", result["search_id"])
+                for prop in self.enabled_properties():
+                    feature.setAttribute(
+                        "prop_" + prop, result["properties"].get(prop, NULL)
+                    )
+                feature.setGeometry(QgsGeometry.fromWkt(result["shape"]))
 
-            # Add a feature in the sink
-            if (
-                result_type == "NORMAL"
-                or (
-                    result_type == "INTERSECTION"
-                    and result["search_id"] == "intersection_all"
-                )
-                or (result_type == "UNION" and result["search_id"] == "union_all")
-            ):
+                # Add a feature in the sink
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
+            else:
+                # Build the aggregated feature
+                geom = QgsGeometry.fromWkt(result["shape"])
+
+                if aggregate_geom is None:
+                    aggregate_geom = geom
+                else:
+                    if result_type == 'UNION':
+                        aggregate_geom = aggregate_geom.combine(geom)
+                    elif result_type == 'INTERSECTION':
+                        aggregate_geom = aggregate_geom.intersection(geom)
+                    else:
+                        raise Exception('Unsupported aggregation operator')
+
+        if result_type != 'NORMAL':
+            feature = QgsFeature(output_fields)
+            feature.setAttribute("id", result_type)
+            feature.setGeometry(aggregate_geom)
+            sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
         feedback.pushDebugInfo("TimeMapAlgorithm done !")
 
