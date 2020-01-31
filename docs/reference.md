@@ -325,6 +325,8 @@ The parameters match closely the API. They are best documented on [the API docum
 
 All parameters are expressions, which allow you to freely use the QGIS expression engine to define each of those parameters, which includes access to all features attributes.
 
+The `Keep existing columns` parameter allows to include the input columns in the output.
+
 #### Differences with the API
 
 In the API, it is possible to specify which intersections or unions to compute. This doesn't work well with typical GIS tabular inputs, so that this algorithm only allows to compute the INTERSECTION or UNION on all inputs.
