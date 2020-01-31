@@ -341,6 +341,14 @@ The parameters match closely the API. They are best documented on [the API docum
 
 All parameters are expressions, which allow you to freely use the QGIS expression engine to define each of those parameters, which includes access to all features attributes.
 
+#### Parameters description
+
+The parameters match closely the API. They are best documented on [the API documentation](http://docs.traveltimeplatform.com/reference/time-map/).
+
+All parameters are expressions, which allow you to freely use the QGIS expression engine to define each of those parameters, which includes access to all features attributes.
+
+The `[fields to keep]` parameter allows to specify fields from the inputs to keep in the output.
+
 #### Differences with the API
 
 In the API, all coordinates are to be provided in the `locations` parameter, and then searches specify locations ids. As this doesn't suit well GIS workflows, the algorithm separates source for searches and for location.
@@ -350,6 +358,14 @@ In the API, all coordinates are to be provided in the `locations` parameter, and
 The parameters match closely the API. They are best documented on [the API documentation](http://docs.traveltimeplatform.com/reference/routes/).
 
 All parameters are expressions, which allow you to freely use the QGIS expression engine to define each of those parameters, which includes access to all features attributes.
+
+#### Parameters description
+
+The parameters match closely the API. They are best documented on [the API documentation](http://docs.traveltimeplatform.com/reference/time-map/).
+
+All parameters are expressions, which allow you to freely use the QGIS expression engine to define each of those parameters, which includes access to all features attributes.
+
+The `[fields to keep]` parameter allows to specify fields from the inputs to keep in the output.
 
 #### Differences with the API
 

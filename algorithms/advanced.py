@@ -226,6 +226,19 @@ class _SearchAlgorithmBase(AlgorithmBase):
                     "Travel time in seconds. Maximum value is 14400 (4 hours)"
                 ),
             )
+            self.addParameter(
+                QgsProcessingParameterField(
+                    "KEEP_COLUMNS_" + DEPARR,
+                    "Meta / {} / Fields to keep".format(DEPARR.title()),
+                    optional=True,
+                    allowMultiple=True,
+                    parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Set which fields should be joined back in the output layer."
+                ),
+            )
         self.addParameter(
             QgsProcessingParameterNumber(
                 "INPUT_SEARCH_RANGE_MAX_RESULTS",
@@ -383,6 +396,63 @@ class _SearchAlgorithmBase(AlgorithmBase):
                     # feedback.setProgress(int(current * total))
         return data
 
+    def processAlgorithmOutputAppendExistingFieldsToOutputFields(
+        self, output_fields, parameters, context, feedback
+    ):
+        """This helper method appends fields marked to be kept to output_fields"""
+
+        for deparr in ["departure", "arrival"]:
+            DEPARR = deparr.upper()
+            input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
+            if not input_layer:
+                continue
+            for field_name in self.params["KEEP_COLUMNS_" + DEPARR]:
+                old_field = input_layer.fields().field(field_name)
+                new_field = QgsField(old_field)
+                new_field.setName("original_" + deparr + "_" + old_field.name())
+                output_fields.append(new_field)
+
+    def processAlgorithmOutputCopyExistingFieldsToFeature(
+        self, feature, result_id, parameters, context, feedback
+    ):
+        """This helper method copies fields from features of input layers to features in output layers"""
+
+        for deparr in ["departure", "arrival"]:
+            DEPARR = deparr.upper()
+            input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
+            if input_layer and self.params["KEEP_COLUMNS_" + DEPARR]:
+
+                expr = QgsExpression(
+                    "{expr} = '{id}'".format(
+                        expr=self.params["INPUT_" + DEPARR + "_ID"].expression(),
+                        id=result_id,
+                    )
+                )
+
+                feedback.pushDebugInfo(
+                    "Trying to find feature using : " + expr.expression()
+                )
+
+                # this should return an iterator with only one feature
+                existing_features = input_layer.getFeatures(QgsFeatureRequest(expr))
+                try:
+                    existing_feature = existing_features.__next__()
+                    for field_name in self.params["KEEP_COLUMNS_" + DEPARR]:
+                        feature.setAttribute(
+                            "original_" + deparr + "_" + field_name,
+                            existing_feature.attribute(field_name),
+                        )
+                    break
+                except StopIteration:
+                    continue
+        else:
+            # We didn't find result_id in an input layer...
+            feedback.reportError(
+                "Couldn't find source feature for result {} (using following expression : {}).".format(
+                    result_id, expr.expression()
+                )
+            )
+
     def enabled_properties(self):
         """Returns the list of properties that are enabled"""
         return [
@@ -414,19 +484,6 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
 
         # Define all common DEPARTURE and ARRIVAL parameters
         super().initAlgorithm(config)
-
-        for DEPARR in ["DEPARTURE", "ARRIVAL"]:
-            self.addParameter(
-                QgsProcessingParameterField(
-                    "INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP",
-                    "{} / [fields to keep]".format(DEPARR.title()),
-                    optional=True,
-                    allowMultiple=True,
-                    parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
-                ),
-                advanced=True,
-                help_text=tr("Set which fields should be joined back in the output layer."),
-            )
 
         # Define additional input parameters
         self.addParameter(
@@ -486,16 +543,9 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         for prop in self.enabled_properties():
             output_fields.append(QgsField("prop_" + prop, QVariant.String, "text", 255))
 
-        for deparr in ["departure", "arrival"]:
-            DEPARR = deparr.upper()
-            input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
-            if not input_layer:
-                continue
-            for field_name in self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
-                old_field = input_layer.fields().field(field_name)
-                new_field = QgsField(old_field)
-                new_field.setName("original_" + deparr + "_" + old_field.name())
-                output_fields.append(new_field)
+        self.processAlgorithmOutputAppendExistingFieldsToOutputFields(
+            output_fields, parameters, context, feedback
+        )
 
         (sink, sink_id) = self.parameterAsSink(
             parameters,
@@ -519,41 +569,9 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                     )
                 feature.setGeometry(QgsGeometry.fromWkt(result["shape"]))
 
-                # dirty section where we join back columns from the input layer
-                for deparr in ["departure", "arrival"]:
-                    DEPARR = deparr.upper()
-                    input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
-                    if input_layer and self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
-
-                        expr = QgsExpression(
-                            "{expr} = '{id}'".format(
-                                expr=self.params["INPUT_" + DEPARR + "_ID"].expression(), id=result["search_id"],
-                            )
-                        )
-
-                        feedback.pushDebugInfo(
-                            "Trying to find feature using : " + expr.expression()
-                        )
-
-                        # this should return an iterator with only one feature
-                        existing_features = input_layer.getFeatures(
-                            QgsFeatureRequest(expr)
-                        )
-                        try:
-                            existing_feature = existing_features.__next__()
-                            for field_name in self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
-                                feature.setAttribute(
-                                    "original_" + deparr + "_" + field_name,
-                                    existing_feature.attribute(field_name),
-                                )
-                            break
-                        except StopIteration:
-                            continue
-                else:
-                    # We didn't find result id in an input layer...
-                    feedback.reportError(
-                        "Couldn't find source feature for result {} (using following expression : {}).".format(result["search_id"], expr.expression())
-                    )
+                self.processAlgorithmOutputCopyExistingFieldsToFeature(
+                    feature, result["search_id"], parameters, context, feedback
+                )
 
                 # Add a feature in the sink
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
@@ -757,6 +775,10 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         for prop in self.enabled_properties():
             output_fields.append(QgsField("prop_" + prop, QVariant.String, "text", 255))
 
+        self.processAlgorithmOutputAppendExistingFieldsToOutputFields(
+            output_fields, parameters, context, feedback
+        )
+
         output_crs = locations.sourceCrs()
         output_type = locations.wkbType()
 
@@ -786,11 +808,17 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
                         feature.setAttribute(
                             "prop_" + prop, json.dumps(properties[prop])
                         )
+                        self.processAlgorithmOutputCopyExistingFieldsToFeature(
+                            feature, result["search_id"], parameters, context, feedback
+                        )
                     sink.addFeature(feature, QgsFeatureSink.FastInsert)
             for id_ in result["unreachable"]:
                 feature = clone_feature(id_)
                 feature.setAttribute("search_id", result["search_id"])
                 feature.setAttribute("reachable", 0)
+                self.processAlgorithmOutputCopyExistingFieldsToFeature(
+                    feature, result["search_id"], parameters, context, feedback
+                )
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
         feedback.pushDebugInfo("TimeFilterAlgorithm done !")
@@ -1014,6 +1042,10 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
             output_fields.append(QgsField("part_distance", QVariant.Int, "int", 255))
             output_fields.append(QgsField("part_travel_time", QVariant.Int, "int", 255))
 
+        self.processAlgorithmOutputAppendExistingFieldsToOutputFields(
+            output_fields, parameters, context, feedback
+        )
+
         output_crs = EPSG4326
         output_type = QgsWkbTypes.LineString
 
@@ -1046,6 +1078,10 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
                                 "prop_" + prop, json.dumps(properties[prop])
                             )
 
+                        self.processAlgorithmOutputCopyExistingFieldsToFeature(
+                            feature, result["search_id"], parameters, context, feedback
+                        )
+
                         sink.addFeature(feature, QgsFeatureSink.FastInsert)
                     else:
                         for part in properties["route"]["parts"]:
@@ -1072,6 +1108,14 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
                             feature_d.setAttribute("part_distance", part["distance"])
                             feature_d.setAttribute(
                                 "part_travel_time", part["travel_time"]
+                            )
+
+                            self.processAlgorithmOutputCopyExistingFieldsToFeature(
+                                feature_d,
+                                result["search_id"],
+                                parameters,
+                                context,
+                                feedback,
                             )
 
                             sink.addFeature(feature_d, QgsFeatureSink.FastInsert)
