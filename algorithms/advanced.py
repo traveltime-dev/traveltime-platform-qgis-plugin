@@ -502,14 +502,14 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 if aggregate_geom is None:
                     aggregate_geom = geom
                 else:
-                    if result_type == 'UNION':
+                    if result_type == "UNION":
                         aggregate_geom = aggregate_geom.combine(geom)
-                    elif result_type == 'INTERSECTION':
+                    elif result_type == "INTERSECTION":
                         aggregate_geom = aggregate_geom.intersection(geom)
                     else:
-                        raise Exception('Unsupported aggregation operator')
+                        raise Exception("Unsupported aggregation operator")
 
-        if result_type != 'NORMAL':
+        if result_type != "NORMAL":
             feature = QgsFeature(output_fields)
             feature.setAttribute("id", result_type)
             feature.setGeometry(aggregate_geom)
