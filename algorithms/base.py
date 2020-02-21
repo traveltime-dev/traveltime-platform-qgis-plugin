@@ -66,6 +66,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
         return super().addParameter(parameter, *args, **kwargs)
 
+    def has_param(self, key):
+        """Helper to check whether the algorithm has the specified param"""
+
+        return any(p.name() == key for p in self.parameterDefinitions())
+
     def eval_expr(self, key):
         """Helper to evaluate an expression from the input.
 
@@ -110,11 +115,22 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 param = self.parameterAsString(parameters, p.name(), context)
             elif p.type() == "ttp_datetime":
                 param = self.parameterAsString(parameters, p.name(), context)
+            elif p.type() == "field":
+                param = self.parameterAsFields(parameters, p.name(), context)
             elif p.type() == "number":
                 if p.dataType() == QgsProcessingParameterNumber.Type.Integer:
                     param = self.parameterAsInt(parameters, p.name(), context)
                 else:
                     param = self.parameterAsDouble(parameters, p.name(), context)
+            elif p.type() == "sink":
+                # sinks need to be configured manually by the algorithms, as we must define output fields
+                continue
+            else:
+                raise Exception(
+                    "Parameter type {type} not supported [{name}]".format(
+                        type=p.type(), name=p.name()
+                    )
+                )
 
             self.params[p.name()] = param
 

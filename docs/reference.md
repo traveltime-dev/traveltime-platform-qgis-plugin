@@ -1,6 +1,9 @@
-<link rel="stylesheet" type="text/css" href="style.css" />
+---
+title: "QGIS isochrones using TravelTime | Reference Manual"
+description: "This reference manual covers all features of the TravelTime platform plugin for QGIS."
+---
 
-# Reference manual ![](images/icons/general.svg#header) 
+# Reference manual ![](images/icons/general.svg#header)
 
 This reference manual covers all features of the TravelTime platform plugin for QGIS.
 
@@ -64,7 +67,6 @@ By default, the toolbar appears at the top of the window. You can drag and drop 
 
 ![](images/icons/settings.svg#icon) Open the [settings dialog](#settings-dialog)
 
-
 ### Menu
 
 ![](images/reference/menu.png)
@@ -76,10 +78,10 @@ The same actions are also available from the `plugin menu`.
 At some point, you **will** hit the API limit, which will cause some queries to fail.
 
 ![](images/reference/limit_exceeded_express.png)  
-*An API limit error when running a map tool*
+_An API limit error when running a map tool_
 
 ![](images/reference/limit_exceeded_processing.png)  
-*An API limit error when running an algorithm*
+_An API limit error when running an algorithm_
 
 Each API key has a quota of queries that can be done. Currently, for free keys, this is around 10 searches / minute. Once this quota is reached, all subsequent queries fail for the cooldown period.
 
@@ -95,7 +97,7 @@ This feature is very useful to tweak your queries without having to reset all pa
 
 ### ![](images/icons/timemap_express.svg#icon) Quick Time Map
 
-This runs the *quick time map* tool. In the background, the advanced time map algorithm will be run. This algorithm returns a **polygon** layer representing the area that can be reached from one point, or the area from which a point can be reached.
+This runs the _quick time map_ tool. In the background, the advanced time map algorithm will be run. This algorithm returns a **polygon** layer representing the area that can be reached from one point, or the area from which a point can be reached.
 
 Usage : click the action, then click somewhere on the map canvas to create a time map. A new layer will be added to the project with the time time. That layer is a "temporary layer". If you need to save it, right click on it in the legend, and choose `Make permanent`.
 
@@ -103,10 +105,9 @@ Configuration : click on the small arrow, then configure using the following wid
 
 ![](images/reference/express_timemap_config.png)
 
-
 ### ![](images/icons/timefilter_express.svg#icon) Quick Time Filter
 
-This runs the *quick time filter* tool. In the background, the advanced time filter algorithm will be run. This algorithm allows to filter a **point** layer according to a time map search.
+This runs the _quick time filter_ tool. In the background, the advanced time filter algorithm will be run. This algorithm allows to filter a **point** layer according to a time map search.
 
 Usage : first, select a **point** layer in the legend, then click the action, then click somewhere on the map canvas to create a time map. A new layer will be added to the project with the reachable and unreachable points. That layer is a "temporary layer". If you need to save it, right click on it in the legend, and choose `Make permanent`.
 
@@ -114,11 +115,9 @@ Configuration : click on the small arrow, then configure using the following wid
 
 ![](images/reference/express_timefilter_config.png)
 
-
 ### ![](images/icons/route_express.svg#icon) Quick Route
 
-
-This runs the *quick route* tool. In the background, the advanced route algorithm will be run. This algorithm allows to compute the best route between points.
+This runs the _quick route_ tool. In the background, the advanced route algorithm will be run. This algorithm allows to compute the best route between points.
 
 Usage : click the action, then click somewhere on the map canvas to define the starting point, and click again to define the destination point. A new layer will be added to the project containing the route. That layer is a "temporary layer". If you need to save it, right click on it in the legend, and choose `Make permanent`.
 
@@ -126,11 +125,9 @@ Configuration : click on the small arrow, then configure using the following wid
 
 ![](images/reference/express_route_config.png)
 
-
 ### ![](images/icons/geoclick.svg#icon) Geoclick
 
-
-This runs the *geoclick* tool.
+This runs the _geoclick_ tool.
 
 Usage : with any map tool enabled, enter an address in the input field next to the button, then click on the button. This will simulate a mouse click on the map at the address that you entered. It can be used with any map tool, including the quick tools.
 
@@ -138,14 +135,13 @@ In the background, the geocoding algorithm will be run.
 
 ![](images/reference/geoclick.png)
 
-
 ## Settings dialog
 
 The main settings dialog can be open using the ![](images/icons/settings.svg#icon) icon.
 
 ![](images/reference/config.png)
 
-**App ID** and **API Key** : enter your App ID and API Key here. You need to do this step to be able to use the TravelTime web service. You can get the ID and the Key by email by clicking on the **Get a free API key** button and filling out the web form. 
+**App ID** and **API Key** : enter your App ID and API Key here. You need to do this step to be able to use the TravelTime web service. You can get the ID and the Key by email by clicking on the **Get a free API key** button and filling out the web form.
 
 **Clear cache** : this button allows to clear the request cache. All requests are saved to a cache file, to avoid the need of hitting the API if an identical request was already made. By clearing the cache, all saved queries will be deleted. This shouldn't be necessary unless you have a very high usage of the application and the cache file gets too big.
 
@@ -199,7 +195,6 @@ Algorithms regrouped under the `Simple` group provide simplified access to the a
 
 ![](images/icons/route_simple.svg#icon) Run the [simplified route algorithm](#-route-simplified)
 
-
 ### Advanced
 
 Algorithms regrouped under the `Advanced` group provide access to the API endpoints. Since they have a lot of options, they are only recommended for advanced users that require to fine tune parameters that are not configurable in the simplified versions.
@@ -209,7 +204,6 @@ Algorithms regrouped under the `Advanced` group provide access to the API endpoi
 ![](images/icons/timemap_advanced.svg#icon) Run the [advanced time map algorithm](#-time-filter-advanced)
 
 ![](images/icons/route_advanced.svg#icon) Run the [advanced route algorithm](#-route-advanced)
-
 
 ### Utils
 
@@ -239,20 +233,19 @@ It can be used to get information such as a service area polygon based on travel
 
 **Transportation type:** Which transportation types to consider.
 
-**Departure/Arrival time:** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
+**Departure/Arrival time:** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different.
 
-**Time zone:** Define the time zone of the departure/arrival time. 
+**Time zone:** Define the time zone of the departure/arrival time.
 
 **Travel time (in minutes):** The total duration from arrival to destination.
 
-**Result aggregation:** 
+**Result aggregation:**
+
 - NORMAL will return a polygon for each departure/arrival search
 - UNION will return the union of all polygons for all departure/arrivals searches.
 - INTERSECTION will return the intersection of all departure/arrival searches.
 
 **Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
-
-
 
 ### ![](images/icons/timefilter_simple.svg#icon) Time filter (Simplified)
 
@@ -272,9 +265,9 @@ It can be used to get filter a point layer using a time search.
 
 **Transportation type:** Which transportation types to consider.
 
-**Departure/Arrival time:** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
+**Departure/Arrival time:** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different.
 
-**Time zone:** Define the time zone of the departure/arrival time. 
+**Time zone:** Define the time zone of the departure/arrival time.
 
 **Travel time (in minutes):** The total duration from arrival to destination.
 
@@ -283,7 +276,6 @@ It can be used to get filter a point layer using a time search.
 **Load fares information:** Load informations about fares in the resulting attributes.
 
 **Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
-
 
 ### ![](images/icons/route_simple.svg#icon) Route (Simplified)
 
@@ -303,22 +295,21 @@ It can be used to get the best routes between two sets of points.
 
 **Transportation type:** Which transportation types to consider.
 
-**Departure/Arrival time:** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different. 
+**Departure/Arrival time:** The departure or arrival time. Searches are time dependent, as depending on the date/time, public transport or traffic condition may be different.
 
-**Time zone:** Define the time zone of the departure/arrival time. 
+**Time zone:** Define the time zone of the departure/arrival time.
 
 **Locations:** The points layer to search from.
 
 **Load fares information:** Load informations about fares in the resulting attributes.
 
-**Output style:** 
+**Output style:**
+
 - BY_ROUTE : return one linestring per route
 - BY_DURATION : return one linestring per route, broken down by travel time
 - BY_TYPE : return one linestring per route segment (allows to map mulimodal routes)
 
 **Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
-
-
 
 ### ![](images/icons/timemap_advanced.svg#icon) Time map (Advanced)
 
@@ -334,11 +325,15 @@ The parameters match closely the API. They are best documented on [the API docum
 
 All parameters are expressions, which allow you to freely use the QGIS expression engine to define each of those parameters, which includes access to all features attributes.
 
+The `[fields to keep]` parameter allows to specify fields from the inputs to keep in the output.
+
 #### Differences with the API
 
 In the API, it is possible to specify which intersections or unions to compute. This doesn't work well with typical GIS tabular inputs, so that this algorithm only allows to compute the INTERSECTION or UNION on all inputs.
 
 Consider using this algorithm in conjunction with other QGIS algorithms if you need advanced INTERSECTION or UNION features.
+
+Besides, while the API supports INTERSECTION and UNION of searches, the plugin performs these operations locally in order to work when batching queries. This means there may be minor differences in results geometries.
 
 ### ![](images/icons/timefilter_advanced.svg#icon) Time filter (Advanced)
 
@@ -352,7 +347,6 @@ In the API, all coordinates are to be provided in the `locations` parameter, and
 
 ### ![](images/icons/route_advanced.svg#icon) Route (Advanced)
 
-
 The parameters match closely the API. They are best documented on [the API documentation](http://docs.traveltimeplatform.com/reference/routes/).
 
 All parameters are expressions, which allow you to freely use the QGIS expression engine to define each of those parameters, which includes access to all features attributes.
@@ -362,7 +356,6 @@ All parameters are expressions, which allow you to freely use the QGIS expressio
 In the API, all coordinates are to be provided in the `locations` parameter, and then searches specify locations ids. As this doesn't suit well GIS workflows, the algorithm separates source for searches and for location.
 
 ### ![](images/icons/geocoding.svg#icon) Geocoding
-
 
 This algorithm provides a simpified access to the geocoding endpoint.
 
@@ -376,7 +369,8 @@ It can be used to assign geographical coordinates to textual data such as addres
 
 **Restrict to country:** Only return the results that are within the specified country
 
-**Results type:** 
+**Results type:**
+
 - ALL will return several results per input, corresponding to all potential matches returned by the API.
 - BEST_MATCH will only return the best point.
 
@@ -387,7 +381,6 @@ It can be used to assign geographical coordinates to textual data such as addres
 **Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
 
 ### ![](images/icons/geocoding_reversed.svg#icon) Reverse geocoding
-
 
 This algorithm provides a simpified access to the reverse geocoding endpoint.
 
@@ -401,13 +394,12 @@ It can be used to assign a textual address to geographical coordinates.
 
 **Restrict to country:** Only return the results that are within the specified country.
 
-**Results type:** 
+**Results type:**
+
 - ALL will return several results per input, corresponding to all potential matches returned by the API.
 - BEST_MATCH will only return the best match.
 
 **Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
-
-
 
 ## Issues
 
@@ -443,13 +435,10 @@ This means that the plugin is not able to create a connection with the TravelTim
 
 If you encounter another issue that is not described above, please report it on the [issue tracker](https://github.com/igeolise/traveltime-platform-qgis-plugin/issues).
 
-Include as much information as possible, such as what steps exactly triggered the issue, the error message or unexpected behaviour, a copy of the message log (`view > panels > Log messages ` under the `TravelTime platform` tab).
+Include as much information as possible, such as what steps exactly triggered the issue, the error message or unexpected behaviour, a copy of the message log (`view > panels > Log messages` under the `TravelTime platform` tab).
 
 By doing so, we'll be able to fix the issue and you will be notified.
-
-
 
 ### Contact us
 
 For anything else, including to request higher API limit, please visit https://www.traveltimeplatform.com/contact-us
-

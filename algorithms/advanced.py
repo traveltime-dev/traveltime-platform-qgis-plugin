@@ -14,6 +14,8 @@ from qgis.core import (
     QgsProcessingParameterFeatureSink,
     QgsProcessingParameterExpression,
     QgsProcessingParameterEnum,
+    QgsProcessingParameterNumber,
+    QgsProcessingParameterField,
     QgsWkbTypes,
     QgsPoint,
     QgsLineString,
@@ -224,6 +226,19 @@ class _SearchAlgorithmBase(AlgorithmBase):
                     "Travel time in seconds. Maximum value is 14400 (4 hours)"
                 ),
             )
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                "INPUT_SEARCH_RANGE_MAX_RESULTS",
+                "Max results when search range enabled",
+                defaultValue=1,
+                minValue=1,
+                maxValue=5,
+            ),
+            advanced=True,
+            help_text=tr(
+                "Maximum number of results to return if a range is specified. Max is 5 results."
+            ),
+        )
 
         for prop, behaviour in self.available_properties.items():
             if behaviour == PROPERTY_ALWAYS:
@@ -283,6 +298,10 @@ class _SearchAlgorithmBase(AlgorithmBase):
                 "search_slice_start": i * slicing_size,
                 "search_slice_end": (i + 1) * slicing_size,
             }
+
+    def processAlgorithmRemixData(self, data, parameters, context, feedback):
+        """To be overriden by subclasses : allow to edit the data object before sending to the API"""
+        return data
 
     def processAlgorithmPrepareSearchData(
         self, slicing_start, slicing_end, parameters, context, feedback
@@ -351,9 +370,12 @@ class _SearchAlgorithmBase(AlgorithmBase):
                     }
                     range_width = self.eval_expr("INPUT_" + DEPARR + "_RANGE_WIDTH")
                     if range_width:
-                        search_data.update(
-                            {"range": {"enabled": True, "width": range_width}}
-                        )
+                        range_data_dict = {"enabled": True, "width": range_width}
+                        if self.has_param("INPUT_SEARCH_RANGE_MAX_RESULTS"):
+                            range_data_dict["max_results"] = self.params[
+                                "INPUT_SEARCH_RANGE_MAX_RESULTS"
+                            ]
+                        search_data.update({"range": range_data_dict})
 
                     data[deparr + "_searches"].append(search_data)
 
@@ -393,6 +415,19 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         # Define all common DEPARTURE and ARRIVAL parameters
         super().initAlgorithm(config)
 
+        for DEPARR in ["DEPARTURE", "ARRIVAL"]:
+            self.addParameter(
+                QgsProcessingParameterField(
+                    "INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP",
+                    "{} / [fields to keep]".format(DEPARR.title()),
+                    optional=True,
+                    allowMultiple=True,
+                    parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
+                ),
+                advanced=True,
+                help_text=tr("Set which fields should be joined back in the output layer."),
+            )
+
         # Define additional input parameters
         self.addParameter(
             QgsProcessingParameterEnum(
@@ -405,6 +440,8 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
             ),
         )
+
+        self.removeParameter("INPUT_SEARCH_RANGE_MAX_RESULTS")
 
     def doProcessAlgorithm(self, parameters, context, feedback):
 
@@ -441,32 +478,24 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         # Configure output
         return self.processAlgorithmOutput(results, parameters, context, feedback)
 
-    def processAlgorithmRemixData(self, data, parameters, context, feedback):
-        """To be overriden by subclasses : allow to edit the data object before sending to the API"""
-
-        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
-
-        if result_type != "NORMAL":
-            search_ids = []
-            for deparr in ["departure", "arrival"]:
-                if deparr + "_searches" in data:
-                    for d in data[deparr + "_searches"]:
-                        search_ids.append(d["id"])
-            if result_type == "UNION":
-                data["unions"] = [{"id": "union_all", "search_ids": search_ids}]
-            elif result_type == "INTERSECTION":
-                data["intersections"] = [
-                    {"id": "intersection_all", "search_ids": search_ids}
-                ]
-
-        return data
-
     def processAlgorithmOutput(self, results, parameters, context, feedback):
         output_fields = QgsFields()
+
         output_fields.append(QgsField("id", QVariant.String, "text", 255))
 
         for prop in self.enabled_properties():
             output_fields.append(QgsField("prop_" + prop, QVariant.String, "text", 255))
+
+        for deparr in ["departure", "arrival"]:
+            DEPARR = deparr.upper()
+            input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
+            if not input_layer:
+                continue
+            for field_name in self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
+                old_field = input_layer.fields().field(field_name)
+                new_field = QgsField(old_field)
+                new_field.setName("original_" + deparr + "_" + old_field.name())
+                output_fields.append(new_field)
 
         (sink, sink_id) = self.parameterAsSink(
             parameters,
@@ -479,25 +508,70 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
 
         result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
 
+        aggregate_geom = None
         for result in results:
-            feature = QgsFeature(output_fields)
-            feature.setAttribute("id", result["search_id"])
-            for prop in self.enabled_properties():
-                feature.setAttribute(
-                    "prop_" + prop, result["properties"].get(prop, NULL)
-                )
-            feature.setGeometry(QgsGeometry.fromWkt(result["shape"]))
+            if result_type == "NORMAL":
+                feature = QgsFeature(output_fields)
+                feature.setAttribute("id", result["search_id"])
+                for prop in self.enabled_properties():
+                    feature.setAttribute(
+                        "prop_" + prop, result["properties"].get(prop, NULL)
+                    )
+                feature.setGeometry(QgsGeometry.fromWkt(result["shape"]))
 
-            # Add a feature in the sink
-            if (
-                result_type == "NORMAL"
-                or (
-                    result_type == "INTERSECTION"
-                    and result["search_id"] == "intersection_all"
-                )
-                or (result_type == "UNION" and result["search_id"] == "union_all")
-            ):
+                # dirty section where we join back columns from the input layer
+                for deparr in ["departure", "arrival"]:
+                    DEPARR = deparr.upper()
+                    input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
+                    if input_layer and self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
+
+                        expr = QgsExpression(
+                            "{expr} = '{id}'".format(
+                                expr=self.params["INPUT_" + DEPARR + "_ID"].expression(), id=result["search_id"],
+                            )
+                        )
+
+                        # this should return an iterator with only one feature
+                        existing_features = input_layer.getFeatures(
+                            QgsFeatureRequest(expr)
+                        )
+                        try:
+                            existing_feature = existing_features.__next__()
+                            for field_name in self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
+                                feature.setAttribute(
+                                    "original_" + deparr + "_" + field_name,
+                                    existing_feature.attribute(field_name),
+                                )
+                            break
+                        except StopIteration:
+                            continue
+                else:
+                    # We didn't find result id in an input layer...
+                    feedback.reportError(
+                        "Couldn't find source feature for result {} (using following expression : {}).".format(result["search_id"], expr.expression())
+                    )
+
+                # Add a feature in the sink
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
+            else:
+                # Build the aggregated feature
+                geom = QgsGeometry.fromWkt(result["shape"])
+
+                if aggregate_geom is None:
+                    aggregate_geom = geom
+                else:
+                    if result_type == "UNION":
+                        aggregate_geom = aggregate_geom.combine(geom)
+                    elif result_type == "INTERSECTION":
+                        aggregate_geom = aggregate_geom.intersection(geom)
+                    else:
+                        raise Exception("Unsupported aggregation operator")
+
+        if result_type != "NORMAL":
+            feature = QgsFeature(output_fields)
+            feature.setAttribute("id", result_type)
+            feature.setGeometry(aggregate_geom)
+            sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
         feedback.pushDebugInfo("TimeMapAlgorithm done !")
 
@@ -682,8 +756,6 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         output_crs = locations.sourceCrs()
         output_type = locations.wkbType()
 
-        QgsWkbTypes.MultiPolygon
-
         (sink, sink_id) = self.parameterAsSink(
             parameters, "OUTPUT", context, output_fields, output_type, output_crs
         )
@@ -700,14 +772,15 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         for result in results:
 
             for location in result["locations"]:
-                feature = clone_feature(location["id"])
-                feature.setAttribute("search_id", result["search_id"])
-                feature.setAttribute("reachable", 1)
-                for prop in self.enabled_properties():
-                    feature.setAttribute(
-                        "prop_" + prop, json.dumps(location["properties"][0][prop])
-                    )
-                sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                for properties in location["properties"]:
+                    feature = clone_feature(location["id"])
+                    feature.setAttribute("search_id", result["search_id"])
+                    feature.setAttribute("reachable", 1)
+                    for prop in self.enabled_properties():
+                        feature.setAttribute(
+                            "prop_" + prop, json.dumps(properties[prop])
+                        )
+                    sink.addFeature(feature, QgsFeatureSink.FastInsert)
             for id_ in result["unreachable"]:
                 feature = clone_feature(id_)
                 feature.setAttribute("search_id", result["search_id"])
@@ -944,53 +1017,58 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
 
         for result in results:
             for location in result["locations"]:
+                for properties in location["properties"]:
 
-                if result_type == "BY_ROUTE" or result_type == "BY_DURATION":
-
-                    # Create the geom
-                    geom = QgsLineString()
-                    for part in location["properties"][0]["route"]["parts"]:
-                        for coord in part["coords"]:
-                            point = QgsPoint(coord["lng"], coord["lat"])
-                            if geom.endPoint() != point:
-                                geom.addVertex(point)
-
-                    # Create the feature
-                    feature = QgsFeature(output_fields)
-                    feature.setGeometry(geom)
-                    feature.setAttribute("search_id", result["search_id"])
-                    feature.setAttribute("location_id", location["id"])
-
-                    for prop in self.enabled_properties():
-                        feature.setAttribute(
-                            "prop_" + prop, json.dumps(location["properties"][0][prop])
-                        )
-
-                    sink.addFeature(feature, QgsFeatureSink.FastInsert)
-                else:
-                    for part in location["properties"][0]["route"]["parts"]:
+                    if result_type == "BY_ROUTE" or result_type == "BY_DURATION":
 
                         # Create the geom
                         geom = QgsLineString()
-                        for coord in part["coords"]:
-                            point = QgsPoint(coord["lng"], coord["lat"])
-                            geom.addVertex(point)
+                        for part in properties["route"]["parts"]:
+                            for coord in part["coords"]:
+                                point = QgsPoint(coord["lng"], coord["lat"])
+                                if geom.endPoint() != point:
+                                    geom.addVertex(point)
 
                         # Create the feature
-                        feature_d = QgsFeature(output_fields)
-                        feature_d.setGeometry(geom)
+                        feature = QgsFeature(output_fields)
+                        feature.setGeometry(geom)
+                        feature.setAttribute("search_id", result["search_id"])
+                        feature.setAttribute("location_id", location["id"])
 
-                        feature_d.setAttribute("search_id", result["search_id"])
-                        feature_d.setAttribute("location_id", location["id"])
+                        for prop in self.enabled_properties():
+                            feature.setAttribute(
+                                "prop_" + prop, json.dumps(properties[prop])
+                            )
 
-                        feature_d.setAttribute("part_id", part["id"])
-                        feature_d.setAttribute("part_type", part["type"])
-                        feature_d.setAttribute("part_mode", part["mode"])
-                        feature_d.setAttribute("part_directions", part["directions"])
-                        feature_d.setAttribute("part_distance", part["distance"])
-                        feature_d.setAttribute("part_travel_time", part["travel_time"])
+                        sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                    else:
+                        for part in properties["route"]["parts"]:
 
-                        sink.addFeature(feature_d, QgsFeatureSink.FastInsert)
+                            # Create the geom
+                            geom = QgsLineString()
+                            for coord in part["coords"]:
+                                point = QgsPoint(coord["lng"], coord["lat"])
+                                geom.addVertex(point)
+
+                            # Create the feature
+                            feature_d = QgsFeature(output_fields)
+                            feature_d.setGeometry(geom)
+
+                            feature_d.setAttribute("search_id", result["search_id"])
+                            feature_d.setAttribute("location_id", location["id"])
+
+                            feature_d.setAttribute("part_id", part["id"])
+                            feature_d.setAttribute("part_type", part["type"])
+                            feature_d.setAttribute("part_mode", part["mode"])
+                            feature_d.setAttribute(
+                                "part_directions", part["directions"]
+                            )
+                            feature_d.setAttribute("part_distance", part["distance"])
+                            feature_d.setAttribute(
+                                "part_travel_time", part["travel_time"]
+                            )
+
+                            sink.addFeature(feature_d, QgsFeatureSink.FastInsert)
 
         feedback.pushDebugInfo("TimeFilterAlgorithm done !")
 
