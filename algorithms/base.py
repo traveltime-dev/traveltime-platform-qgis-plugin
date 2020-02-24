@@ -170,9 +170,15 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         feedback.pushDebugInfo("Making request to API endpoint...")
         print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
         if print_query:
+            headers_for_logs = dict(headers)
+            if headers_for_logs["X-Application-Id"]:
+                headers_for_logs["X-Application-Id"] = "*hidden*"
+            if headers_for_logs["X-Api-Key"]:
+                headers_for_logs["X-Api-Key"] = "*hidden*"
+
             log("Making request")
             log("url: {}".format(full_url))
-            log("headers: {}".format(headers))
+            log("headers: {}".format(headers_for_logs))
             log("params: {}".format(str(params)))
             log("data: {}".format(json_data))
 
