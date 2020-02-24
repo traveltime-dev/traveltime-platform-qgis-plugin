@@ -156,7 +156,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             "Content-type": "application/json",
             "Accept": self.accept_header,
             "User-Agent": "QGIS / {} / {}".format(
-                Qgis.QGIS_VERSION, constants.TTP_VERSION
+                Qgis.QGIS_VERSION_INT, constants.TTP_VERSION
             ),
             "X-Application-Id": APP_ID,
             "X-Api-Key": API_KEY,
