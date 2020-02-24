@@ -156,7 +156,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             "Content-type": "application/json",
             "Accept": self.accept_header,
             "User-Agent": "QGIS / {} / {}".format(
-                Qgis.QGIS_VERSION, constants.TTP_VERSION
+                Qgis.QGIS_VERSION_INT, constants.TTP_VERSION
             ),
             "X-Application-Id": APP_ID,
             "X-Api-Key": API_KEY,
@@ -170,24 +170,29 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         feedback.pushDebugInfo("Making request to API endpoint...")
         print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
         if print_query:
+            headers_for_logs = dict(headers)
+            if headers_for_logs["X-Application-Id"]:
+                headers_for_logs["X-Application-Id"] = "*hidden*"
+            if headers_for_logs["X-Api-Key"]:
+                headers_for_logs["X-Api-Key"] = "*hidden*"
+
             log("Making request")
             log("url: {}".format(full_url))
-            log("headers: {}".format(headers))
+            log("headers: {}".format(headers_for_logs))
             log("params: {}".format(str(params)))
             log("data: {}".format(json_data))
 
-        try:
-
-            disable_https = QSettings().value(
-                "traveltime_platform/disable_https", False, type=bool
-            )
-            if disable_https:
-                feedback.pushInfo(
-                    tr(
-                        "Warning ! HTTPS certificate verification is disabled. This means all data sent to the API can potentially be intercepted by an attacker."
-                    )
+        disable_https = QSettings().value(
+            "traveltime_platform/disable_https", False, type=bool
+        )
+        if disable_https:
+            feedback.pushInfo(
+                tr(
+                    "Warning ! HTTPS certificate verification is disabled. This means all data sent to the API can potentially be intercepted by an attacker."
                 )
+            )
 
+        try:
             response = cache.instance.cached_requests.request(
                 self.method,
                 full_url,
@@ -196,27 +201,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 headers=headers,
                 verify=not disable_https,
             )
-
-            if response.from_cache:
-                feedback.pushDebugInfo("Got response from cache...")
-            else:
-                feedback.pushDebugInfo("Got response from API endpoint...")
-                QSettings().setValue(
-                    "traveltime_platform/current_count",
-                    int(QSettings().value("traveltime_platform/current_count", 0)) + 1,
-                )
-
-            if print_query:
-                log("Got response")
-                log("status: {}".format(response.status_code))
-                log("reason: {}".format(response.reason))
-                log("text: {}".format(response.text))
-
-            response_data = json.loads(response.text)
             response.raise_for_status()
-
-            return response_data
-
         except requests.exceptions.HTTPError as e:
             nice_info = "\n".join(
                 "\t{}:\t{}".format(k, v)
@@ -256,6 +241,24 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             )
             log(e)
             raise QgsProcessingException("Could not connect to API") from None
+
+        if response.from_cache:
+            feedback.pushDebugInfo("Got response from cache...")
+        else:
+            feedback.pushDebugInfo("Got response from API endpoint...")
+            QSettings().setValue(
+                "traveltime_platform/current_count",
+                int(QSettings().value("traveltime_platform/current_count", 0)) + 1,
+            )
+
+        if print_query:
+            log("Got response")
+            log("status: {}".format(response.status_code))
+            log("reason: {}".format(response.reason))
+            log("text: {}".format(response.text))
+
+        try:
+            response_data = json.loads(response.text)
         except ValueError as e:
             feedback.reportError(
                 tr("Could not decode response. See log for more details."),
@@ -263,6 +266,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             )
             log(e)
             raise QgsProcessingException("Could not decode response") from None
+
+        return response_data
 
     def postProcessAlgorithm(self, context, feedback):
         # Save the metadata
