@@ -544,12 +544,11 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                                 )
                             break
                         except StopIteration:
-                            continue
-                else:
-                    # We didn't find result id in an input layer...
-                    feedback.reportError(
-                        "Couldn't find source feature for result {} (using following expression : {}).".format(result["search_id"], expr.expression())
-                    )
+                            feedback.reportError(
+                                "Couldn't find source feature for result {} (using following expression : {}).".format(
+                                    result["search_id"], expr.expression()
+                                )
+                            )
 
                 # Add a feature in the sink
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
