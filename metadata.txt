@@ -10,7 +10,7 @@ author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
 # DONT FORGET TO ALSO CHANGE THE VERSION IN constants.py
-version=1.2.0
+version=1.2.1
 
 # Optional items:
 changelog=- 2019-02-12 : version 0.1-alpha
@@ -58,6 +58,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - feature : allow to copy over fields from the input layers to the output in the TimeMap algorithm
         - fix : fixed bug preventing to use the search range parameters in TimeFilter and Route algorithms
         - fix : fixed union/intersection results with batched queries in the TimeMap algorithms
+    - 2020-02-24 : version 1.2.1
+        - fix : major bug preventing to run time map algorithms
 
 tags=travel,time,platform,api,distance
 homepage=https://qgis.traveltimeplatform.com/
