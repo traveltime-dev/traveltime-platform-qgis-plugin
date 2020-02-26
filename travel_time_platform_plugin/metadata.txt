@@ -63,6 +63,7 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - fix : queries counter
     - 2020-02-26 : version 1.2.3
         - fix : bug preventing to run geocoding
+        - deployment : switch to automated deployment
 
 tags=travel,time,platform,api,distance
 homepage=https://qgis.traveltimeplatform.com/
