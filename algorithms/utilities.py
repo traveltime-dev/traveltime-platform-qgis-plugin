@@ -222,15 +222,14 @@ class GeocodingAlgorithm(GeocodingAlgorithmBase):
     def processAlgorithmMakeGetParams(
         self, feature, source_data, parameters, context, feedback
     ):
-        focus_point = self.parameterAsPoint(parameters, "INPUT_FOCUS", context)
-        focus_point_crs = self.parameterAsPointCrs(parameters, "INPUT_FOCUS", context)
-        xform = QgsCoordinateTransform(
-            focus_point_crs, EPSG4326, context.transformContext()
-        )
         params = {"query": self.eval_expr("INPUT_QUERY_FIELD")}
-        if focus_point:
-            focus_point = xform.transform(focus_point)
-            params.update({"focus.lat": focus_point.y(), "focus.lng": focus_point.x()})
+        if self.params["INPUT_FOCUS"]:
+            params.update(
+                {
+                    "focus.lat": self.params["INPUT_FOCUS"].y(),
+                    "focus.lng": self.params["INPUT_FOCUS"].x(),
+                }
+            )
         return params
 
 

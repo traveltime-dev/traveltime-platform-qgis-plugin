@@ -6,6 +6,7 @@ from qgis.PyQt.QtCore import QSettings
 
 from qgis.core import (
     Qgis,
+    QgsCoordinateTransform,
     QgsProcessingAlgorithm,
     QgsProcessingParameterNumber,
     QgsProcessingException,
@@ -117,6 +118,14 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 param = self.parameterAsString(parameters, p.name(), context)
             elif p.type() == "field":
                 param = self.parameterAsFields(parameters, p.name(), context)
+            elif p.type() == "point":
+                param = self.parameterAsPoint(parameters, p.name(), context)
+                if param:
+                    crs = self.parameterAsPointCrs(parameters, p.name(), context)
+                    xform = QgsCoordinateTransform(
+                        crs, EPSG4326, context.transformContext()
+                    )
+                    param = xform.transform(param)
             elif p.type() == "number":
                 if p.dataType() == QgsProcessingParameterNumber.Type.Integer:
                     param = self.parameterAsInt(parameters, p.name(), context)
