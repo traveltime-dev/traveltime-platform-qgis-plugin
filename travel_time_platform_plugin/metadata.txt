@@ -8,9 +8,7 @@ about=This plugin adds a toolbar and processing algorithms allowing to query the
 category=Vector
 author=Olivier Dalang
 email=olivier.dalang@gmail.com
-
-# DONT FORGET TO ALSO CHANGE THE VERSION IN constants.py
-version=1.2.3
+version=dev
 
 # Optional items:
 changelog=- 2019-02-12 : version 0.1-alpha
