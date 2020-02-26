@@ -10,7 +10,7 @@ author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
 # DONT FORGET TO ALSO CHANGE THE VERSION IN constants.py
-version=1.2.2
+version=1.2.3
 
 # Optional items:
 changelog=- 2019-02-12 : version 0.1-alpha
@@ -63,6 +63,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
     - 2020-02-24 : version 1.2.2
         - fix : QGIS 3.12 compatibility
         - fix : queries counter
+    - 2020-02-26 : version 1.2.3
+        - fix : bug preventing to run geocoding
 
 tags=travel,time,platform,api,distance
 homepage=https://qgis.traveltimeplatform.com/
