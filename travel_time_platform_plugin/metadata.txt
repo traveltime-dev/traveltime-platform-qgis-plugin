@@ -8,9 +8,7 @@ about=This plugin adds a toolbar and processing algorithms allowing to query the
 category=Vector
 author=Olivier Dalang
 email=olivier.dalang@gmail.com
-
-# DONT FORGET TO ALSO CHANGE THE VERSION IN constants.py
-version=1.2.2
+version=dev
 
 # Optional items:
 changelog=- 2019-02-12 : version 0.1-alpha
@@ -63,6 +61,9 @@ changelog=- 2019-02-12 : version 0.1-alpha
     - 2020-02-24 : version 1.2.2
         - fix : QGIS 3.12 compatibility
         - fix : queries counter
+    - 2020-02-26 : version 1.2.3
+        - fix : bug preventing to run geocoding
+        - deployment : switch to automated deployment
 
 tags=travel,time,platform,api,distance
 homepage=https://qgis.traveltimeplatform.com/
