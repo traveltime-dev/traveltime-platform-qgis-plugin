@@ -65,7 +65,7 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - fix : bug preventing to run geocoding
         - deployment : switch to automated deployment
 
-tags=travel,time,platform,api,distance
+tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing
 homepage=https://qgis.traveltimeplatform.com/
 tracker=https://github.com/igeolise/traveltime-platform-qgis-plugin/issues
 repository=https://github.com/igeolise/traveltime-platform-qgis-plugin
