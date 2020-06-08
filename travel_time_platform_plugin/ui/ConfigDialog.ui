@@ -77,6 +77,16 @@
       <item row="2" column="1">
        <widget class="QgsPasswordLineEdit" name="apiKeyLineEdit"/>
       </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="QLabel" name="apiKeyHelpLabel">
+        <property name="styleSheet">
+         <string notr="true">font-style:italic;color:gray;</string>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please get in contact &lt;a href=&quot;https://traveltimeform.typeform.com/to/vQ06ln&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;here&lt;/span&gt;&lt;/a&gt; to enquire about Commercial and Permanent Free licences&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

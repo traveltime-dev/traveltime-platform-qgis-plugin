@@ -36,6 +36,8 @@ class ConfigDialog(QDialog):
         self.buttonBox.accepted.connect(self.accept)
         self.clearCacheButton.pressed.connect(self.clear_cache)
         self.endpointResetButton.pressed.connect(self.reset_endpoint)
+        self.apiKeyHelpLabel.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.apiKeyHelpLabel.setOpenExternalLinks(True)
 
     def showEvent(self, *args, **kwargs):
         super().showEvent(*args, **kwargs)
@@ -64,7 +66,7 @@ class ConfigDialog(QDialog):
         self.refresh_cache_label()
 
     def get_key(self):
-        webbrowser.open("http://docs.traveltimeplatform.com/overview/getting-keys/")
+        webbrowser.open("https://docs.traveltime.com/qgis/sign-up/")
 
     def reset_count(self):
         QSettings().setValue("traveltime_platform/current_count", 0)

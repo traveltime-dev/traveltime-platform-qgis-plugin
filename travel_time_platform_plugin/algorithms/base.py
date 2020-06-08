@@ -201,17 +201,29 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 )
             )
 
+        response = cache.instance.cached_requests.request(
+            self.method,
+            full_url,
+            data=json_data,
+            params=params,
+            headers=headers,
+            verify=not disable_https,
+        )
+
         try:
-            response = cache.instance.cached_requests.request(
-                self.method,
-                full_url,
-                data=json_data,
-                params=params,
-                headers=headers,
-                verify=not disable_https,
+            response_data = json.loads(response.text)
+        except ValueError as e:
+            feedback.reportError(
+                tr("Could not decode response. See log for more details."),
+                fatalError=True,
             )
+            log(e)
+            raise QgsProcessingException("Could not decode response") from None
+
+        try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
+
             nice_info = "\n".join(
                 "\t{}:\t{}".format(k, v)
                 for k, v in response_data["additional_info"].items()
@@ -265,16 +277,6 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             log("status: {}".format(response.status_code))
             log("reason: {}".format(response.reason))
             log("text: {}".format(response.text))
-
-        try:
-            response_data = json.loads(response.text)
-        except ValueError as e:
-            feedback.reportError(
-                tr("Could not decode response. See log for more details."),
-                fatalError=True,
-            )
-            log(e)
-            raise QgsProcessingException("Could not decode response") from None
 
         return response_data
 
