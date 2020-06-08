@@ -150,7 +150,9 @@ class ExpressActionToolBase(ExpressActionBase):
 
         if hasattr(self.widget, "travelTimeSpinBox"):
             travel_time = self.widget.travelTimeSpinBox.value() * 60
+            walking_time = min(900, travel_time)
             params.update({"INPUT_" + DEPARR + "_TRAVEL_TIME": travel_time})
+            params.update({"INPUT_" + DEPARR + "_TRNSPT_WALKING_TIME": walking_time})
 
         return params
 
