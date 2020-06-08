@@ -230,7 +230,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             )
             feedback.reportError(
                 tr(
-                    "Recieved error from the API.\nError code : {}\nDescription : {}\nSee : {}\nAddtionnal info :\n{}"
+                    "Received error from the API.\nError code : {}\nDescription : {}\nSee : {}\nAddtionnal info :\n{}"
                 ).format(
                     response_data["error_code"],
                     response_data["description"],
