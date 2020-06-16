@@ -67,6 +67,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
     - 2020-06-08 : version 1.3.0
         - fix : express map tool with low travel times
         - fix : default walking time for simple map tools defaults to 900
+    - 2020-06-16 : version 1.3.1
+        - changed : updated help URL
 
 tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing
 homepage=https://qgis.traveltimeplatform.com/

@@ -149,7 +149,7 @@ class SplashScreen(QDialog):
 
 class HelpWidget(QWidget):
 
-    home = "https://igeolise.github.io/traveltime-platform-qgis-plugin/index.html#help-contents"
+    home = "https://hubs.ly/H0rnCjY0"
 
     def __init__(self, main, *args, **kwargs):
         super().__init__(*args, **kwargs)
