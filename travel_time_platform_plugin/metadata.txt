@@ -69,11 +69,13 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - fix : default walking time for simple map tools defaults to 900
     - 2020-06-16 : version 1.3.1
         - changed : updated help URL
+    - 2020-06-16 : version 1.3.2
+        - no changes (metadata only update)
 
-tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing
+tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing,polygon,polygons,network analysis,shortest path
 homepage=https://qgis.traveltimeplatform.com/
 tracker=https://github.com/igeolise/traveltime-platform-qgis-plugin/issues
 repository=https://github.com/igeolise/traveltime-platform-qgis-plugin
-icon=resources/icons/general.svg
+icon=icon.png
 experimental=False
 deprecated=False
