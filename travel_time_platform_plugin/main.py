@@ -237,5 +237,7 @@ class Main:
 
     def current_layer_changed(self, layer):
         self.action_rerun.setEnabled(
-            layer is not None and ("TTP_VERSION" in layer.metadata().keywords())
+            layer is not None
+            and hasattr(layer.metadata(), "keywords")
+            and ("TTP_VERSION" in layer.metadata().keywords())
         )
