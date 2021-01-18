@@ -104,7 +104,7 @@ class GeocodingAlgorithmBase(AlgorithmBase):
         ]
         for attr in response_attributes:
             output_fields.append(
-                QgsField("geocoded_" + attr, QVariant.String, "text", 255)
+                QgsField("geocoded_" + attr, QVariant.String, "text")
             )
 
         (sink, sink_id) = self.parameterAsSink(
@@ -157,7 +157,7 @@ class GeocodingAlgorithmBase(AlgorithmBase):
                 # Add our attributes
                 props = result["properties"]
                 for attr in response_attributes:
-                    output_fields.append(QgsField(attr, QVariant.String, "text", 255))
+                    output_fields.append(QgsField(attr, QVariant.String, "text"))
                     newfeature.setAttribute(
                         "geocoded_" + attr, props[attr] if attr in props else None
                     )

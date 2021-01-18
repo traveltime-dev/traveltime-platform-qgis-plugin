@@ -481,10 +481,10 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
     def processAlgorithmOutput(self, results, parameters, context, feedback):
         output_fields = QgsFields()
 
-        output_fields.append(QgsField("id", QVariant.String, "text", 255))
+        output_fields.append(QgsField("id", QVariant.String, "text"))
 
         for prop in self.enabled_properties():
-            output_fields.append(QgsField("prop_" + prop, QVariant.String, "text", 255))
+            output_fields.append(QgsField("prop_" + prop, QVariant.String, "text"))
 
         for deparr in ["departure", "arrival"]:
             DEPARR = deparr.upper()
@@ -746,11 +746,11 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         locations = self.params["INPUT_LOCATIONS"]
 
         output_fields = QgsFields(locations.fields())
-        output_fields.append(QgsField("search_id", QVariant.String, "text", 255))
-        output_fields.append(QgsField("reachable", QVariant.Int, "int", 255))
+        output_fields.append(QgsField("search_id", QVariant.String, "text"))
+        output_fields.append(QgsField("reachable", QVariant.Int, "int"))
 
         for prop in self.enabled_properties():
-            output_fields.append(QgsField("prop_" + prop, QVariant.String, "text", 255))
+            output_fields.append(QgsField("prop_" + prop, QVariant.String, "text"))
 
         output_crs = locations.sourceCrs()
         output_type = locations.wkbType()
@@ -989,23 +989,23 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
     def processAlgorithmOutput(self, results, parameters, context, feedback):
         output_fields = QgsFields()
         result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
-        output_fields.append(QgsField("search_id", QVariant.String, "text", 255))
-        output_fields.append(QgsField("location_id", QVariant.String, "text", 255))
+        output_fields.append(QgsField("search_id", QVariant.String, "text"))
+        output_fields.append(QgsField("location_id", QVariant.String, "text"))
 
         if result_type == "BY_ROUTE" or result_type == "BY_DURATION":
             for prop in self.enabled_properties():
                 output_fields.append(
-                    QgsField("prop_" + prop, QVariant.String, "text", 255)
+                    QgsField("prop_" + prop, QVariant.String, "text")
                 )
         else:
-            output_fields.append(QgsField("part_id", QVariant.Int, "int", 255))
-            output_fields.append(QgsField("part_type", QVariant.String, "text", 255))
-            output_fields.append(QgsField("part_mode", QVariant.String, "text", 255))
+            output_fields.append(QgsField("part_id", QVariant.Int, "int"))
+            output_fields.append(QgsField("part_type", QVariant.String, "text"))
+            output_fields.append(QgsField("part_mode", QVariant.String, "text"))
             output_fields.append(
-                QgsField("part_directions", QVariant.String, "text", 255)
+                QgsField("part_directions", QVariant.String, "text")
             )
-            output_fields.append(QgsField("part_distance", QVariant.Int, "int", 255))
-            output_fields.append(QgsField("part_travel_time", QVariant.Int, "int", 255))
+            output_fields.append(QgsField("part_distance", QVariant.Int, "int"))
+            output_fields.append(QgsField("part_travel_time", QVariant.Int, "int"))
 
         output_crs = EPSG4326
         output_type = QgsWkbTypes.LineString
