@@ -565,6 +565,9 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                         aggregate_geom = aggregate_geom.intersection(geom)
                     else:
                         raise Exception("Unsupported aggregation operator")
+                    # If we got a geometry collection (probaby because of polygons just touching creating points or lines)
+                    # we filter them out and only keep polygons
+                    aggregate_geom.convertGeometryCollectionToSubclass(QgsWkbTypes.PolygonGeometry)
 
         if result_type != "NORMAL":
             feature = QgsFeature(output_fields)
