@@ -77,6 +77,7 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - fix : intersection sometimes prevented time map algorithm to work
     - xxxx-xx-xx : version 1.4.0
         - changed : updated tiles urls
+        - fix : geocoder now returns unmatched features
 
 tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing,polygon,polygons,network analysis,shortest path
 homepage=https://qgis.traveltimeplatform.com/

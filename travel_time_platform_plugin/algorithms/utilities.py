@@ -147,6 +147,10 @@ class GeocodingAlgorithmBase(AlgorithmBase):
                     key=lambda f: -f["properties"]["score"],
                 )[0:1]
 
+            # If there were no results, we add an empty row to create a feature
+            if len(results) == 0:
+                results.append(None)
+
             for result in results:
                 newfeature = QgsFeature(output_fields)
 
@@ -154,21 +158,22 @@ class GeocodingAlgorithmBase(AlgorithmBase):
                 for i in range(len(source_data.fields())):
                     newfeature.setAttribute(i, feature.attribute(i))
 
-                # Add our attributes
-                props = result["properties"]
-                for attr in response_attributes:
-                    output_fields.append(QgsField(attr, QVariant.String, "text"))
-                    newfeature.setAttribute(
-                        "geocoded_" + attr, props[attr] if attr in props else None
-                    )
+                if result is not None:
+                    # Add our attributes
+                    props = result["properties"]
+                    for attr in response_attributes:
+                        output_fields.append(QgsField(attr, QVariant.String, "text"))
+                        newfeature.setAttribute(
+                            "geocoded_" + attr, props[attr] if attr in props else None
+                        )
 
-                # Add our geometry
-                newfeature.setGeometry(
-                    QgsPoint(
-                        result["geometry"]["coordinates"][0],
-                        result["geometry"]["coordinates"][1],
+                    # Add our geometry
+                    newfeature.setGeometry(
+                        QgsPoint(
+                            result["geometry"]["coordinates"][0],
+                            result["geometry"]["coordinates"][1],
+                        )
                     )
-                )
 
                 sink.addFeature(newfeature, QgsFeatureSink.FastInsert)
 
