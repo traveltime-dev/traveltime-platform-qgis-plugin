@@ -13,22 +13,7 @@ from qgis.core import QgsRasterLayer, QgsProject, Qgis
 class TilesManager:
 
     tiles = {
-        "dark-matter": {
-            "label": tr("Dark Matter"),
-            "resource": resources.tiles_preview_darkmatter,
-        },
-        "positron": {
-            "label": tr("Positron"),
-            "resource": resources.tiles_preview_positron,
-        },
-        "klokantech-basic": {
-            "label": tr("Klokantech-Basic"),
-            "resource": resources.tiles_preview_klokantech,
-        },
-        "osm-bright": {
-            "label": tr("OSM Bright"),
-            "resource": resources.tiles_preview_osm,
-        },
+        "lux": tr("Lux"),
     }
 
     def __init__(self, main):
@@ -39,7 +24,7 @@ class TilesManager:
         disable_https = QSettings().value(
             "traveltime_platform/disable_https", False, type=bool
         )
-        return "https://tiles.traveltimeplatform.com/styles/{identifier}/{{z}}/{{x}}/{{y}}.png?key={app_id}&client=QGIS".format(
+        return "https://tiles.traveltime.com/{identifier}/{{z}}/{{x}}/{{y}}.png?key={app_id}&client=QGIS".format(
             app_id=app_id, identifier=identifier, verify=not disable_https
         )
 
@@ -59,15 +44,16 @@ class TilesManager:
             )
         else:
 
-            for identifier, tile in self.tiles.items():
+            for identifier, label in self.tiles.items():
                 url = self._get_url(identifier)
-                label = "TravelTime - " + tile["label"]
+                label = "TravelTime - " + label
 
                 settings_base = "qgis/connections-xyz/" + label
 
                 QSettings().setValue(settings_base + "/url", url)
                 QSettings().setValue(settings_base + "/zmax", 20)
                 QSettings().setValue(settings_base + "/zmin", 0)
+                QSettings().setValue(settings_base + "/tilePixelRatio", 2)
 
                 # Update GUI
                 self.main.iface.reloadConnections()

@@ -27,8 +27,3 @@ icon_time_filter_express = icon("icons/timefilter_express.svg")
 icon_time_map_advanced = icon("icons/timemap_advanced.svg")
 icon_time_map_simple = icon("icons/timemap_simple.svg")
 icon_time_map_express = icon("icons/timemap_express.svg")
-
-tiles_preview_darkmatter = icon("tiles_previews/dark-matter.png")
-tiles_preview_klokantech = icon("tiles_previews/klokantech-basic.png")
-tiles_preview_osm = icon("tiles_previews/osm-bright.png")
-tiles_preview_positron = icon("tiles_previews/positron.png")

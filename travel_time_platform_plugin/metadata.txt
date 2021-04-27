@@ -75,6 +75,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - fix : python exception in certain circumstances when changing active layer
         - fix : max field length prevents correct output
         - fix : intersection sometimes prevented time map algorithm to work
+    - xxxx-xx-xx : version 1.4.0
+        - changed : updated tiles urls
 
 tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing,polygon,polygons,network analysis,shortest path
 homepage=https://qgis.traveltimeplatform.com/
