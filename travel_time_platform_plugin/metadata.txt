@@ -75,7 +75,7 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - fix : python exception in certain circumstances when changing active layer
         - fix : max field length prevents correct output
         - fix : intersection sometimes prevented time map algorithm to work
-    - xxxx-xx-xx : version 1.4.0
+    - 2021-04-27 : version 1.4.0
         - changed : updated tiles urls
         - fix : geocoder now returns unmatched features
 
