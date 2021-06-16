@@ -145,6 +145,8 @@ The main settings dialog can be open using the ![](images/icons/settings.svg#ico
 
 **Clear cache** : this button allows to clear the request cache. All requests are saved to a cache file, to avoid the need of hitting the API if an identical request was already made. By clearing the cache, all saved queries will be deleted. This shouldn't be necessary unless you have a very high usage of the application and the cache file gets too big.
 
+**Throttle API calls** : when enabled, the plugin will check how many calls were made to the API during the last minute. If above the provided threshold, the plugin will wait before sending the next query to avoid hitting the limit. Use this option if you prefer to avoid API limit errors from interrupting your workflows.
+
 **Log API calls to the message logs** : this settings makes the plugin log all requests and responses to the QGIS Message Log, allowing to inspect what's happening in case you encounter errors.
 
 **Disable HTTPS certificate verification** : under certain circumstances (such as connection from an enterprise network), requests made from Python may fail because the SSL certificates can not be verified. If this happens, you can disable the verification by checking this box. Please be aware that this makes your requests to the API more vulnerable to interception by an attacker.

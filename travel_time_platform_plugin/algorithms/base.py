@@ -1,8 +1,10 @@
 import requests
 import json
+import time
 import os
 import collections
 from qgis.PyQt.QtCore import QSettings
+from qgis.PyQt.QtTest import QTest
 
 from qgis.core import (
     Qgis,
@@ -201,14 +203,23 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 )
             )
 
-        response = cache.instance.cached_requests.request(
+        request = requests.Request(
             self.method,
             full_url,
             data=json_data,
             params=params,
             headers=headers,
-            verify=not disable_https,
+        ).prepare()
+
+        cached = cache.instance.cached_requests.cache.has_key(
+            cache.instance.cached_requests.cache.create_key(request)
         )
+        if not cached:
+            throttling = cache.instance.throttling_info()
+            log(f"Throttling query ({throttling} s)")
+            QTest.qWait(throttling * 1000)
+
+        response = cache.instance.cached_requests.send(request, verify=not disable_https)
 
         try:
             response_data = json.loads(response.text)
