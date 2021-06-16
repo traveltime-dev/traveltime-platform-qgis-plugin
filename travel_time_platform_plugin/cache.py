@@ -1,6 +1,7 @@
+from datetime import timedelta, datetime
 import os
 
-from qgis.PyQt.QtCore import QCoreApplication, QStandardPaths
+from qgis.PyQt.QtCore import QCoreApplication, QStandardPaths, QSettings
 
 from .libraries import requests_cache
 
@@ -41,6 +42,35 @@ class Cache:
             expire_after=86400,
             allowable_methods=("GET", "POST"),
         )
+
+    def throttling_info(self):
+        """
+        Returns how long we must wait in seconds before next request according to throttling settings
+        """
+        throttle = QSettings().value("traveltime_platform/throttle_calls_enabled", False, type=bool)
+        throttle_value = QSettings().value("traveltime_platform/throttle_calls_value", 300, type=int)
+
+        if not throttle:
+            return False
+
+        date = datetime.utcnow() - timedelta(seconds=60)
+        oldest = datetime.utcnow()
+        count = 0
+        for key in self.cached_requests.cache.responses:
+            try:
+                response, created_at = self.cached_requests.cache.responses[key]
+            except KeyError:
+                continue
+            if created_at >= date:
+                oldest = min(oldest, created_at)
+                count += 1
+
+        if count < throttle_value:
+            return False
+
+        return (datetime.utcnow() - oldest).seconds
+
+
 
 
 instance = Cache()

@@ -1,6 +1,6 @@
 import os
 import webbrowser
-from qgis.PyQt.QtCore import Qt, QSettings, QDateTime, QDate, QTime, QUrl
+from qgis.PyQt.QtCore import Qt, QSettings, QDateTime, QDate, QTime, QUrl, QSettings
 from qgis.PyQt.QtWidgets import QDialog, QDateTimeEdit, QWidget
 from qgis.PyQt import uic
 
@@ -38,6 +38,7 @@ class ConfigDialog(QDialog):
         self.endpointResetButton.pressed.connect(self.reset_endpoint)
         self.apiKeyHelpLabel.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.apiKeyHelpLabel.setOpenExternalLinks(True)
+        self.throttleCallsCheckBox.toggled.connect(self.throttleCallsSpinBox.setEnabled)
 
     def showEvent(self, *args, **kwargs):
         super().showEvent(*args, **kwargs)
@@ -61,6 +62,13 @@ class ConfigDialog(QDialog):
         # disable https
         self.disableHttpsCheckBox.setChecked(
             s.value("traveltime_platform/disable_https", False, type=bool)
+        )
+        # throttling
+        self.throttleCallsCheckBox.setChecked(
+            s.value("traveltime_platform/throttle_calls_enabled", False, type=bool)
+        )
+        self.throttleCallsSpinBox.setValue(
+            s.value("traveltime_platform/throttle_calls_value", 300, type=int)
         )
         # refresh current cache
         self.refresh_cache_label()
@@ -109,6 +117,9 @@ class ConfigDialog(QDialog):
         s.setValue(
             "traveltime_platform/disable_https", self.disableHttpsCheckBox.isChecked()
         )
+        # throttling
+        s.setValue("traveltime_platform/throttle_calls_enabled", self.throttleCallsCheckBox.isChecked())
+        s.setValue("traveltime_platform/throttle_calls_value", self.throttleCallsSpinBox.value())
         # endpoint
         s.setValue("traveltime_platform/custom_endpoint", self.endpointLineEdit.text())
 
