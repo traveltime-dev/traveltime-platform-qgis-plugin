@@ -383,6 +383,10 @@ class _SearchAlgorithmBase(AlgorithmBase):
                     # feedback.setProgress(int(current * total))
         return data
 
+    def processAlgorithmComputeSearchCountForThrottling(self, data):
+        """Returns how many searches the request will take for throttling"""
+        return len(data.get("departure_searches", [])) + len(data.get("arrival_searches", []))
+
     def enabled_properties(self):
         """Returns the list of properties that are enabled"""
         return [
@@ -466,7 +470,6 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
             # Remix the data as needed
             data = self.processAlgorithmRemixData(data, parameters, context, feedback)
 
-            # Make the query
             response_data = self.processAlgorithmMakeRequest(
                 parameters, context, feedback, data=data
             )

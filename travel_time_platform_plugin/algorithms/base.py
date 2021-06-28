@@ -1,7 +1,5 @@
 import requests
 import json
-import time
-import os
 import collections
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtTest import QTest
@@ -26,7 +24,7 @@ from .. import constants
 from .. import auth
 from .. import cache
 
-from ..utils import tr, log
+from ..utils import tr, log, throttler
 
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
@@ -145,6 +143,12 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
             self.params[p.name()] = param
 
+    def processAlgorithmComputeSearchCountForThrottling(self, data):
+        """Returns how many searches the request will take for throttling"""
+
+        # By default, we count 1 search
+        return 1
+
     def processAlgorithmMakeRequest(
         self, parameters, context, feedback, data=None, params={}
     ):
@@ -215,11 +219,26 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             cache.instance.cached_requests.cache.create_key(request)
         )
         if not cached:
-            throttling = cache.instance.throttling_info()
-            log(f"Throttling query ({throttling} s)")
-            QTest.qWait(throttling * 1000)
+            # Throttling the query if needed
+            searches_count = self.processAlgorithmComputeSearchCountForThrottling(data)
+            throttling, recent_seaches_count = throttler.throttle_query(searches_count)
 
-        response = cache.instance.cached_requests.send(request, verify=not disable_https)
+            if throttling > 0:
+                feedback.pushInfo(
+                    tr(
+                        "Throttling next {} searches for {}s ({} searches made in the last {}s)"
+                    ).format(
+                        searches_count,
+                        round(throttling),
+                        recent_seaches_count,
+                        throttler.DURATION,
+                    )
+                )
+                QTest.qWait(round(throttling * 1000))
+
+        response = cache.instance.cached_requests.send(
+            request, verify=not disable_https
+        )
 
         try:
             response_data = json.loads(response.text)

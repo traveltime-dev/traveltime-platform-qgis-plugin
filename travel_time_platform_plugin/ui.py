@@ -11,14 +11,12 @@ try:
 except (ModuleNotFoundError, ImportError):
     webkit_available = False
 
-from processing.gui.AlgorithmDialog import AlgorithmDialog
 from processing.gui.wrappers import WidgetWrapper
 
 from . import constants
-from . import algorithms
 from . import auth
 from . import cache
-from .utils import tr, log
+from .utils import tr
 
 
 HELP_DIR = os.path.join(os.path.dirname(__file__), "docs")
@@ -65,10 +63,10 @@ class ConfigDialog(QDialog):
         )
         # throttling
         self.throttleCallsCheckBox.setChecked(
-            s.value("traveltime_platform/throttle_calls_enabled", False, type=bool)
+            s.value("traveltime_platform/throttling_enabled", False, type=bool)
         )
         self.throttleCallsSpinBox.setValue(
-            s.value("traveltime_platform/throttle_calls_value", 300, type=int)
+            s.value("traveltime_platform/throttling_max_searches_count", 300, type=int)
         )
         # refresh current cache
         self.refresh_cache_label()
@@ -118,8 +116,8 @@ class ConfigDialog(QDialog):
             "traveltime_platform/disable_https", self.disableHttpsCheckBox.isChecked()
         )
         # throttling
-        s.setValue("traveltime_platform/throttle_calls_enabled", self.throttleCallsCheckBox.isChecked())
-        s.setValue("traveltime_platform/throttle_calls_value", self.throttleCallsSpinBox.value())
+        s.setValue("traveltime_platform/throttling_enabled", self.throttleCallsCheckBox.isChecked())
+        s.setValue("traveltime_platform/throttling_max_searches_count", self.throttleCallsSpinBox.value())
         # endpoint
         s.setValue("traveltime_platform/custom_endpoint", self.endpointLineEdit.text())
 

@@ -1,7 +1,8 @@
-import datetime
 import time
+from datetime import datetime, timedelta, timezone
+from datetime import timedelta, datetime
 
-from qgis.PyQt.QtCore import QCoreApplication, QTimeZone
+from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTimeZone
 
 from qgis.core import (
     QgsFeature,
@@ -23,11 +24,11 @@ def now_iso():
     thanks https://stackoverflow.com/a/28147286"""
 
     utc_offset_sec = time.altzone if time.localtime().tm_isdst else time.timezone
-    utc_offset = datetime.timedelta(seconds=-utc_offset_sec)
-    now = datetime.datetime.now()
+    utc_offset = timedelta(seconds=-utc_offset_sec)
+    now = datetime.now()
     return (
-        datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour)
-        .replace(tzinfo=datetime.timezone(offset=utc_offset))
+        datetime(year=now.year, month=now.month, day=now.day, hour=now.hour)
+        .replace(tzinfo=timezone(offset=utc_offset))
         .isoformat()
     )
 
@@ -58,3 +59,57 @@ def log(msg):
 
 def tr(string):
     return QCoreApplication.translate("@default", string)
+
+
+class Throttler:
+
+    DURATION = 60
+
+    def __init__(self):
+        self.queries = []
+
+    def throttle_query(self, new_search_count):
+        """
+        Returns 2-uple (throttle_time_in_seconds, recent_seaches_count) required for making new requests according to settings.
+        """
+
+        throttle = QSettings().value(
+            "traveltime_platform/throttling_enabled", False, type=bool
+        )
+        if not throttle:
+            return
+
+        max_searches_count = QSettings().value(
+            "traveltime_platform/throttling_max_searches_count", 300, type=int
+        )
+
+        threshold = datetime.now() - timedelta(seconds=Throttler.DURATION)
+
+        # Prune old entries
+        self.queries = sorted([t for t in self.queries if t[0] >= threshold])
+
+        # Add the searches
+        self.queries.append((datetime.now(), new_search_count))
+
+        # See if we must throttle
+        recent_searches_count = sum(v[1] for v in self.queries)
+        if recent_searches_count > max_searches_count:
+
+            # See how long we must throttle
+            tot = 0
+            for q in self.queries:
+                tot += q[1]
+                if tot >= new_search_count:
+                    throttle = (
+                        Throttler.DURATION - (datetime.now() - q[0]).total_seconds()
+                    )
+                    break
+            else:
+                throttle = Throttler.DURATION
+
+            return throttle, recent_searches_count
+
+        return 0, recent_searches_count
+
+
+throttler = Throttler()
