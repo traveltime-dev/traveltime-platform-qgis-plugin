@@ -35,6 +35,8 @@ class GeocodingAlgorithmBase(AlgorithmBase):
 
     def initAlgorithm(self, config):
 
+        super().initAlgorithm(config)
+
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 "INPUT_DATA", tr("Input data"), [self.input_type]

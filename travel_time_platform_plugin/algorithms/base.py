@@ -1,10 +1,17 @@
 import requests
 import json
 import collections
+import json
+
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtTest import QTest
-
 from qgis.core import (
+    QgsMessageLog,
+    QgsCoordinateTransform,
+    QgsProcessingParameterEnum,
+    QgsProcessingParameterNumber,
+    QgsExpression,
+    QgsProcessingUtils,
     Qgis,
     QgsCoordinateTransform,
     QgsProcessingAlgorithm,
@@ -41,6 +48,9 @@ TRANSPORTATION_TYPES = [
     "driving+ferry",
     "cycling+ferry",
 ]
+THROTTLING_PER_SETTINGS = "PER_SETTINGS"
+THROTTLING_DISABLED = "DISABLED"
+THROTTLING_STRATEGIES = [THROTTLING_PER_SETTINGS, THROTTLING_DISABLED]
 COUNTRIES = [(None, "-")] + list([(c.alpha2, c.name) for c in iso3166.countries])
 
 
@@ -80,6 +90,21 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             return self.params[key].evaluate(self.expressions_context)
         else:
             return None
+
+    def initAlgorithm(self, config):
+        QgsMessageLog.logMessage("TEST")
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                "INPUT_THROTTLING_STRATEGY",
+                "Throggling strategy",
+                THROTTLING_STRATEGIES,
+                defaultValue=THROTTLING_PER_SETTINGS,
+            ),
+            advanced=True,
+            help_text=tr(
+                "Set which throttling strategy to use : either as per settings, or disabled."
+            ),
+        )
 
     def processAlgorithm(self, parameters, context, feedback):
         feedback.pushDebugInfo(
@@ -218,7 +243,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         cached = cache.instance.cached_requests.cache.has_key(
             cache.instance.cached_requests.cache.create_key(request)
         )
-        if not cached:
+        throttling_disabled = (
+            THROTTLING_STRATEGIES[self.params["INPUT_THROTTLING_STRATEGY"]]
+            == THROTTLING_DISABLED
+        )
+        if not throttling_disabled and not cached:
             # Throttling the query if needed
             searches_count = self.processAlgorithmComputeSearchCountForThrottling(data)
             throttling, recent_seaches_count = throttler.throttle_query(searches_count)

@@ -21,6 +21,8 @@ from qgis.core import (
     QgsCategorizedSymbolRenderer,
 )
 
+from .base import THROTTLING_DISABLED, THROTTLING_STRATEGIES
+
 import processing
 
 from .. import resources
@@ -112,6 +114,7 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             "INPUT_{}_SEARCHES".format(mode): search_layer,
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
             "INPUT_{}_TIME".format(mode): "'" + time.toString(Qt.ISODate) + "'",
+            "INPUT_THROTTLING_STRATEGY": THROTTLING_STRATEGIES.index(THROTTLING_DISABLED),
             "OUTPUT": "memory:results",
         }
 

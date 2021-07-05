@@ -70,6 +70,8 @@ class _SearchAlgorithmBase(AlgorithmBase):
         processing algorithm by the time-filter and routes subclasses.
         """
 
+        super().initAlgorithm(config)
+
         for DEPARR in ["DEPARTURE", "ARRIVAL"]:
             self.addParameter(
                 QgsProcessingParameterFeatureSource(

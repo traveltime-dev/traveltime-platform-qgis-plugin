@@ -38,6 +38,7 @@ from qgis.PyQt import uic
 
 import processing
 
+from .algorithms.base import THROTTLING_DISABLED, THROTTLING_STRATEGIES
 from .utils import tr, log, EPSG4326
 from . import resources
 
@@ -145,6 +146,7 @@ class ExpressActionToolBase(ExpressActionBase):
             "INPUT_" + DEPARR + "_SEARCHES": input_layer,
             "INPUT_" + DEPARR + "_TIME": "'" + time + "'",
             "INPUT_" + DEPARR + "_TRNSPT_TYPE": "'" + transpt_type + "'",
+            "INPUT_THROTTLING_STRATEGY": THROTTLING_STRATEGIES.index(THROTTLING_DISABLED),
             "OUTPUT": "memory:",
         }
 
