@@ -1155,33 +1155,45 @@ class TimeMapAlgorithmDeparture(TimeMapAlgorithm):
     SEARCH_TYPES = ["DEPARTURE"]
     _name = "time_map_departure"
     _displayName = "Time Map (by departure)"
+    _group = "Advanced (by departure)"
+    _groupId = "advanced_departure"
 
 
 class TimeFilterAlgorithmDeparture(TimeFilterAlgorithm):
     SEARCH_TYPES = ["DEPARTURE"]
     _name = "time_filter_departure"
     _displayName = "Time Filter (by departure)"
+    _group = "Advanced (by departure)"
+    _groupId = "advanced_departure"
 
 
 class RoutesAlgorithmDeparture(RoutesAlgorithm):
     SEARCH_TYPES = ["DEPARTURE"]
     _name = "routes_departure"
     _displayName = "Routes (by departure)"
+    _group = "Advanced (by departure)"
+    _groupId = "advanced_departure"
 
 
 class TimeMapAlgorithmArrival(TimeMapAlgorithm):
     SEARCH_TYPES = ["ARRIVAL"]
     _name = "time_map_arrival"
     _displayName = "Time Map (by arrival)"
+    _group = "Advanced (by arrival)"
+    _groupId = "advanced_arrival"
 
 
 class TimeFilterAlgorithmArrival(TimeFilterAlgorithm):
     SEARCH_TYPES = ["ARRIVAL"]
     _name = "time_filter_arrival"
     _displayName = "Time Filter (by arrival)"
+    _group = "Advanced (by arrival)"
+    _groupId = "advanced_arrival"
 
 
 class RoutesAlgorithmArrival(RoutesAlgorithm):
     SEARCH_TYPES = ["ARRIVAL"]
     _name = "routes_arrival"
     _displayName = "Routes (by arrival)"
+    _group = "Advanced (by arrival)"
+    _groupId = "advanced_arrival"
