@@ -16,6 +16,10 @@ The documentation is available here : https://qgis.traveltimeplatform.com/
 
 Please report any issue to the bug tracker.
 
+## Code style
+
+Formatting is done with `pre-commit`. Please run `pip install pre-commit` and `pre-commit install` prior to contributing.
+
 ## Translations
 
 To update the translations :
