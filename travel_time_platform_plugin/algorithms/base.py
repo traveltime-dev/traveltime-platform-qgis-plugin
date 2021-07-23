@@ -9,7 +9,6 @@ from qgis.core import (
     QgsExpression,
     QgsLayerMetadata,
     QgsMapLayer,
-    QgsMessageLog,
     QgsProcessingAlgorithm,
     QgsProcessingException,
     QgsProcessingParameterDefinition,
@@ -82,7 +81,6 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             return None
 
     def initAlgorithm(self, config):
-        QgsMessageLog.logMessage("TEST")
         self.addParameter(
             QgsProcessingParameterEnum(
                 "INPUT_THROTTLING_STRATEGY",
