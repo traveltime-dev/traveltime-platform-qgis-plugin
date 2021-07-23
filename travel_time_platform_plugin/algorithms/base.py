@@ -86,7 +86,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterEnum(
                 "INPUT_THROTTLING_STRATEGY",
-                "Throggling strategy",
+                "Throttling strategy",
                 THROTTLING_STRATEGIES,
                 defaultValue=THROTTLING_PER_SETTINGS,
             ),
