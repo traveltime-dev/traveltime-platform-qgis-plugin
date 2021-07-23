@@ -14,6 +14,7 @@ from qgis.core import (
     QgsProcessingParameterEnum,
     QgsProcessingParameterFeatureSink,
     QgsProcessingParameterFeatureSource,
+    QgsProcessingParameterField,
     QgsProcessingParameterNumber,
     QgsProcessingUtils,
     QgsRendererCategory,
@@ -189,6 +190,9 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
                 "INPUT_{}_TRNSPT_WALKING_TIME".format(mode): str(
                     min(900, self.params["INPUT_TRAVEL_TIME"] * 60)
                 ),
+                "INPUT_{}_EXISTING_FIELDS_TO_KEEP".format(mode): self.params[
+                    "INPUT_EXISTING_FIELDS_TO_KEEP"
+                ],
                 "OUTPUT_RESULT_TYPE": self.params["OUTPUT_RESULT_TYPE"],
             }
         )
@@ -208,6 +212,18 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
                 minValue=0,
                 maxValue=240,
             )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                "INPUT_EXISTING_FIELDS_TO_KEEP",
+                "Fields to keep",
+                optional=True,
+                allowMultiple=True,
+                parentLayerParameterName="INPUT_SEARCHES",
+            ),
+            advanced=True,
+            help_text=tr("Set which fields should be joined back in the output layer."),
         )
 
         self.addParameter(
