@@ -74,7 +74,7 @@ class Throttler:
             "traveltime_platform/throttling_enabled", False, type=bool
         )
         if not throttle:
-            return
+            return 0, -1
 
         max_searches_count = QSettings().value(
             "traveltime_platform/throttling_max_searches_count", 300, type=int
