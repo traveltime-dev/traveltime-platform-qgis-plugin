@@ -47,6 +47,7 @@ class _SearchAlgorithmBase(AlgorithmBase):
     """Base class for the algorithms that share properties such as departure/arrival_searches"""
 
     available_properties = {}
+    SEARCH_TYPES = ["DEPARTURE", "ARRIVAL"]
 
     def initAlgorithm(self, config):
         """Base setup of the algorithm.
@@ -69,7 +70,7 @@ class _SearchAlgorithmBase(AlgorithmBase):
 
         super().initAlgorithm(config)
 
-        for DEPARR in ["DEPARTURE", "ARRIVAL"]:
+        for DEPARR in self.SEARCH_TYPES:
             self.addParameter(
                 QgsProcessingParameterFeatureSource(
                     "INPUT_" + DEPARR + "_SEARCHES",
@@ -280,12 +281,12 @@ class _SearchAlgorithmBase(AlgorithmBase):
 
         departure_count = (
             self.params["INPUT_DEPARTURE_SEARCHES"].featureCount()
-            if self.params["INPUT_DEPARTURE_SEARCHES"]
+            if self.params.get("INPUT_DEPARTURE_SEARCHES")
             else 0
         )
         arrival_count = (
             self.params["INPUT_ARRIVAL_SEARCHES"].featureCount()
-            if self.params["INPUT_ARRIVAL_SEARCHES"]
+            if self.params.get("INPUT_ARRIVAL_SEARCHES")
             else 0
         )
 
@@ -310,7 +311,7 @@ class _SearchAlgorithmBase(AlgorithmBase):
         The slicing_start/end params allow to prepare just a slice, to conform to API limitation (for now 10 searches/query)
         """
         data = {}
-        for DEPARR in ["DEPARTURE", "ARRIVAL"]:
+        for DEPARR in self.SEARCH_TYPES:
             source = self.params["INPUT_" + DEPARR + "_SEARCHES"]
             deparr = DEPARR.lower()
             if source:
@@ -420,7 +421,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         # Define all common DEPARTURE and ARRIVAL parameters
         super().initAlgorithm(config)
 
-        for DEPARR in ["DEPARTURE", "ARRIVAL"]:
+        for DEPARR in self.SEARCH_TYPES:
             self.addParameter(
                 QgsProcessingParameterField(
                     "INPUT_" + DEPARR + "_EXISTING_FIELDS_TO_KEEP",
@@ -492,7 +493,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         for prop in self.enabled_properties():
             output_fields.append(QgsField("prop_" + prop, QVariant.String, "text"))
 
-        for deparr in ["departure", "arrival"]:
+        for deparr in [st.lower() for st in self.SEARCH_TYPES]:
             DEPARR = deparr.upper()
             input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
             if not input_layer:
@@ -528,7 +529,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 feature.setGeometry(QgsGeometry.fromWkt(result["shape"]))
 
                 # dirty section where we join back columns from the input layer
-                for deparr in ["departure", "arrival"]:
+                for deparr in [st.lower() for st in self.SEARCH_TYPES]:
                     DEPARR = deparr.upper()
                     input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
                     if (
@@ -1148,3 +1149,39 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
                     }
                 )
                 yield slice_
+
+
+class TimeMapAlgorithmDeparture(TimeMapAlgorithm):
+    SEARCH_TYPES = ["DEPARTURE"]
+    _name = "time_map_departure"
+    _displayName = "Time Map (by departure)"
+
+
+class TimeFilterAlgorithmDeparture(TimeFilterAlgorithm):
+    SEARCH_TYPES = ["DEPARTURE"]
+    _name = "time_filter_departure"
+    _displayName = "Time Filter (by departure)"
+
+
+class RoutesAlgorithmDeparture(RoutesAlgorithm):
+    SEARCH_TYPES = ["DEPARTURE"]
+    _name = "routes_departure"
+    _displayName = "Routes (by departure)"
+
+
+class TimeMapAlgorithmArrival(TimeMapAlgorithm):
+    SEARCH_TYPES = ["ARRIVAL"]
+    _name = "time_map_arrival"
+    _displayName = "Time Map (by arrival)"
+
+
+class TimeFilterAlgorithmArrival(TimeFilterAlgorithm):
+    SEARCH_TYPES = ["ARRIVAL"]
+    _name = "time_filter_arrival"
+    _displayName = "Time Filter (by arrival)"
+
+
+class RoutesAlgorithmArrival(RoutesAlgorithm):
+    SEARCH_TYPES = ["ARRIVAL"]
+    _name = "routes_arrival"
+    _displayName = "Routes (by arrival)"
