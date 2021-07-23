@@ -1,4 +1,5 @@
-import os, configparser
+import configparser
+import os
 
 metadata = configparser.ConfigParser()
 metadata.read(os.path.join(os.path.dirname(__file__), "metadata.txt"))

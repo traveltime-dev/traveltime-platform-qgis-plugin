@@ -1,8 +1,6 @@
 from qgis.core import QgsProcessingProvider
 
-from . import algorithms
-from .utils import tr
-from . import resources
+from . import algorithms, resources
 
 
 class Provider(QgsProcessingProvider):

@@ -1,46 +1,29 @@
 import os
-from functools import partial
-from qgis.PyQt.QtCore import Qt, QDateTime, QEvent, QPoint, QVariant, QPoint
-from qgis.PyQt.QtGui import QMouseEvent
-from qgis.PyQt.QtWidgets import (
-    QAction,
-    QWidget,
-    QWidgetAction,
-    QMenu,
-    QVBoxLayout,
-    QPushButton,
-    QLineEdit,
-    QToolBar,
-)
-
-from qgis.core import (
-    QgsApplication,
-    QgsProcessingContext,
-    QgsProcessingFeedback,
-    QgsProcessingAlgRunnerTask,
-    QgsProcessingException,
-    Qgis,
-    QgsVectorLayer,
-    QgsFeature,
-    QgsGeometry,
-    QgsProject,
-    QgsProcessingFeedback,
-    QgsFeatureRequest,
-    QgsWkbTypes,
-    QgsMapLayer,
-    QgsPointXY,
-    QgsField,
-    QgsCoordinateTransform,
-    QgsReferencedPointXY,
-)
-from qgis.gui import QgsMapToolEmitPoint, QgsVertexMarker, QgsMapMouseEvent
-from qgis.PyQt import uic
 
 import processing
+from qgis.core import (
+    Qgis,
+    QgsCoordinateTransform,
+    QgsFeature,
+    QgsField,
+    QgsGeometry,
+    QgsMapLayer,
+    QgsPointXY,
+    QgsProcessingException,
+    QgsProcessingFeedback,
+    QgsProject,
+    QgsReferencedPointXY,
+    QgsVectorLayer,
+    QgsWkbTypes,
+)
+from qgis.gui import QgsMapMouseEvent, QgsMapToolEmitPoint, QgsVertexMarker
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import QDateTime, QEvent, Qt, QVariant
+from qgis.PyQt.QtWidgets import QAction, QMenu, QWidget, QWidgetAction
 
-from .algorithms.base import THROTTLING_DISABLED, THROTTLING_STRATEGIES
-from .utils import tr, log, EPSG4326
 from . import resources
+from .algorithms.base import THROTTLING_DISABLED, THROTTLING_STRATEGIES
+from .utils import log, tr
 
 
 def pointToLayer(coords):
@@ -146,7 +129,9 @@ class ExpressActionToolBase(ExpressActionBase):
             "INPUT_" + DEPARR + "_SEARCHES": input_layer,
             "INPUT_" + DEPARR + "_TIME": "'" + time + "'",
             "INPUT_" + DEPARR + "_TRNSPT_TYPE": "'" + transpt_type + "'",
-            "INPUT_THROTTLING_STRATEGY": THROTTLING_STRATEGIES.index(THROTTLING_DISABLED),
+            "INPUT_THROTTLING_STRATEGY": THROTTLING_STRATEGIES.index(
+                THROTTLING_DISABLED
+            ),
             "OUTPUT": "memory:",
         }
 

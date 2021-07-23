@@ -1,13 +1,9 @@
-import datetime
 import requests
-import webbrowser
+from qgis.core import Qgis
+from qgis.PyQt.QtCore import QSettings
 
 from . import auth
-from . import resources
-from .utils import log, tr
-
-from qgis.PyQt.QtCore import QSettings
-from qgis.core import QgsRasterLayer, QgsProject, Qgis
+from .utils import tr
 
 
 class TilesManager:

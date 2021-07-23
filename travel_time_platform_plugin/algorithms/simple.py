@@ -1,38 +1,30 @@
 import os
 import random
 
-from qgis.PyQt.QtCore import Qt, QDateTime, QTimeZone
-from qgis.PyQt.QtGui import QColor
-
+import processing
 from qgis.core import (
-    QgsProcessing,
-    QgsProcessingParameterBoolean,
-    QgsProcessingParameterFeatureSource,
-    QgsProcessingParameterFeatureSink,
-    QgsProcessingParameterEnum,
-    QgsProcessingParameterNumber,
-    QgsFeature,
-    QgsFeatureRequest,
-    QgsProcessingUtils,
+    QgsCategorizedSymbolRenderer,
     QgsExpression,
     QgsExpressionContext,
+    QgsFeature,
+    QgsFeatureRequest,
     QgsLineSymbol,
+    QgsProcessing,
+    QgsProcessingParameterBoolean,
+    QgsProcessingParameterEnum,
+    QgsProcessingParameterFeatureSink,
+    QgsProcessingParameterFeatureSource,
+    QgsProcessingParameterNumber,
+    QgsProcessingUtils,
     QgsRendererCategory,
-    QgsCategorizedSymbolRenderer,
 )
+from qgis.PyQt.QtCore import QDateTime, Qt, QTimeZone
+from qgis.PyQt.QtGui import QColor
 
-from .base import THROTTLING_DISABLED, THROTTLING_STRATEGIES
-
-import processing
-
-from .. import resources
-from .. import parameters
-
-from .. import utils
+from .. import parameters, resources, utils
 from ..utils import tr
-
-from .base import AlgorithmBase
-from .advanced import TimeMapAlgorithm, TimeFilterAlgorithm, RoutesAlgorithm
+from .advanced import RoutesAlgorithm, TimeFilterAlgorithm, TimeMapAlgorithm
+from .base import THROTTLING_DISABLED, THROTTLING_STRATEGIES, AlgorithmBase
 
 TRANSPORTATION_TYPES = [
     "cycling",
@@ -114,7 +106,9 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             "INPUT_{}_SEARCHES".format(mode): search_layer,
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
             "INPUT_{}_TIME".format(mode): "'" + time.toString(Qt.ISODate) + "'",
-            "INPUT_THROTTLING_STRATEGY": THROTTLING_STRATEGIES.index(THROTTLING_DISABLED),
+            "INPUT_THROTTLING_STRATEGY": THROTTLING_STRATEGIES.index(
+                THROTTLING_DISABLED
+            ),
             "OUTPUT": "memory:results",
         }
 

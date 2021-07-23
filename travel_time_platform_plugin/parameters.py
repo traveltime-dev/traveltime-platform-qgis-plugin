@@ -1,4 +1,5 @@
 from qgis.core import QgsProcessingParameterString
+
 from .ui import IsoDateTimeWidgetWrapper
 
 # Custom parameter types

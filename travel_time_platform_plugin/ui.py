@@ -1,8 +1,9 @@
 import os
 import webbrowser
-from qgis.PyQt.QtCore import Qt, QSettings, QDateTime, QDate, QTime, QUrl, QSettings
-from qgis.PyQt.QtWidgets import QDialog, QDateTimeEdit, QWidget
+
 from qgis.PyQt import uic
+from qgis.PyQt.QtCore import QDate, QDateTime, QSettings, Qt, QTime, QUrl
+from qgis.PyQt.QtWidgets import QDateTimeEdit, QDialog, QWidget
 
 try:
     from qgis.PyQt.QtWebKitWidgets import QWebView
@@ -13,11 +14,8 @@ except (ModuleNotFoundError, ImportError):
 
 from processing.gui.wrappers import WidgetWrapper
 
-from . import constants
-from . import auth
-from . import cache
+from . import auth, cache, constants
 from .utils import tr
-
 
 HELP_DIR = os.path.join(os.path.dirname(__file__), "docs")
 
@@ -116,8 +114,14 @@ class ConfigDialog(QDialog):
             "traveltime_platform/disable_https", self.disableHttpsCheckBox.isChecked()
         )
         # throttling
-        s.setValue("traveltime_platform/throttling_enabled", self.throttleCallsCheckBox.isChecked())
-        s.setValue("traveltime_platform/throttling_max_searches_count", self.throttleCallsSpinBox.value())
+        s.setValue(
+            "traveltime_platform/throttling_enabled",
+            self.throttleCallsCheckBox.isChecked(),
+        )
+        s.setValue(
+            "traveltime_platform/throttling_max_searches_count",
+            self.throttleCallsSpinBox.value(),
+        )
         # endpoint
         s.setValue("traveltime_platform/custom_endpoint", self.endpointLineEdit.text())
 

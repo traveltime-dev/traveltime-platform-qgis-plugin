@@ -1,45 +1,30 @@
-import os.path
-import requests
-import functools
 import json
+import os.path
 
+import processing
+from qgis.core import Qgis, QgsApplication
+from qgis.gui import QgsFilterLineEdit
 from qgis.PyQt.QtCore import (
-    Qt,
-    QSettings,
     QCoreApplication,
     QLocale,
-    QTranslator,
+    QSettings,
     QSize,
-    QItemSelectionModel,
+    Qt,
+    QTranslator,
 )
 from qgis.PyQt.QtWidgets import (
     QAction,
-    QLabel,
     QDockWidget,
-    QMessageBox,
-    QInputDialog,
     QLineEdit,
     QPushButton,
-    QToolButton,
-    QMenu,
-    QDockWidget,
-    QWidget,
     QSplitter,
     QTreeView,
+    QWidget,
 )
-from qgis.core import Qgis, QgsApplication
-from qgis.gui import QgsFilterLineEdit
 
-import processing
-
+from . import express, resources, tiles, ui
 from .provider import Provider
-from .utils import tr, log
-from . import resources
-from . import auth
-from . import ui
-from . import express
-from . import auth
-from . import tiles
+from .utils import tr
 
 
 class Main:

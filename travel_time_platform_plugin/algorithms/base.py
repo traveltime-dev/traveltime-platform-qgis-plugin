@@ -1,38 +1,28 @@
-import requests
-import json
 import collections
 import json
 
-from qgis.PyQt.QtCore import QSettings
-from qgis.PyQt.QtTest import QTest
+import requests
 from qgis.core import (
-    QgsMessageLog,
-    QgsCoordinateTransform,
-    QgsProcessingParameterEnum,
-    QgsProcessingParameterNumber,
-    QgsExpression,
-    QgsProcessingUtils,
     Qgis,
-    QgsCoordinateTransform,
-    QgsProcessingAlgorithm,
-    QgsProcessingParameterNumber,
-    QgsProcessingException,
-    QgsProcessingParameterDefinition,
-    QgsProcessingUtils,
     QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform,
     QgsExpression,
     QgsLayerMetadata,
     QgsMapLayer,
+    QgsMessageLog,
+    QgsProcessingAlgorithm,
+    QgsProcessingException,
+    QgsProcessingParameterDefinition,
+    QgsProcessingParameterEnum,
+    QgsProcessingParameterNumber,
+    QgsProcessingUtils,
 )
+from qgis.PyQt.QtCore import QSettings
+from qgis.PyQt.QtTest import QTest
 
+from .. import auth, cache, constants
 from ..libraries import iso3166
-
-from .. import constants
-from .. import auth
-from .. import cache
-
-from ..utils import tr, log, throttler
-
+from ..utils import log, throttler, tr
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
 TRANSPORTATION_TYPES = [

@@ -32,4 +32,3 @@ Which contains detailed information about all aspects of the plugin, from instal
 - **[Issue tracker](https://github.com/igeolise/traveltime-platform-qgis-plugin/issues)**
 - **[Contact us](https://www.traveltimeplatform.com/contact-us)**
 - **[QGIS help resources](https://docs.qgis.org/3.4/en/docs/training_manual/index.html)**
-

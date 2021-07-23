@@ -1,44 +1,41 @@
 import json
-import os
 import math
+import os
 import random
+
+from qgis.core import (
+    NULL,
+    QgsCategorizedSymbolRenderer,
+    QgsCoordinateTransform,
+    QgsExpression,
+    QgsExpressionContext,
+    QgsFeature,
+    QgsFeatureRequest,
+    QgsFeatureSink,
+    QgsField,
+    QgsFields,
+    QgsGeometry,
+    QgsLineString,
+    QgsLineSymbol,
+    QgsPoint,
+    QgsProcessing,
+    QgsProcessingParameterBoolean,
+    QgsProcessingParameterEnum,
+    QgsProcessingParameterExpression,
+    QgsProcessingParameterFeatureSink,
+    QgsProcessingParameterFeatureSource,
+    QgsProcessingParameterField,
+    QgsProcessingParameterNumber,
+    QgsProcessingUtils,
+    QgsRendererCategory,
+    QgsWkbTypes,
+)
 from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtGui import QColor
 
-from qgis.core import (
-    QgsFeatureSink,
-    QgsCoordinateTransform,
-    QgsProcessing,
-    QgsProcessingParameterBoolean,
-    QgsProcessingParameterFeatureSource,
-    QgsProcessingParameterFeatureSink,
-    QgsProcessingParameterExpression,
-    QgsProcessingParameterEnum,
-    QgsProcessingParameterNumber,
-    QgsProcessingParameterField,
-    QgsWkbTypes,
-    QgsPoint,
-    QgsLineString,
-    QgsFields,
-    QgsField,
-    QgsFeature,
-    QgsGeometry,
-    QgsExpression,
-    QgsExpressionContext,
-    QgsFeatureRequest,
-    QgsProcessingUtils,
-    QgsCategorizedSymbolRenderer,
-    QgsLineSymbol,
-    QgsRendererCategory,
-    NULL,
-)
-
-from .. import resources
-from .. import utils
-
+from .. import resources, utils
 from ..utils import tr
-
-from .base import AlgorithmBase, EPSG4326
+from .base import EPSG4326, AlgorithmBase
 
 # Constants to define behaviour of available properties
 PROPERTY_DEFAULT_NO = 0
@@ -387,7 +384,9 @@ class _SearchAlgorithmBase(AlgorithmBase):
 
     def processAlgorithmComputeSearchCountForThrottling(self, data):
         """Returns how many searches the request will take for throttling"""
-        return len(data.get("departure_searches", [])) + len(data.get("arrival_searches", []))
+        return len(data.get("departure_searches", [])) + len(
+            data.get("arrival_searches", [])
+        )
 
     def enabled_properties(self):
         """Returns the list of properties that are enabled"""
@@ -424,14 +423,16 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         for DEPARR in ["DEPARTURE", "ARRIVAL"]:
             self.addParameter(
                 QgsProcessingParameterField(
-                    "INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP",
+                    "INPUT_" + DEPARR + "_EXISTING_FIELDS_TO_KEEP",
                     "{} / [fields to keep]".format(DEPARR.title()),
                     optional=True,
                     allowMultiple=True,
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
                 ),
                 advanced=True,
-                help_text=tr("Set which fields should be joined back in the output layer."),
+                help_text=tr(
+                    "Set which fields should be joined back in the output layer."
+                ),
             )
 
         # Define additional input parameters
@@ -496,7 +497,9 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
             input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
             if not input_layer:
                 continue
-            for field_name in self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
+            for field_name in self.params[
+                "INPUT_" + DEPARR + "_EXISTING_FIELDS_TO_KEEP"
+            ]:
                 old_field = input_layer.fields().field(field_name)
                 new_field = QgsField(old_field)
                 new_field.setName("original_" + deparr + "_" + old_field.name())
@@ -528,11 +531,17 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 for deparr in ["departure", "arrival"]:
                     DEPARR = deparr.upper()
                     input_layer = self.params["INPUT_" + DEPARR + "_SEARCHES"]
-                    if input_layer and self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
+                    if (
+                        input_layer
+                        and self.params["INPUT_" + DEPARR + "_EXISTING_FIELDS_TO_KEEP"]
+                    ):
 
                         expr = QgsExpression(
                             "{expr} = '{id}'".format(
-                                expr=self.params["INPUT_" + DEPARR + "_ID"].expression(), id=result["search_id"],
+                                expr=self.params[
+                                    "INPUT_" + DEPARR + "_ID"
+                                ].expression(),
+                                id=result["search_id"],
                             )
                         )
 
@@ -542,7 +551,9 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                         )
                         try:
                             existing_feature = existing_features.__next__()
-                            for field_name in self.params["INPUT_" + DEPARR +"_EXISTING_FIELDS_TO_KEEP"]:
+                            for field_name in self.params[
+                                "INPUT_" + DEPARR + "_EXISTING_FIELDS_TO_KEEP"
+                            ]:
                                 feature.setAttribute(
                                     "original_" + deparr + "_" + field_name,
                                     existing_feature.attribute(field_name),
@@ -572,7 +583,9 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                         raise Exception("Unsupported aggregation operator")
                     # If we got a geometry collection (probaby because of polygons just touching creating points or lines)
                     # we filter them out and only keep polygons
-                    aggregate_geom.convertGeometryCollectionToSubclass(QgsWkbTypes.PolygonGeometry)
+                    aggregate_geom.convertGeometryCollectionToSubclass(
+                        QgsWkbTypes.PolygonGeometry
+                    )
 
         if result_type != "NORMAL":
             feature = QgsFeature(output_fields)
@@ -1002,16 +1015,12 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
 
         if result_type == "BY_ROUTE" or result_type == "BY_DURATION":
             for prop in self.enabled_properties():
-                output_fields.append(
-                    QgsField("prop_" + prop, QVariant.String, "text")
-                )
+                output_fields.append(QgsField("prop_" + prop, QVariant.String, "text"))
         else:
             output_fields.append(QgsField("part_id", QVariant.Int, "int"))
             output_fields.append(QgsField("part_type", QVariant.String, "text"))
             output_fields.append(QgsField("part_mode", QVariant.String, "text"))
-            output_fields.append(
-                QgsField("part_directions", QVariant.String, "text")
-            )
+            output_fields.append(QgsField("part_directions", QVariant.String, "text"))
             output_fields.append(QgsField("part_distance", QVariant.Int, "int"))
             output_fields.append(QgsField("part_travel_time", QVariant.Int, "int"))
 

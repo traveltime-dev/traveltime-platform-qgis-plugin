@@ -1,16 +1,13 @@
 import time
 from datetime import datetime, timedelta, timezone
-from datetime import timedelta, datetime
-
-from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTimeZone
 
 from qgis.core import (
+    QgsCoordinateReferenceSystem,
     QgsFeature,
     QgsGeometry,
     QgsMessageLog,
-    QgsCoordinateReferenceSystem,
 )
-
+from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTimeZone
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
 

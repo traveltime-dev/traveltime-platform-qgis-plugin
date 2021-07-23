@@ -1,29 +1,24 @@
-from qgis.PyQt.QtCore import QVariant
-
 from qgis.core import (
-    QgsFeatureSink,
     QgsCoordinateTransform,
+    QgsFeature,
+    QgsFeatureSink,
+    QgsField,
+    QgsFields,
+    QgsPoint,
     QgsProcessing,
-    QgsProcessingParameterFeatureSource,
-    QgsProcessingParameterFeatureSink,
-    QgsProcessingParameterExpression,
     QgsProcessingParameterEnum,
+    QgsProcessingParameterExpression,
+    QgsProcessingParameterFeatureSink,
+    QgsProcessingParameterFeatureSource,
     QgsProcessingParameterPoint,
     QgsWkbTypes,
-    QgsPoint,
-    QgsFields,
-    QgsField,
-    QgsFeature,
 )
-
-from ..libraries import iso3166
+from qgis.PyQt.QtCore import QVariant
 
 from .. import resources
-
+from ..libraries import iso3166
 from ..utils import tr
-
-from .base import AlgorithmBase, EPSG4326
-
+from .base import EPSG4326, AlgorithmBase
 
 COUNTRIES = [(None, "-")] + list([(c.alpha2, c.name) for c in iso3166.countries])
 
@@ -105,9 +100,7 @@ class GeocodingAlgorithmBase(AlgorithmBase):
             "continent",
         ]
         for attr in response_attributes:
-            output_fields.append(
-                QgsField("geocoded_" + attr, QVariant.String, "text")
-            )
+            output_fields.append(QgsField("geocoded_" + attr, QVariant.String, "text"))
 
         (sink, sink_id) = self.parameterAsSink(
             parameters, "OUTPUT", context, output_fields, QgsWkbTypes.Point, EPSG4326
