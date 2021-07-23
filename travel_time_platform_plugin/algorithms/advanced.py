@@ -3,6 +3,7 @@ import math
 import os
 import random
 
+from processing.gui.AlgorithmDialog import AlgorithmDialog
 from qgis.core import (
     NULL,
     QgsCategorizedSymbolRenderer,
@@ -395,6 +396,12 @@ class _SearchAlgorithmBase(AlgorithmBase):
             for prop, behaviour in self.available_properties.items()
             if behaviour == PROPERTY_ALWAYS or self.params["PROPERTIES_" + prop.upper()]
         ]
+
+    def createCustomParametersWidget(self, parent):
+        dlg = AlgorithmDialog(self, parent=parent)
+        # Here we can customize the widget
+        dlg.setStyleSheet("background-color: #F00")
+        return dlg
 
 
 class TimeMapAlgorithm(_SearchAlgorithmBase):
