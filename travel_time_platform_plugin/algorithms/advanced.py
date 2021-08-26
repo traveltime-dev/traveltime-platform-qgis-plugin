@@ -70,10 +70,11 @@ class _SearchAlgorithmBase(AlgorithmBase):
         super().initAlgorithm(config)
 
         for DEPARR in ["DEPARTURE", "ARRIVAL"]:
+            spacing = "<br><br>" if DEPARR == "ARRIVAL" else ""
             self.addParameter(
                 QgsProcessingParameterFeatureSource(
                     "INPUT_" + DEPARR + "_SEARCHES",
-                    "{} / Searches".format(DEPARR.title()),
+                    f"{spacing}<b>{DEPARR.title()}</b><br><br>{DEPARR.title()} / Searches",
                     [QgsProcessing.TypeVectorPoint],
                     optional=True,
                 ),
@@ -439,7 +440,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         self.addParameter(
             QgsProcessingParameterEnum(
                 "OUTPUT_RESULT_TYPE",
-                tr("Result aggregation"),
+                f"<br><br><b>{tr('Output options')}</b><br><br>{tr('Result aggregation')}",
                 options=self.RESULT_TYPE,
                 defaultValue=0,
             ),
@@ -650,7 +651,7 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 "INPUT_LOCATIONS",
-                tr("Locations"),
+                f"<br><br><b>{tr('Locations')}</b><br><br>{tr('Locations')}",
                 [QgsProcessing.TypeVectorPoint],
                 optional=False,
             ),
@@ -879,7 +880,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 "INPUT_LOCATIONS",
-                tr("Locations"),
+                f"<br><br><b>{tr('Locations')}</b><br><br>{tr('Locations')}",
                 [QgsProcessing.TypeVectorPoint],
                 optional=False,
             ),
@@ -904,7 +905,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         self.addParameter(
             QgsProcessingParameterEnum(
                 "OUTPUT_RESULT_TYPE",
-                tr("Output style"),
+                f"<br><br><b>{tr('Output options')}</b><br><br>{tr('Output style')}",
                 options=self.RESULT_TYPE,
                 defaultValue=0,
             ),
