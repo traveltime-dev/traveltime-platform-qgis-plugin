@@ -25,7 +25,7 @@ from qgis.PyQt.QtGui import QColor
 from .. import parameters, resources, utils
 from ..utils import tr
 from .advanced import RoutesAlgorithm, TimeFilterAlgorithm, TimeMapAlgorithm
-from .base import THROTTLING_DISABLED, THROTTLING_STRATEGIES, AlgorithmBase
+from .base import THROTTLING_PER_SETTINGS, THROTTLING_STRATEGIES, AlgorithmBase
 
 TRANSPORTATION_TYPES = [
     "cycling",
@@ -108,7 +108,7 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
             "INPUT_{}_TIME".format(mode): "'" + time.toString(Qt.ISODate) + "'",
             "INPUT_THROTTLING_STRATEGY": THROTTLING_STRATEGIES.index(
-                THROTTLING_DISABLED
+                THROTTLING_PER_SETTINGS
             ),
             "OUTPUT": "memory:results",
         }

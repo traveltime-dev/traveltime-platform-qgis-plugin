@@ -82,6 +82,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - feature : added throttling to avoid API overflow
         - feature : add fields to keep parameter to simple time map
         - feature : improve GUI of algorithms
+    - 2021-09-13 : version 1.5.1
+        - fix : fix throttling for simple tools
 
 tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing,polygon,polygons,network analysis,shortest path
 homepage=https://qgis.traveltimeplatform.com/

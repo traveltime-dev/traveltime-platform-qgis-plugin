@@ -1,4 +1,5 @@
 import collections
+import datetime
 import json
 
 import requests
@@ -241,7 +242,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             throttling, recent_seaches_count = throttler.throttle_query(searches_count)
 
             if throttling > 0:
-                feedback.pushInfo(
+                feedback.pushWarning(
                     tr(
                         "Throttling next {} searches for {}s ({} searches made in the last {}s)"
                     ).format(
@@ -251,7 +252,13 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                         throttler.DURATION,
                     )
                 )
-                QTest.qWait(round(throttling * 1000))
+                wait_until = datetime.datetime.now() + datetime.timedelta(
+                    seconds=throttling
+                )
+                while datetime.datetime.now() <= wait_until:
+                    if feedback.isCanceled():
+                        raise QgsProcessingException("Canceled by user") from None
+                    QTest.qWait(100)
 
         response = cache.instance.cached_requests.send(
             request, verify=not disable_https
