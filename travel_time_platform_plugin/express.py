@@ -261,6 +261,9 @@ class ExpressGeoclickAction(ExpressActionBase):
             "OUTPUT_RESULT_TYPE": 1,
             "INPUT_QUERY_FIELD": '"address"',
             "INPUT_FOCUS": center,
+            "INPUT_THROTTLING_STRATEGY": THROTTLING_STRATEGIES.index(
+                THROTTLING_DISABLED
+            ),
             "OUTPUT": "memory:",
         }
 
