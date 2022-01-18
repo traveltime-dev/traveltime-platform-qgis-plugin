@@ -331,11 +331,17 @@ The `[fields to keep]` parameter allows to specify fields from the inputs to kee
 
 #### Differences with the API
 
+**Spatial operations**
+
 In the API, it is possible to specify which intersections or unions to compute. This doesn't work well with typical GIS tabular inputs, so that this algorithm only allows to compute the INTERSECTION or UNION on all inputs.
 
 Consider using this algorithm in conjunction with other QGIS algorithms if you need advanced INTERSECTION or UNION features.
 
 Besides, while the API supports INTERSECTION and UNION of searches, the plugin performs these operations locally in order to work when batching queries. This means there may be minor differences in results geometries.
+
+**Fixing geometries**
+
+It happens that the API returns invalid geometries. While usually making no visible difference, invalid geometries can cause issues when further processing the features. The algorithm by default fixes all geometries in a post-processing step. In most cases, this option should be left enabled.
 
 ### ![](images/icons/timefilter_advanced.svg#icon) Time filter (Advanced)
 

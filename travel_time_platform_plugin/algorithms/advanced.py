@@ -3,8 +3,10 @@ import math
 import os
 import random
 
+from processing.gui.AlgorithmExecutor import execute_in_place
 from qgis.core import (
     NULL,
+    QgsApplication,
     QgsCategorizedSymbolRenderer,
     QgsCoordinateTransform,
     QgsExpression,
@@ -448,6 +450,16 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
             ),
         )
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                "OUTPUT_FIX_GEOMETRIES",
+                f"Fix geometries",
+                defaultValue=True,
+            ),
+            help_text=tr(
+                "Whether to fix invalid geometries in the post-processing step. Most of time, this should be enabled."
+            ),
+        )
 
         self.removeParameter("INPUT_SEARCH_RANGE_MAX_RESULTS")
 
@@ -603,18 +615,28 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
 
     def postProcessAlgorithm(self, context, feedback):
 
-        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
+        output_layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
 
+        # Run fix geometries in place
+        if self.params["OUTPUT_FIX_GEOMETRIES"]:
+            feedback.pushDebugInfo("Running fixgeometries")
+            registry = QgsApplication.instance().processingRegistry()
+            params = {"INPUT": output_layer}
+            execute_in_place(registry.algorithmById("native:fixgeometries"), params)
+            output_layer.removeSelection()
+            if output_layer.isEditable():
+                output_layer.commitChanges()
+
+        # Load style
+        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
         if result_type == "NORMAL":
             style_file = "style_time.qml"
         elif result_type == "UNION":
             style_file = "style_time_union.qml"
         elif result_type == "INTERSECTION":
             style_file = "style_time_intersection.qml"
-
-        style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
-        QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(
-            style_path
+        output_layer.loadNamedStyle(
+            os.path.join(os.path.dirname(__file__), "styles", style_file)
         )
 
         return super().postProcessAlgorithm(context, feedback)

@@ -86,6 +86,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - fix : fix throttling for simple tools
     - 2021-09-29 : version 1.5.2
         - fix : fix geoclick
+    - 2022-01-18 : version 1.6.0
+        - feature : include geometry cleanup step
 
 tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing,polygon,polygons,network analysis,shortest path
 homepage=https://qgis.traveltimeplatform.com/
