@@ -247,6 +247,10 @@ It can be used to get information such as a service area polygon based on travel
 - UNION will return the union of all polygons for all departure/arrivals searches.
 - INTERSECTION will return the intersection of all departure/arrival searches.
 
+**Robust mode:**
+
+By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
+
 **Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
 
 ### ![](images/icons/timefilter_simple.svg#icon) Time filter (Simplified)
@@ -277,6 +281,10 @@ It can be used to get filter a point layer using a time search.
 
 **Load fares information:** Load informations about fares in the resulting attributes.
 
+**Robust mode:**
+
+By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
+
 **Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
 
 ### ![](images/icons/route_simple.svg#icon) Route (Simplified)
@@ -304,6 +312,10 @@ It can be used to get the best routes between two sets of points.
 **Locations:** The points layer to search from.
 
 **Load fares information:** Load informations about fares in the resulting attributes.
+
+**Robust mode:**
+
+By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
 
 **Output style:**
 
@@ -343,6 +355,10 @@ Besides, while the API supports INTERSECTION and UNION of searches, the plugin p
 
 It happens that the API returns invalid geometries. While usually making no visible difference, invalid geometries can cause issues when further processing the features. The algorithm by default fixes all geometries in a post-processing step. In most cases, this option should be left enabled.
 
+**Robust mode**
+
+By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
+
 ### ![](images/icons/timefilter_advanced.svg#icon) Time filter (Advanced)
 
 The parameters match closely the API. They are best documented on [the API documentation](http://docs.traveltimeplatform.com/reference/time-filter/).
@@ -351,7 +367,13 @@ All parameters are expressions, which allow you to freely use the QGIS expressio
 
 #### Differences with the API
 
+**Searches and locations**
+
 In the API, all coordinates are to be provided in the `locations` parameter, and then searches specify locations ids. As this doesn't suit well GIS workflows, the algorithm separates source for searches and for location.
+
+**Robust mode**
+
+By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
 
 ### ![](images/icons/route_advanced.svg#icon) Route (Advanced)
 
@@ -361,7 +383,13 @@ All parameters are expressions, which allow you to freely use the QGIS expressio
 
 #### Differences with the API
 
+**Searches and locations**
+
 In the API, all coordinates are to be provided in the `locations` parameter, and then searches specify locations ids. As this doesn't suit well GIS workflows, the algorithm separates source for searches and for location.
+
+**Robust mode**
+
+By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
 
 ### ![](images/icons/geocoding.svg#icon) Geocoding
 

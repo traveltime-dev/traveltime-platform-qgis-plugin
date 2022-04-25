@@ -21,6 +21,7 @@ from qgis.core import (
     QgsLineSymbol,
     QgsPoint,
     QgsProcessing,
+    QgsProcessingException,
     QgsProcessingParameterBoolean,
     QgsProcessingParameterEnum,
     QgsProcessingParameterExpression,
@@ -258,6 +259,19 @@ class _SearchAlgorithmBase(AlgorithmBase):
                 ).format(prop),
             )
 
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                "INPUT_ROBUST_MODE",
+                "Robust mode",
+                optional=True,
+                defaultValue=False,
+            ),
+            advanced=True,
+            help_text=tr(
+                "Ignore error instead of failing. This will consume your API quota much faster as searches won't be batched, and may yield incomplete results."
+            ),
+        )
+
         # Define output parameters
         self.addParameter(
             QgsProcessingParameterFeatureSink(
@@ -292,7 +306,7 @@ class _SearchAlgorithmBase(AlgorithmBase):
             else 0
         )
 
-        slicing_size = 10
+        slicing_size = 1 if self.params["INPUT_ROBUST_MODE"] else 10
         slicing_count = math.ceil(max(departure_count, arrival_count) / slicing_size)
 
         for i in range(slicing_count):
@@ -390,6 +404,31 @@ class _SearchAlgorithmBase(AlgorithmBase):
         return len(data.get("departure_searches", [])) + len(
             data.get("arrival_searches", [])
         )
+
+    def processAlgorithmMakeRequest(
+        self, parameters, context, feedback, data=None, params={}
+    ):
+        """Calls AlgorithmBase.processAlgorithmMakeRequest but optionally catching exception"""
+
+        try:
+            return super().processAlgorithmMakeRequest(
+                parameters, context, feedback, data, params
+            )
+        except QgsProcessingException as e:
+            if self.params["INPUT_ROBUST_MODE"]:
+                feedback.reportError(
+                    tr(
+                        "An API error was ignored due to robust mode. You will likely get incomplete result."
+                    )
+                )
+                return {"results": []}
+            else:
+                feedback.reportError(
+                    tr(
+                        "Use robust mode if you want the algorithm to return results despite this error."
+                    )
+                )
+                raise e from None
 
     def enabled_properties(self):
         """Returns the list of properties that are enabled"""

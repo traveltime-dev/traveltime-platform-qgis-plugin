@@ -83,6 +83,14 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
                 defaultValue=utils.timezones.index(utils.default_timezone),
             )
         )
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                "SETTINGS_ROBUST_MODE",
+                tr("Robust mode"),
+                optional=True,
+                defaultValue=False,
+            )
+        )
 
         # OUTPUT
         self.addParameter(
@@ -110,6 +118,7 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             "INPUT_THROTTLING_STRATEGY": THROTTLING_STRATEGIES.index(
                 THROTTLING_PER_SETTINGS
             ),
+            "INPUT_ROBUST_MODE": self.params["SETTINGS_ROBUST_MODE"],
             "OUTPUT": "memory:results",
         }
 
