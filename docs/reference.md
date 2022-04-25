@@ -247,11 +247,11 @@ It can be used to get information such as a service area polygon based on travel
 - UNION will return the union of all polygons for all departure/arrivals searches.
 - INTERSECTION will return the intersection of all departure/arrival searches.
 
-**Robust mode:**
+**Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
+
+**Robust mode (advanced parameters):**
 
 By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
-
-**Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
 
 ### ![](images/icons/timefilter_simple.svg#icon) Time filter (Simplified)
 
@@ -281,11 +281,11 @@ It can be used to get filter a point layer using a time search.
 
 **Load fares information:** Load informations about fares in the resulting attributes.
 
-**Robust mode:**
+**Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
+
+**Robust mode (advanced parameters):**
 
 By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
-
-**Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
 
 ### ![](images/icons/route_simple.svg#icon) Route (Simplified)
 
@@ -313,10 +313,6 @@ It can be used to get the best routes between two sets of points.
 
 **Load fares information:** Load informations about fares in the resulting attributes.
 
-**Robust mode:**
-
-By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
-
 **Output style:**
 
 - BY_ROUTE : return one linestring per route
@@ -324,6 +320,10 @@ By default, if any error happens, even on just one search, the algorithm fails a
 - BY_TYPE : return one linestring per route segment (allows to map mulimodal routes)
 
 **Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
+
+**Robust mode (advanced parameters):**
+
+By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
 
 ### ![](images/icons/timemap_advanced.svg#icon) Time map (Advanced)
 

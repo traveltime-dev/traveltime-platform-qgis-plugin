@@ -89,7 +89,8 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
                 tr("Robust mode"),
                 optional=True,
                 defaultValue=False,
-            )
+            ),
+            advanced=True,
         )
 
         # OUTPUT
