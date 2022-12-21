@@ -69,7 +69,7 @@ class Main:
         )
         self.action_show_toolbox.triggered.connect(self.show_toolbox)
         self.toolbar.addAction(self.action_show_toolbox)
-        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_toolbox)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_toolbox)
 
         # Rerun algorithm action
         self.action_rerun = QAction(
@@ -77,7 +77,7 @@ class Main:
         )
         self.action_rerun.triggered.connect(self.rerun_algorithm)
         self.toolbar.addAction(self.action_rerun)
-        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_rerun)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_rerun)
         self.action_rerun.setEnabled(False)
 
         self.toolbar.addSeparator()
@@ -112,7 +112,7 @@ class Main:
         )
         self.action_show_tiles.triggered.connect(self.show_tiles)
         self.toolbar.addAction(self.action_show_tiles)
-        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_tiles)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_tiles)
 
         # Show help actions
         self.action_show_help = QAction(
@@ -120,7 +120,7 @@ class Main:
         )
         self.action_show_help.triggered.connect(self.show_help)
         self.toolbar.addAction(self.action_show_help)
-        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_help)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_help)
 
         # Show config actions
         self.action_show_config = QAction(
@@ -130,7 +130,7 @@ class Main:
         )
         self.action_show_config.triggered.connect(self.show_config)
         self.toolbar.addAction(self.action_show_config)
-        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_config)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_config)
 
         # Add the provider to the registry
         QgsApplication.processingRegistry().addProvider(self.provider)
@@ -147,10 +147,10 @@ class Main:
     def unload(self):
         # Remove GUI elements
         del self.toolbar
-        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_toolbox)
-        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_tiles)
-        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_config)
-        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_help)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_show_toolbox)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_show_tiles)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_show_config)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_show_help)
 
         # Remove the provider from the registry
         QgsApplication.processingRegistry().removeProvider(self.provider)
