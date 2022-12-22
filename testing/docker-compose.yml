@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+
+  # Runs tests (headless)
+  tests:
+    image: ${QGIS_IMAGE:?}
+    volumes:
+      # mount the plugin
+      - ../travel_time_platform_plugin:/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/travel_time_platform_plugin
+      # include default config (enabling the plugin)
+      - ../testing/QGIS3.ini:/root/.local/share/QGIS/QGIS3/profiles/default/QGIS/QGIS3.ini
+      # include initialisation script (test launcher in QGIS)
+      - ../testing/startup.py:/root/.local/share/QGIS/QGIS3/startup.py
+      # include entrypoint script (test launcher in QGIS)
+      - ../testing/runner.py:/runner.py
+      # mount artifacts folder
+      - ../testing/artifacts:/tmp/ttp_tests
+    environment:
+      TEST_MODE: HEADLESS
+      API_APP_ID: ${API_APP_ID:?}
+      API_KEY: ${API_KEY:?}
+    init: true # not sure why, but this is necessary for xvfb (see https://stackoverflow.com/a/72017110)
+    entrypoint: xvfb-run
+    command: python3 /runner.py
+
+  # Runs tests (with visual feedback)
+  tests-gui:
+    extends: tests
+    volumes:
+      # mount the x11 socket to forward display to host
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      TEST_MODE: HEADFULL
+      DISPLAY: :0
+    init: false
+    entrypoint: ""

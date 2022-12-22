@@ -16,6 +16,28 @@ The documentation is available here : https://qgis.traveltimeplatform.com/
 
 Please report any issue to the bug tracker.
 
+## Contribute
+
+### Tests
+
+Run the integrations tests with docker
+
+```bash
+# Copy the default config, then edit with your own API key
+cp .env.example .env
+
+# Run tests (headless)
+docker-compose run tests
+
+# Run tests (with visual feedback, on Windows only works under WSL)
+docker-compose run tests-gui
+```
+
+Alternatively, you can also run the `tests_integration.py` script from the Python console in QGIS desktop.
+
+These tests are run automatically in Github actions. The actions require two secrets to be set: `API_APP_ID` and `API_KEY`.
+
+
 ## Code style
 
 Formatting is done with `pre-commit`. Please run `pip install pre-commit` and `pre-commit install` prior to contributing.

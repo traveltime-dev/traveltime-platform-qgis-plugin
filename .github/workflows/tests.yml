@@ -1,0 +1,30 @@
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron:  '0 6 * * 1'  # weekly check
+
+jobs:
+  tests:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        qgis_image:
+          - opengisch/qgis:3.28-jammy
+          - opengisch/qgis:3.22-focal
+
+    env:
+      QGIS_IMAGE: ${{ matrix.qgis_image }}
+      API_APP_ID: ${{ secrets.API_APP_ID }}
+      API_KEY: ${{ secrets.API_KEY }}
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Run tests (${{ matrix.qgis_image }})
+        run: docker-compose run tests
