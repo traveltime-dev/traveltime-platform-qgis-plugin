@@ -260,9 +260,21 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                         raise QgsProcessingException("Canceled by user") from None
                     QTest.qWait(100)
 
-        response = cache.instance.cached_requests.send(
-            request, verify=not disable_https
-        )
+        try:
+            response = cache.instance.cached_requests.send(
+                request, verify=not disable_https
+            )
+        except requests.exceptions.RequestException as e:
+            feedback.reportError(
+                tr(
+                    "Error while connecting to the API server. See log for more details."
+                ),
+                fatalError=True,
+            )
+            log(e)
+            raise QgsProcessingException(
+                "Error while connecting to the API server"
+            ) from None
 
         try:
             response_data = json.loads(response.text)
