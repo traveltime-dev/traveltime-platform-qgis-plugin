@@ -1,5 +1,10 @@
+import contextlib
+import io
 import json
 import os.path
+import platform
+import sys
+from datetime import datetime
 
 import processing
 from qgis.core import Qgis, QgsApplication
@@ -11,18 +16,22 @@ from qgis.PyQt.QtCore import (
     QSize,
     Qt,
     QTranslator,
+    qVersion,
 )
+from qgis.PyQt.QtGui import QGuiApplication
 from qgis.PyQt.QtWidgets import (
     QAction,
     QDockWidget,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QSplitter,
     QTreeView,
     QWidget,
 )
+from qgis.utils import pluginMetadata
 
-from . import express, resources, tiles, ui
+from . import express, resources, tests, tiles, ui
 from .provider import Provider
 from .utils import tr
 
@@ -132,6 +141,16 @@ class TTPPlugin:
         self.toolbar.addAction(self.action_show_config)
         self.iface.addPluginToMenu("&TravelTime platform", self.action_show_config)
 
+        # Show run tests
+        self.action_run_tests = QAction(
+            resources.icon_tests,
+            tr("Run tests"),
+            self.iface.mainWindow(),
+        )
+        self.action_run_tests.triggered.connect(self.run_tests)
+        self.toolbar.addAction(self.action_run_tests)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_run_tests)
+
         # Add the provider to the registry
         QgsApplication.processingRegistry().addProvider(self.provider)
 
@@ -141,8 +160,9 @@ class TTPPlugin:
         ):
             self.show_splash()
 
-        # Connect layerchanged
+        # Connect signals
         self.iface.currentLayerChanged.connect(self.current_layer_changed)
+        self.config_dialog.accepted.connect(self.config_changed)
 
     def unload(self):
         # Remove GUI elements
@@ -213,12 +233,50 @@ class TTPPlugin:
     def show_config(self):
         self.config_dialog.exec_()
 
+    def run_tests(self):
+        with io.StringIO() as buf:
+            with contextlib.redirect_stdout(buf):
+                result = tests.run_suite(stream=buf)
+            output = buf.getvalue()
+
+        success = result.wasSuccessful()
+
+        box = QMessageBox(
+            QMessageBox.Question if success else QMessageBox.Critical,
+            "Test results",
+            f"Ran {result.testsRun} tests, of which {len(result.errors) + len(result.failures)} failed.",
+        )
+        box.setInformativeText("Do you want to copy the test report ?")
+        box.setStandardButtons(QMessageBox.Yes | QMessageBox.Discard)
+
+        if box.exec_():
+            report = [
+                "Travel Time Platform Plugin tests report",
+                "----------------------------------------------------------------------",
+                datetime.now().isoformat(),
+                f"QGIS version: {Qgis.version()} [{Qgis.devVersion()}]",
+                f"Qt version: {qVersion()}",
+                f"Python version: {sys.version}",
+                f"Platform: {platform.system()} {platform.release()} {platform.version()}",
+                f"Plugin version: {pluginMetadata('travel_time_platform_plugin', 'version')}",
+                "----------------------------------------------------------------------",
+                "",
+                output,
+            ]
+            QGuiApplication.clipboard().setText("\n".join(report))
+
     def show_splash(self):
         self.splash_screen.raise_()
         self.splash_screen.show()
 
     def show_help(self):
         self.help_dialog.show()
+
+    def config_changed(self):
+        visible = QSettings().value(
+            "traveltime_platform/show_tests_button", False, type=bool
+        )
+        self.action_run_tests.setVisible(visible)
 
     def current_layer_changed(self, layer):
         self.action_rerun.setEnabled(

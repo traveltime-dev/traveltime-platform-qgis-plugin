@@ -5,13 +5,12 @@ It should be mounted to ~/.local/share/QGIS/QGIS3/startup.py to run the tests on
 """
 
 import sys
-import unittest
 
 from qgis.PyQt.QtCore import qDebug
 from qgis.utils import iface
 
 # TODO: proper tests discovery
-from travel_time_platform_plugin import tests
+from travel_time_platform_plugin.tests import run_suite
 
 # Foward pyqgis output to console
 sys.stdout.write = lambda text: qDebug(text.strip())
@@ -29,17 +28,17 @@ def run_tests():
     iface.mainWindow().activateWindow()
 
     # Run the tests
-    test = unittest.main(module=tests, exit=False)
+    tests = run_suite(stream=sys.stdout)
 
     # To workaround missing exit code (see below), so we print the result value and check for it in the runner
-    if test.result.wasSuccessful():
+    if tests.wasSuccessful():
         print("__SUCCESS__")
     else:
         print("__FAILURE__")
 
     # Exit code here is lost, since this crashes QGIS with segfault
     print("notice: following `QGIS died on signal 11` can be ignored.")
-    sys.exit(0 if test.result.wasSuccessful() else 1)
+    sys.exit(0 if tests.wasSuccessful() else 1)
 
 
 # Start tests only once init is complete
