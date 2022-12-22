@@ -27,7 +27,7 @@ from .provider import Provider
 from .utils import tr
 
 
-class Main:
+class TTPPlugin:
     def __init__(self, iface):
         self.iface = iface
 
