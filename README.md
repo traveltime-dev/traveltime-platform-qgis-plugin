@@ -1,5 +1,7 @@
 # ![Travel Time Platform](travel_time_platform_plugin/resources/TravelTime_logo_horizontal.svg)
 
+[![.github/workflows/tests.yml](https://github.com/traveltime-dev/traveltime-platform-qgis-plugin/actions/workflows/tests.yml/badge.svg)](https://github.com/traveltime-dev/traveltime-platform-qgis-plugin/actions/workflows/tests.yml)
+
 This is the repository for the TravelTime platform plugin for QGIS.
 
 This plugin intends to make the TravelTime platform API available for ues in QGIS through processing algorithms.
@@ -33,9 +35,9 @@ docker-compose run tests
 docker-compose run tests-gui
 ```
 
-Alternatively, you can also run the `tests_integration.py` script from the Python console in QGIS desktop.
-
 These tests are run automatically in Github actions. The actions require two secrets to be set: `API_APP_ID` and `API_KEY`.
+
+Alternatively, you can also run the tests from the QGIS desktop.
 
 
 ## Code style

@@ -90,6 +90,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - feature : include geometry cleanup step
     - 2022-04-25 : version 1.7.0
         - feature : added robust mode
+    - 2023-XX-XX : version 1.8.0
+        - infra : added automated tests
 
 tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing,polygon,polygons,network analysis,shortest path
 homepage=https://qgis.traveltimeplatform.com/

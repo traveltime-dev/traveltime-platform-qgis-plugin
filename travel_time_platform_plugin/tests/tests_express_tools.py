@@ -1,15 +1,10 @@
-import os
 from datetime import datetime
 from itertools import product
 
 from qgis.core import QgsPointXY, QgsProject
-from qgis.testing import unittest
 from qgis.utils import iface
 
 from .base import TestCaseBase
-
-TEST_MODE = os.environ.get("TEST_MODE", "DESKTOP")  # HEADLESS | HEADFULL | DESKTOP
-assert TEST_MODE in ["HEADLESS", "HEADFULL", "DESKTOP"]
 
 
 class ExpressToolsTest(TestCaseBase):
@@ -99,8 +94,3 @@ class ExpressToolsTest(TestCaseBase):
         self.assertLess(
             QgsPointXY(-4.2518, 55.8642).distance(iface.mapCanvas().center()), 0.1
         )
-
-
-if __name__ == "__console__":
-    # Run from within QGIS console
-    unittest.main(ExpressToolsTest(), exit=False)
