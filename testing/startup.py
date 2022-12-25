@@ -10,7 +10,7 @@ from qgis.PyQt.QtCore import qDebug
 from qgis.utils import iface
 
 # TODO: proper tests discovery
-from travel_time_platform_plugin.tests import run_suite
+from travel_time_platform_plugin.tests import run_suite, system_info
 
 # Foward pyqgis output to console
 sys.stdout.write = lambda text: qDebug(text.strip())
@@ -22,6 +22,9 @@ print("Waiting for initialisation...")
 def run_tests():
 
     print("Starting tests...")
+
+    # Show output
+    print(system_info())
 
     # Maximize the window
     iface.mainWindow().showMaximized()

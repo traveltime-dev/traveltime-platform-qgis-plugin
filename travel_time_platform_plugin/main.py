@@ -2,9 +2,6 @@ import contextlib
 import io
 import json
 import os.path
-import platform
-import sys
-from datetime import datetime
 
 import processing
 from qgis.core import Qgis, QgsApplication
@@ -16,7 +13,6 @@ from qgis.PyQt.QtCore import (
     QSize,
     Qt,
     QTranslator,
-    qVersion,
 )
 from qgis.PyQt.QtGui import QGuiApplication
 from qgis.PyQt.QtWidgets import (
@@ -29,7 +25,6 @@ from qgis.PyQt.QtWidgets import (
     QTreeView,
     QWidget,
 )
-from qgis.utils import pluginMetadata
 
 from . import express, resources, tests, tiles, ui
 from .provider import Provider
@@ -250,20 +245,7 @@ class TTPPlugin:
         box.setStandardButtons(QMessageBox.Yes | QMessageBox.Discard)
 
         if box.exec_():
-            report = [
-                "Travel Time Platform Plugin tests report",
-                "----------------------------------------------------------------------",
-                datetime.now().isoformat(),
-                f"QGIS version: {Qgis.version()} [{Qgis.devVersion()}]",
-                f"Qt version: {qVersion()}",
-                f"Python version: {sys.version}",
-                f"Platform: {platform.system()} {platform.release()} {platform.version()}",
-                f"Plugin version: {pluginMetadata('travel_time_platform_plugin', 'version')}",
-                "----------------------------------------------------------------------",
-                "",
-                output,
-            ]
-            QGuiApplication.clipboard().setText("\n".join(report))
+            QGuiApplication.clipboard().setText(f"{tests.system_info()}\n{output}")
 
     def show_splash(self):
         self.splash_screen.raise_()
