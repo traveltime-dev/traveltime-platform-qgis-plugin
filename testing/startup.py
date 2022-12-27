@@ -12,9 +12,9 @@ from qgis.utils import iface
 # TODO: proper tests discovery
 from travel_time_platform_plugin.tests import run_suite, system_info
 
-# Foward pyqgis output to console
-sys.stdout.write = lambda text: qDebug(text.strip())
-sys.stderr.write = lambda text: qDebug(text.strip())
+# Forward pyqgis output to console
+sys.stdout.write = lambda text: qDebug(text.encode("ascii", "replace").strip())
+sys.stderr.write = lambda text: qDebug(text.encode("ascii", "replace").strip())
 
 print("Waiting for initialisation...")
 

@@ -15,7 +15,8 @@ process = Popen("qgis", stdout=PIPE, stderr=STDOUT, encoding="utf-8")
 full_output = ""
 while True:
     output = process.stdout.readline()
-    print(output.strip(), flush=True)
+    if output.strip():
+        print(output.strip(), flush=True)
     full_output += output
     if output == "" and process.poll() is not None:
         break
