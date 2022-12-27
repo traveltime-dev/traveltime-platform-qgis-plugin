@@ -135,3 +135,6 @@ class TestCaseBase(unittest.TestCase):
         )
 
         self._feedback()
+
+    def _today_at_noon(self) -> datetime:
+        return datetime.now().replace(hour=12, minute=30, second=0)

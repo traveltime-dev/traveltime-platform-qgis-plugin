@@ -28,7 +28,7 @@ from qgis.PyQt.QtWidgets import (
 
 from . import express, resources, tests, tiles, ui
 from .provider import Provider
-from .utils import tr
+from .utils import log, tr
 
 
 class TTPPlugin:
@@ -166,6 +166,8 @@ class TTPPlugin:
         self.iface.removePluginMenu("&TravelTime platform", self.action_show_tiles)
         self.iface.removePluginMenu("&TravelTime platform", self.action_show_config)
         self.iface.removePluginMenu("&TravelTime platform", self.action_show_help)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_rerun)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_run_tests)
 
         # Remove the provider from the registry
         QgsApplication.processingRegistry().removeProvider(self.provider)
@@ -233,6 +235,8 @@ class TTPPlugin:
             with contextlib.redirect_stdout(buf):
                 result = tests.run_suite(stream=buf)
             output = buf.getvalue()
+
+        log(output, "-tests")
 
         success = result.wasSuccessful()
 

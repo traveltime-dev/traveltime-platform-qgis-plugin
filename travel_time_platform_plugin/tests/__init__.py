@@ -10,11 +10,14 @@ from qgis.utils import pluginMetadata
 
 
 def run_suite(stream) -> unittest.TestResult:
-    from . import tests_express_tools
 
     loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-    suite = loader.loadTestsFromModule(tests_express_tools)
+    suite = loader.loadTestsFromNames(
+        [
+            "travel_time_platform_plugin.tests.tests_express_tools",
+            "travel_time_platform_plugin.tests.tests_algorithms",
+        ]
+    )
     runner = unittest.TextTestRunner(stream=stream, verbosity=2)
     return runner.run(suite)
 

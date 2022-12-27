@@ -53,8 +53,8 @@ def clone_feature(request, source_layer, output_fields=None):
     return new_feature
 
 
-def log(msg):
-    QgsMessageLog.logMessage(str(msg), "TimeTravelPlatform")
+def log(msg, suffix=""):
+    QgsMessageLog.logMessage(str(msg), f"TimeTravelPlatform{suffix}")
 
 
 def tr(string):

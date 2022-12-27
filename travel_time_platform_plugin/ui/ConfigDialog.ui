@@ -169,13 +169,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="showRunTestsButton">
-        <property name="text">
-         <string>Show a button to run software tests</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QCheckBox" name="disableHttpsCheckBox">
         <property name="text">
          <string>Disable HTTPS certificate verification</string>
@@ -215,6 +208,13 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="showRunTestsButton">
+        <property name="text">
+         <string>Show a button to run software tests (for developpers only)</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
