@@ -1,4 +1,4 @@
 def classFactory(iface):
-    from .main import Main
+    from .main import TTPPlugin
 
-    return Main(iface)
+    return TTPPlugin(iface)

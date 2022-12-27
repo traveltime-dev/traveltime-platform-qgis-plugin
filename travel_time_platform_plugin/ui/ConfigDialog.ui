@@ -209,6 +209,13 @@
         </item>
        </layout>
       </item>
+      <item>
+       <widget class="QCheckBox" name="showRunTestsButton">
+        <property name="text">
+         <string>Show a button to run software tests (for developpers only)</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

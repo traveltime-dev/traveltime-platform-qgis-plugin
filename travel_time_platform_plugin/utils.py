@@ -13,6 +13,9 @@ EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
 
 timezones = list([t.data().decode("utf-8") for t in QTimeZone.availableTimeZoneIds()])
 default_timezone = QTimeZone.systemTimeZoneId().data().decode("utf-8")
+# For some reason, the system timezone is not in the available list in Docker. In this case, fall back to UTC.
+if default_timezone not in timezones:
+    default_timezone = QTimeZone.utc().id().data().decode("utf-8")
 
 
 def now_iso():
@@ -50,8 +53,8 @@ def clone_feature(request, source_layer, output_fields=None):
     return new_feature
 
 
-def log(msg):
-    QgsMessageLog.logMessage(str(msg), "TimeTravelPlatform")
+def log(msg, suffix=""):
+    QgsMessageLog.logMessage(str(msg), f"TimeTravelPlatform{suffix}")
 
 
 def tr(string):

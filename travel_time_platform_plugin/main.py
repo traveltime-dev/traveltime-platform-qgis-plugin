@@ -1,3 +1,5 @@
+import contextlib
+import io
 import json
 import os.path
 
@@ -12,22 +14,24 @@ from qgis.PyQt.QtCore import (
     Qt,
     QTranslator,
 )
+from qgis.PyQt.QtGui import QGuiApplication
 from qgis.PyQt.QtWidgets import (
     QAction,
     QDockWidget,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QSplitter,
     QTreeView,
     QWidget,
 )
 
-from . import express, resources, tiles, ui
+from . import express, resources, tests, tiles, ui
 from .provider import Provider
-from .utils import tr
+from .utils import log, tr
 
 
-class Main:
+class TTPPlugin:
     def __init__(self, iface):
         self.iface = iface
 
@@ -69,7 +73,7 @@ class Main:
         )
         self.action_show_toolbox.triggered.connect(self.show_toolbox)
         self.toolbar.addAction(self.action_show_toolbox)
-        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_toolbox)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_toolbox)
 
         # Rerun algorithm action
         self.action_rerun = QAction(
@@ -77,7 +81,7 @@ class Main:
         )
         self.action_rerun.triggered.connect(self.rerun_algorithm)
         self.toolbar.addAction(self.action_rerun)
-        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_rerun)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_rerun)
         self.action_rerun.setEnabled(False)
 
         self.toolbar.addSeparator()
@@ -112,7 +116,7 @@ class Main:
         )
         self.action_show_tiles.triggered.connect(self.show_tiles)
         self.toolbar.addAction(self.action_show_tiles)
-        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_tiles)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_tiles)
 
         # Show help actions
         self.action_show_help = QAction(
@@ -120,7 +124,7 @@ class Main:
         )
         self.action_show_help.triggered.connect(self.show_help)
         self.toolbar.addAction(self.action_show_help)
-        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_help)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_help)
 
         # Show config actions
         self.action_show_config = QAction(
@@ -130,7 +134,17 @@ class Main:
         )
         self.action_show_config.triggered.connect(self.show_config)
         self.toolbar.addAction(self.action_show_config)
-        self.iface.addPluginToMenu(u"&TravelTime platform", self.action_show_config)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_config)
+
+        # Show run tests
+        self.action_run_tests = QAction(
+            resources.icon_tests,
+            tr("Run tests"),
+            self.iface.mainWindow(),
+        )
+        self.action_run_tests.triggered.connect(self.run_tests)
+        self.toolbar.addAction(self.action_run_tests)
+        self.iface.addPluginToMenu("&TravelTime platform", self.action_run_tests)
 
         # Add the provider to the registry
         QgsApplication.processingRegistry().addProvider(self.provider)
@@ -141,16 +155,19 @@ class Main:
         ):
             self.show_splash()
 
-        # Connect layerchanged
+        # Connect signals
         self.iface.currentLayerChanged.connect(self.current_layer_changed)
+        self.config_dialog.accepted.connect(self.config_changed)
 
     def unload(self):
         # Remove GUI elements
         del self.toolbar
-        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_toolbox)
-        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_tiles)
-        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_config)
-        self.iface.removePluginMenu(u"&TravelTime platform", self.action_show_help)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_show_toolbox)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_show_tiles)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_show_config)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_show_help)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_rerun)
+        self.iface.removePluginMenu("&TravelTime platform", self.action_run_tests)
 
         # Remove the provider from the registry
         QgsApplication.processingRegistry().removeProvider(self.provider)
@@ -213,12 +230,39 @@ class Main:
     def show_config(self):
         self.config_dialog.exec_()
 
+    def run_tests(self):
+        with io.StringIO() as buf:
+            with contextlib.redirect_stdout(buf):
+                result = tests.run_suite(stream=buf)
+            output = buf.getvalue()
+
+        log(output, "-tests")
+
+        success = result.wasSuccessful()
+
+        box = QMessageBox(
+            QMessageBox.Question if success else QMessageBox.Critical,
+            "Test results",
+            f"Ran {result.testsRun} tests, of which {len(result.errors) + len(result.failures)} failed.",
+        )
+        box.setInformativeText("Do you want to copy the test report ?")
+        box.setStandardButtons(QMessageBox.Yes | QMessageBox.Discard)
+
+        if box.exec_():
+            QGuiApplication.clipboard().setText(f"{tests.system_info()}\n{output}")
+
     def show_splash(self):
         self.splash_screen.raise_()
         self.splash_screen.show()
 
     def show_help(self):
         self.help_dialog.show()
+
+    def config_changed(self):
+        visible = QSettings().value(
+            "traveltime_platform/show_tests_button", False, type=bool
+        )
+        self.action_run_tests.setVisible(visible)
 
     def current_layer_changed(self, layer):
         self.action_rerun.setEnabled(

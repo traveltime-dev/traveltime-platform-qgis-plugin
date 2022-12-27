@@ -55,6 +55,10 @@ class ConfigDialog(QDialog):
         self.logCallsCheckBox.setChecked(
             s.value("traveltime_platform/log_calls", False, type=bool)
         )
+        # show tests button
+        self.showRunTestsButton.setChecked(
+            s.value("traveltime_platform/show_tests_button", False, type=bool)
+        )
         # disable https
         self.disableHttpsCheckBox.setChecked(
             s.value("traveltime_platform/disable_https", False, type=bool)
@@ -109,6 +113,10 @@ class ConfigDialog(QDialog):
         s = QSettings()
         # logs calls
         s.setValue("traveltime_platform/log_calls", self.logCallsCheckBox.isChecked())
+        # show tests button
+        s.setValue(
+            "traveltime_platform/show_tests_button", self.showRunTestsButton.isChecked()
+        )
         # disable https
         s.setValue(
             "traveltime_platform/disable_https", self.disableHttpsCheckBox.isChecked()
