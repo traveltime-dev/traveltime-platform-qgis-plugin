@@ -20,6 +20,10 @@ Please report any issue to the bug tracker.
 
 ## Contribute
 
+### Release
+
+Releases to the QGIS plugin repository are made by Github workflows upon creation of a Github release. Make sure to use semantic verisonning for the version name, to populate the changelog in metadata.txt, and to mark the release as `pre-release` if the release should be marked as experimental.
+
 ### Tests
 
 Run the integrations tests with docker
