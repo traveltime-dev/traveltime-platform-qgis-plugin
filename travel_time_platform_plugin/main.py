@@ -155,9 +155,11 @@ class TTPPlugin:
         self.config_dialog.accepted.connect(self.config_changed)
 
         # Trigger signals
-        self.init_finished()
         self.current_layer_changed(self.iface.activeLayer())
         self.config_changed()
+        if self.iface.mainWindow().isVisible():
+            # If mainWindow is visible, it means init was already completed
+            self.init_finished()
 
     def unload(self):
         # Remove GUI elements
@@ -260,7 +262,7 @@ class TTPPlugin:
 
     def init_finished(self):
         # Show splash screen
-        if self.iface.mainWindow().isVisible() and not QSettings().value(
+        if not QSettings().value(
             "traveltime_platform/spashscreen_dontshowagain", False, type=bool
         ):
             self.show_splash()
