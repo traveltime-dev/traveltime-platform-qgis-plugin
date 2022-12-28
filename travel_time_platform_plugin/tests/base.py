@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from tempfile import gettempdir
 
+import pytz
 from qgis.core import (
     QgsApplication,
     QgsBrightnessContrastFilter,
@@ -60,8 +61,7 @@ class TestCaseBase(unittest.TestCase):
 
         # Configure the project
         QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(4326))
-        iface.mapCanvas().setCenter(QgsPointXY(-0.13, 51.50))
-        iface.mapCanvas().zoomScale(20000)
+        self._center(-0.13, 51.5)
 
         # Show which test is running
         iface.messageBar().clearWidgets()
@@ -79,6 +79,10 @@ class TestCaseBase(unittest.TestCase):
         QgsProject.instance().setDirty(False)
         iface.messageBar().clearWidgets()
         iface.newProject()
+
+    def _center(self, x, y, scale=20000):
+        iface.mapCanvas().setCenter(QgsPointXY(x, y))
+        iface.mapCanvas().zoomScale(scale)
 
     def _feedback(self, seconds=1):
         """Waits a little so we can see what happens when running the tests with GUI"""
@@ -137,4 +141,6 @@ class TestCaseBase(unittest.TestCase):
         self._feedback()
 
     def _today_at_noon(self) -> datetime:
-        return datetime.now().replace(hour=12, minute=30, second=0)
+        return datetime.now().replace(
+            hour=12, minute=30, second=0, microsecond=0, tzinfo=pytz.utc
+        )

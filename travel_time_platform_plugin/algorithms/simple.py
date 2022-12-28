@@ -187,6 +187,7 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
     ).format(url=_helpUrl)
 
     RESULT_TYPE = ["NORMAL", "UNION", "INTERSECTION"]
+    LEVELS_OF_DETAILS = ["lowest", "low", "medium", "high", "highest"]
 
     def processAlgorithmPrepareSubParameters(self, parameters, context, feedback):
         params = super().processAlgorithmPrepareSubParameters(
@@ -194,6 +195,10 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         )
 
         mode = SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
+
+        level_of_detail = self.LEVELS_OF_DETAILS[self.params["INPUT_LEVEL_OF_DETAIL"]]
+        no_holes = self.params["INPUT_NO_HOLES"]
+        single_shape = self.params["INPUT_SINGLE_SHAPE"]
 
         params.update(
             {
@@ -206,6 +211,9 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
                 "INPUT_{}_EXISTING_FIELDS_TO_KEEP".format(mode): self.params[
                     "INPUT_EXISTING_FIELDS_TO_KEEP"
                 ],
+                f"INPUT_{mode}_LEVEL_OF_DETAIL": f"'{level_of_detail}'",
+                f"INPUT_{mode}_NO_HOLES": "true" if no_holes else "false",
+                f"INPUT_{mode}_SINGLE_SHAPE": "true" if single_shape else "false",
                 "OUTPUT_RESULT_TYPE": self.params["OUTPUT_RESULT_TYPE"],
             }
         )
@@ -237,6 +245,41 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             ),
             advanced=True,
             help_text=tr("Set which fields should be joined back in the output layer."),
+        )
+
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                "INPUT_LEVEL_OF_DETAIL",
+                tr("Level of detail"),
+                options=self.LEVELS_OF_DETAILS,
+                defaultValue=self.LEVELS_OF_DETAILS.index("lowest"),
+            ),
+            advanced=True,
+            help_text=tr(
+                "Defines the level of detail of the resulting shape. Not all levels are available to all API keys."
+            ),
+        )
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                "INPUT_SINGLE_SHAPE",
+                tr("Single shape"),
+                defaultValue=False,
+            ),
+            advanced=True,
+            help_text=tr(
+                "Enable to return only one shape from the search results. The returned shape will be approximately the biggest one among search results. Note that this will likely result in loss in accuracy."
+            ),
+        )
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                "INPUT_NO_HOLES",
+                tr("No holes"),
+                defaultValue=False,
+            ),
+            advanced=True,
+            help_text=tr(
+                "Enable to remove holes from returned polygons. Note that this will likely result in loss in accuracy."
+            ),
         )
 
         self.addParameter(
