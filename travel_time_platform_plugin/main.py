@@ -149,15 +149,15 @@ class TTPPlugin:
         # Add the provider to the registry
         QgsApplication.processingRegistry().addProvider(self.provider)
 
-        # Show splash screen
-        if not QSettings().value(
-            "traveltime_platform/spashscreen_dontshowagain", False, type=bool
-        ):
-            self.show_splash()
-
         # Connect signals
+        self.iface.initializationCompleted.connect(self.init_finished)
         self.iface.currentLayerChanged.connect(self.current_layer_changed)
         self.config_dialog.accepted.connect(self.config_changed)
+
+        # Trigger signals
+        self.init_finished()
+        self.current_layer_changed(self.iface.activeLayer())
+        self.config_changed()
 
     def unload(self):
         # Remove GUI elements
@@ -257,6 +257,13 @@ class TTPPlugin:
 
     def show_help(self):
         self.help_dialog.show()
+
+    def init_finished(self):
+        # Show splash screen
+        if self.iface.mainWindow().isVisible() and not QSettings().value(
+            "traveltime_platform/spashscreen_dontshowagain", False, type=bool
+        ):
+            self.show_splash()
 
     def config_changed(self):
         visible = QSettings().value(
