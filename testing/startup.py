@@ -26,10 +26,6 @@ def run_tests():
     # Show output
     print(system_info())
 
-    # Maximize the window
-    iface.mainWindow().showMaximized()
-    iface.mainWindow().activateWindow()
-
     # Run the tests
     tests = run_suite(stream=sys.stdout)
 
