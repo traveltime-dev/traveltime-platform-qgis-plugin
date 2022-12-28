@@ -52,7 +52,10 @@ class GeocodingAlgorithmBase(AlgorithmBase):
 
         self.addParameter(
             QgsProcessingParameterEnum(
-                "OUTPUT_RESULT_TYPE", tr("Results type"), options=self.RESULT_TYPE
+                "OUTPUT_RESULT_TYPE",
+                tr("Results type"),
+                options=self.RESULT_TYPE,
+                defaultValue=self.RESULT_TYPE.index("BEST_MATCH"),
             ),
             help_text="ALL will return several results per input, corresponding to all potential matches returned by the API. BEST_MATCH will only return the best point.",
         )

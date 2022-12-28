@@ -483,7 +483,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 "OUTPUT_RESULT_TYPE",
                 f"<br><br><b>{tr('Output options')}</b><br><br>{tr('Result aggregation')}",
                 options=self.RESULT_TYPE,
-                defaultValue=0,
+                defaultValue=self.RESULT_TYPE.index("NORMAL"),
             ),
             help_text=tr(
                 "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
@@ -968,7 +968,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
                 "OUTPUT_RESULT_TYPE",
                 f"<br><br><b>{tr('Output options')}</b><br><br>{tr('Output style')}",
                 options=self.RESULT_TYPE,
-                defaultValue=0,
+                defaultValue=self.RESULT_TYPE.index("BY_ROUTE"),
             ),
             help_text=tr(
                 "BY_ROUTE and BY_DURATION will return a simple linestring for each route. BY_TYPE will return several segments for each type of transportation for each route."
