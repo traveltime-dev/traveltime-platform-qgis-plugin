@@ -161,7 +161,7 @@ class AlgorithmsFeaturesTest(TestCaseBase):
             "INPUT_TIME": now,
             "INPUT_TRNSPT_TYPE": TRANSPORTATION_TYPES.index("driving"),
             "INPUT_TRAVEL_TIME": 15,
-            "SETTINGS_TIMEZONE": timezones.index("GMT"),
+            "SETTINGS_TIMEZONE": timezones.index("UTC"),
             "OUTPUT": "memory:",
         }
         params_advanced = {
