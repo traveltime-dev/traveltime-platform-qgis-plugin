@@ -140,3 +140,58 @@ class AlgorithmsBasicTest(TestCaseBase):
         )
         output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
         self.assertEqual(output_layer.featureCount(), 3)
+
+
+class AlgorithmsFeaturesTest(TestCaseBase):
+    def test_processing_time_map_simple_level_of_detail(self):
+
+        input_lyr = self._make_layer(["POINT(-0.13 51.50)"])
+        params = {
+            "INPUT_SEARCHES": input_lyr,
+            "INPUT_TIME": self._today_at_noon().isoformat(),
+            "OUTPUT": "memory:",
+        }
+
+        prev_vtx_count = None
+        for lod in ["lowest", "low", "medium"]:
+            results = processing.runAndLoadResults(
+                "ttp_v4:time_map_simple",
+                {
+                    **params,
+                    "LEVEL_OF_DETAIL": lod,
+                },
+            )
+            self._feedback()
+            output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
+            self.assertEqual(output_layer.featureCount(), 1)
+            vtx_count = output_layer.getFeature(1).geometry().constGet().nCoordinates()
+            if prev_vtx_count is not None:
+                self.assertGreaterEqual(vtx_count, prev_vtx_count)
+            prev_vtx_count = vtx_count
+
+    def test_processing_time_map_advanced_level_of_detail(self):
+
+        input_lyr = self._make_layer(["POINT(-0.13 51.50)"])
+        params = {
+            "INPUT_DEPARTURE_SEARCHES": input_lyr,
+            "INPUT_DEPARTURE_TIME": self._today_at_noon().isoformat(),
+            "INPUT_DEPARTURE_TRAVEL_TIME": "900",
+            "OUTPUT": "memory:",
+        }
+
+        prev_vtx_count = None
+        for lod in ["lowest", "low", "medium"]:
+            results = processing.runAndLoadResults(
+                "ttp_v4:time_map",
+                {
+                    **params,
+                    "INPUT_DEPARTURE_LEVEL_OF_DETAIL": f"'{lod}'",
+                },
+            )
+            self._feedback()
+            output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
+            self.assertEqual(output_layer.featureCount(), 1)
+            vtx_count = output_layer.getFeature(1).geometry().constGet().nCoordinates()
+            if prev_vtx_count is not None:
+                self.assertGreaterEqual(vtx_count, prev_vtx_count)
+            prev_vtx_count = vtx_count

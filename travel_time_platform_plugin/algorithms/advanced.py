@@ -315,8 +315,14 @@ class _SearchAlgorithmBase(AlgorithmBase):
                 "search_slice_end": (i + 1) * slicing_size,
             }
 
-    def processAlgorithmRemixData(self, data, parameters, context, feedback):
-        """To be overriden by subclasses : allow to edit the data object before sending to the API"""
+    def processAlgorithmRemixSearchDataInstance(
+        self, DEPARR, search_data, parameters, context, feedback
+    ):
+        """To be overriden by subclasses : allow to edit the search data object (row by row) before sending to the API"""
+        return search_data
+
+    def processAlgorithmRemixDataFull(self, data, parameters, context, feedback):
+        """To be overriden by subclasses : allow to edit the full data dictionnary before sending to the API"""
         return data
 
     def processAlgorithmPrepareSearchData(
@@ -393,6 +399,10 @@ class _SearchAlgorithmBase(AlgorithmBase):
                             ]
                         search_data.update({"range": range_data_dict})
 
+                    search_data = self.processAlgorithmRemixSearchDataInstance(
+                        DEPARR, search_data, parameters, context, feedback
+                    )
+
                     data[deparr + "_searches"].append(search_data)
 
                     # # Update the progress bar
@@ -466,7 +476,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
             self.addParameter(
                 QgsProcessingParameterField(
                     "INPUT_" + DEPARR + "_EXISTING_FIELDS_TO_KEEP",
-                    "{} / [fields to keep]".format(DEPARR.title()),
+                    "{} / Fields to keep".format(DEPARR.title()),
                     optional=True,
                     allowMultiple=True,
                     parentLayerParameterName="INPUT_" + DEPARR + "_SEARCHES",
@@ -474,6 +484,18 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 advanced=True,
                 help_text=tr(
                     "Set which fields should be joined back in the output layer."
+                ),
+            )
+            self.addParameter(
+                QgsProcessingParameterExpression(
+                    f"INPUT_{DEPARR}_LEVEL_OF_DETAIL",
+                    "{} / Level of detail".format(DEPARR.title()),
+                    optional=True,
+                    parentLayerParameterName=f"INPUT_{DEPARR}_SEARCHES",
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Specifies level of detail of returned shape using scale type `simple`. Allowed values: lowest, low, medium, high, highest."
                 ),
             )
 
@@ -502,6 +524,19 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
 
         self.removeParameter("INPUT_SEARCH_RANGE_MAX_RESULTS")
 
+    def processAlgorithmRemixSearchDataInstance(
+        self, DEPARR, data, parameters, context, feedback
+    ):
+        """Inject timemap specific searches parameters (level of detail)"""
+        level = self.eval_expr(f"INPUT_{DEPARR}_LEVEL_OF_DETAIL")
+        if level is not None:
+            data["level_of_detail"] = {
+                "scale_type": "simple",
+                "level": level,
+            }
+
+        return data
+
     def doProcessAlgorithm(self, parameters, context, feedback):
 
         # Configure common expressions inputs
@@ -523,7 +558,9 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
             )
 
             # Remix the data as needed
-            data = self.processAlgorithmRemixData(data, parameters, context, feedback)
+            data = self.processAlgorithmRemixDataFull(
+                data, parameters, context, feedback
+            )
 
             response_data = self.processAlgorithmMakeRequest(
                 parameters, context, feedback, data=data
@@ -754,7 +791,7 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
             )
 
             # Remix the data as needed
-            data = self.processAlgorithmRemixData(
+            data = self.processAlgorithmRemixDataFull(
                 data, slice_, parameters, context, feedback
             )
 
@@ -770,7 +807,9 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         # Configure output
         return self.processAlgorithmOutput(results, parameters, context, feedback)
 
-    def processAlgorithmRemixData(self, data, slice_, parameters, context, feedback):
+    def processAlgorithmRemixDataFull(
+        self, data, slice_, parameters, context, feedback
+    ):
         locations = self.params["INPUT_LOCATIONS"]
 
         # Prepare location data (this is the same for all the slices)
@@ -996,7 +1035,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
             )
 
             # Remix the data as needed
-            data = self.processAlgorithmRemixData(
+            data = self.processAlgorithmRemixDataFull(
                 data, slice_, parameters, context, feedback
             )
 
@@ -1012,7 +1051,9 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         # Configure output
         return self.processAlgorithmOutput(results, parameters, context, feedback)
 
-    def processAlgorithmRemixData(self, data, slice_, parameters, context, feedback):
+    def processAlgorithmRemixDataFull(
+        self, data, slice_, parameters, context, feedback
+    ):
         locations = self.params["INPUT_LOCATIONS"]
 
         # Prepare location data
