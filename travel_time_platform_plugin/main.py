@@ -159,6 +159,10 @@ class TTPPlugin:
         self.iface.currentLayerChanged.connect(self.current_layer_changed)
         self.config_dialog.accepted.connect(self.config_changed)
 
+        # Trigger signals
+        self.current_layer_changed(self.iface.activeLayer())
+        self.config_changed()
+
     def unload(self):
         # Remove GUI elements
         del self.toolbar
