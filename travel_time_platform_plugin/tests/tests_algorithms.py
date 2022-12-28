@@ -63,7 +63,6 @@ class AlgorithmsBasicTest(TestCaseBase):
                 "INPUT_DEPARTURE_SEARCHES": input_lyr_a,
                 "INPUT_DEPARTURE_TIME": self._today_at_noon().isoformat(),
                 "INPUT_DEPARTURE_TRAVEL_TIME": "900",
-                "INPUT_THROTTLING_STRATEGY": 0,
                 "OUTPUT": "memory:",
             },
         )
@@ -136,7 +135,6 @@ class AlgorithmsBasicTest(TestCaseBase):
             "ttp_v4:reverse_geocoding",
             {
                 "INPUT_DATA": input_lyr,
-                "INPUT_THROTTLING_STRATEGY": 0,
                 "OUTPUT": "memory:",
             },
         )
