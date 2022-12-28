@@ -498,6 +498,30 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                     "Specifies level of detail of returned shape using scale type `simple`. Allowed values: lowest, low, medium, high, highest."
                 ),
             )
+            self.addParameter(
+                QgsProcessingParameterExpression(
+                    f"INPUT_{DEPARR}_SINGLE_SHAPE",
+                    "{} / Single shape".format(DEPARR.title()),
+                    optional=True,
+                    parentLayerParameterName=f"INPUT_{DEPARR}_SEARCHES",
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Enable to return only one shape from the search results. The returned shape will be approximately the biggest one among search results. Note that this will likely result in loss in accuracy."
+                ),
+            )
+            self.addParameter(
+                QgsProcessingParameterExpression(
+                    f"INPUT_{DEPARR}_NO_HOLES",
+                    "{} / No holes".format(DEPARR.title()),
+                    optional=True,
+                    parentLayerParameterName=f"INPUT_{DEPARR}_SEARCHES",
+                ),
+                advanced=True,
+                help_text=tr(
+                    "Enable to remove holes from returned polygons. Note that this will likely result in loss in accuracy."
+                ),
+            )
 
         # Define additional input parameters
         self.addParameter(
@@ -527,13 +551,21 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
     def processAlgorithmRemixSearchDataInstance(
         self, DEPARR, data, parameters, context, feedback
     ):
-        """Inject timemap specific searches parameters (level of detail)"""
+        """Inject timemap specific searches parameters (level of detail, no holes, single shape)"""
         level = self.eval_expr(f"INPUT_{DEPARR}_LEVEL_OF_DETAIL")
         if level is not None:
             data["level_of_detail"] = {
                 "scale_type": "simple",
                 "level": level,
             }
+
+        no_holes = self.eval_expr(f"INPUT_{DEPARR}_NO_HOLES")
+        if level is not None:
+            data["no_holes"] = no_holes
+
+        single_shape = self.eval_expr(f"INPUT_{DEPARR}_SINGLE_SHAPE")
+        if level is not None:
+            data["single_shape"] = single_shape
 
         return data
 

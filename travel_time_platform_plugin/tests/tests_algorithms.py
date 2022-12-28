@@ -1,6 +1,11 @@
+import itertools
+import random
+
 import processing
 from qgis.core import QgsFeature, QgsProject
 
+from ..algorithms.simple import TRANSPORTATION_TYPES, TimeMapSimpleAlgorithm
+from ..utils import timezones
 from .base import TestCaseBase
 
 
@@ -143,55 +148,85 @@ class AlgorithmsBasicTest(TestCaseBase):
 
 
 class AlgorithmsFeaturesTest(TestCaseBase):
-    def test_processing_time_map_simple_level_of_detail(self):
+    def test_processing_time_map_level_of_detail(self):
+        """Test combinations of level_of_detail, no_holes, and single_shapes. This makes sure that
+        both the simple and advanced algorithm return the same results"""
 
-        input_lyr = self._make_layer(["POINT(-0.13 51.50)"])
-        params = {
+        self._center(-0.018, 51.504, 50000)
+        input_lyr = self._make_layer(["POINT(-0.018 51.504)"])
+
+        now = self._today_at_noon().isoformat()
+        params_simple = {
             "INPUT_SEARCHES": input_lyr,
-            "INPUT_TIME": self._today_at_noon().isoformat(),
+            "INPUT_TIME": now,
+            "INPUT_TRNSPT_TYPE": TRANSPORTATION_TYPES.index("driving"),
+            "INPUT_TRAVEL_TIME": 15,
+            "SETTINGS_TIMEZONE": timezones.index("GMT"),
+            "OUTPUT": "memory:",
+        }
+        params_advanced = {
+            "INPUT_DEPARTURE_SEARCHES": input_lyr,
+            "INPUT_DEPARTURE_TIME": f"'{now}'",
+            "INPUT_DEPARTURE_TRNSPT_TYPE": "'driving'",
+            "INPUT_DEPARTURE_TRAVEL_TIME": 15 * 60,
             "OUTPUT": "memory:",
         }
 
-        prev_vtx_count = None
-        for lod in ["lowest", "low", "medium"]:
-            results = processing.runAndLoadResults(
+        # lods = [None, "lowest", "low", "medium", "high","highest"] # not possible with this API key
+        lods = [None, "lowest", "low", "medium"]
+        no_holes = [None, False, True]
+        single_shapes = [None, False, True]
+        combinations = list(itertools.product(lods, no_holes, single_shapes))
+
+        # we only test a deterministic subset of the combinations
+        random.Random(0).shuffle(combinations)
+        combinations = combinations[0:10]
+
+        for lod, no_hole, single_shape in combinations:
+            # Run the simple
+            results_simple = processing.runAndLoadResults(
                 "ttp_v4:time_map_simple",
                 {
-                    **params,
-                    "LEVEL_OF_DETAIL": lod,
+                    **params_simple,
+                    "INPUT_LEVEL_OF_DETAIL": (
+                        None
+                        if lod is None
+                        else TimeMapSimpleAlgorithm.LEVELS_OF_DETAILS.index(lod)
+                    ),
+                    "INPUT_NO_HOLES": no_hole,
+                    "INPUT_SINGLE_SHAPE": single_shape,
                 },
             )
-            self._feedback()
-            output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
-            self.assertEqual(output_layer.featureCount(), 1)
-            vtx_count = output_layer.getFeature(1).geometry().constGet().nCoordinates()
-            if prev_vtx_count is not None:
-                self.assertGreaterEqual(vtx_count, prev_vtx_count)
-            prev_vtx_count = vtx_count
+            output_layer_simple = QgsProject.instance().mapLayer(
+                results_simple["OUTPUT"]
+            )
+            output_layer_simple.setName(
+                f"simple lod: {lod}  no-holes: {no_hole}  single: {single_shape}"
+            )
 
-    def test_processing_time_map_advanced_level_of_detail(self):
-
-        input_lyr = self._make_layer(["POINT(-0.13 51.50)"])
-        params = {
-            "INPUT_DEPARTURE_SEARCHES": input_lyr,
-            "INPUT_DEPARTURE_TIME": self._today_at_noon().isoformat(),
-            "INPUT_DEPARTURE_TRAVEL_TIME": "900",
-            "OUTPUT": "memory:",
-        }
-
-        prev_vtx_count = None
-        for lod in ["lowest", "low", "medium"]:
-            results = processing.runAndLoadResults(
+            # Run the advanced
+            results_advanced = processing.runAndLoadResults(
                 "ttp_v4:time_map",
                 {
-                    **params,
-                    "INPUT_DEPARTURE_LEVEL_OF_DETAIL": f"'{lod}'",
+                    **params_advanced,
+                    "INPUT_DEPARTURE_LEVEL_OF_DETAIL": None
+                    if lod is None
+                    else f"'{lod}'",
+                    "INPUT_DEPARTURE_NO_HOLES": str(no_hole),
+                    "INPUT_DEPARTURE_SINGLE_SHAPE": str(single_shape),
                 },
             )
-            self._feedback()
-            output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
-            self.assertEqual(output_layer.featureCount(), 1)
-            vtx_count = output_layer.getFeature(1).geometry().constGet().nCoordinates()
-            if prev_vtx_count is not None:
-                self.assertGreaterEqual(vtx_count, prev_vtx_count)
-            prev_vtx_count = vtx_count
+            output_layer_advanced = QgsProject.instance().mapLayer(
+                results_advanced["OUTPUT"]
+            )
+            output_layer_advanced.setName(
+                f"advanced lod: {lod}  no-holes: {no_hole}  single: {single_shape}"
+            )
+
+            # If all params are set, both results should be the same
+            # (otherwise, default values may differ)
+            if lod is not None and no_hole is not None and single_shape is not None:
+                self.assertEqual(
+                    output_layer_simple.getFeature(1),
+                    output_layer_advanced.getFeature(1),
+                )
