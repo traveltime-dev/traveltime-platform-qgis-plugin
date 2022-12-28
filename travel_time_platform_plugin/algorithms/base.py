@@ -5,6 +5,7 @@ import json
 import requests
 from qgis.core import (
     Qgis,
+    QgsApplication,
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
     QgsExpression,
@@ -171,6 +172,18 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         json_data = json.dumps(data)
 
         # Get API key
+
+        # QGIS hangs when accessing the auth database from a processing algorithm (see https://github.com/qgis/QGIS/issues/51317)
+        # Thus, we ensure the master password is set.
+        if not QgsApplication.instance().authManager().masterPasswordIsSet():
+            feedback.reportError(
+                tr(
+                    "The auth database must be unlocked before running this algorithm as it must retrieve your API keys. Please open the plugin settings once to unlock it. It is recommended to sync the master password with your password manager to avoid this error."
+                ),
+                fatalError=True,
+            )
+            raise QgsProcessingException("Auth database locked")
+
         APP_ID, API_KEY = auth.get_app_id_and_api_key()
         if not APP_ID or not API_KEY:
             feedback.reportError(
