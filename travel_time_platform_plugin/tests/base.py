@@ -101,10 +101,10 @@ class TestCaseBase(unittest.TestCase):
         pixmap.save(str(artifacts_dir))
 
     def _make_layer(
-        self, wkt_geoms, layer_type="point?crs=epsg:4326"
+        self, wkt_geoms, layer_type="point?crs=epsg:4326", name="untitled"
     ) -> QgsVectorLayer:
         """Helper that adds a styled vector layer with the given geometries to the project and returns it"""
-        vl = QgsVectorLayer(layer_type, "temp", "memory")
+        vl = QgsVectorLayer(layer_type, name, "memory")
         for wkt_geom in wkt_geoms:
             feat = QgsFeature()
             feat.setGeometry(QgsGeometry.fromWkt(wkt_geom))

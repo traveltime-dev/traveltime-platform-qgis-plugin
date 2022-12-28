@@ -88,7 +88,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 "INPUT_THROTTLING_STRATEGY",
                 "Throttling strategy",
                 THROTTLING_STRATEGIES,
-                defaultValue=THROTTLING_PER_SETTINGS,
+                defaultValue=THROTTLING_STRATEGIES.index(THROTTLING_PER_SETTINGS),
             ),
             advanced=True,
             help_text=tr(

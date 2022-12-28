@@ -40,14 +40,16 @@ TRANSPORTATION_TYPES = [
     "driving+ferry",
     "cycling+ferry",
 ]
+SEARCH_TYPES = [
+    "DEPARTURE",
+    "ARRIVAL",
+]
 
 
 class _SimpleSearchAlgorithmBase(AlgorithmBase):
     _group = "Simplified"
     _groupId = "simple"
     _helpUrl = "http://docs.traveltimeplatform.com/reference/time-map/"
-
-    SEARCH_TYPES = ["DEPARTURE", "ARRIVAL"]
 
     def initAlgorithm(self, config):
 
@@ -60,8 +62,8 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             QgsProcessingParameterEnum(
                 "INPUT_SEARCH_TYPE",
                 tr("Search type"),
-                options=["departure", "arrival"],
-                defaultValue="departure",
+                options=SEARCH_TYPES,
+                defaultValue=SEARCH_TYPES.index("DEPARTURE"),
             )
         )
         self.addParameter(
@@ -69,7 +71,8 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
                 "INPUT_TRNSPT_TYPE",
                 tr("Transportation type"),
                 options=TRANSPORTATION_TYPES,
-                defaultValue="public_transport",
+                # TODO: not the best default
+                defaultValue=TRANSPORTATION_TYPES.index("cycling"),
             )
         )
         self.addParameter(
@@ -104,7 +107,7 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
 
         search_layer = self.params["INPUT_SEARCHES"].materialize(QgsFeatureRequest())
 
-        mode = self.SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
+        mode = SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
 
         trnspt_type = TRANSPORTATION_TYPES[self.params["INPUT_TRNSPT_TYPE"]]
 
@@ -190,7 +193,7 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             parameters, context, feedback
         )
 
-        mode = self.SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
+        mode = SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
 
         params.update(
             {
@@ -241,7 +244,7 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
                 "OUTPUT_RESULT_TYPE",
                 tr("Result aggregation"),
                 options=self.RESULT_TYPE,
-                defaultValue=self.RESULT_TYPE[0],
+                defaultValue=self.RESULT_TYPE.index("NORMAL"),
             ),
             help_text=tr(
                 "NORMAL will return a polygon for each departure/arrival search. UNION will return the union of all polygons for all departure/arrivals searches. INTERSECTION will return the intersection of all departure/arrival searches."
@@ -289,7 +292,7 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             QgsFeatureRequest()
         )
 
-        mode = self.SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
+        mode = SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
 
         params.update(
             {
@@ -403,7 +406,7 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
                 "OUTPUT_RESULT_TYPE",
                 tr("Output style"),
                 options=self.RESULT_TYPE,
-                defaultValue=self.RESULT_TYPE[0],
+                defaultValue=self.RESULT_TYPE.index("NORMAL"),
             ),
             help_text=tr(
                 "NORMAL and DURATION will return a simple linestring for each route. DETAILED will return several segments for each type of transportation for each route."
