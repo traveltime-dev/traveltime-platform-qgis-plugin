@@ -12,6 +12,7 @@ from qgis.core import (
     QgsProcessing,
     QgsProcessingParameterBoolean,
     QgsProcessingParameterEnum,
+    QgsProcessingParameterExpression,
     QgsProcessingParameterFeatureSink,
     QgsProcessingParameterFeatureSource,
     QgsProcessingParameterField,
@@ -58,6 +59,20 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
                 "INPUT_SEARCHES", tr("Searches"), [QgsProcessing.TypeVectorPoint]
             )
         )
+        self.addParameter(
+            QgsProcessingParameterExpression(
+                "INPUT_ID",
+                tr("Searches ID"),
+                optional=True,
+                defaultValue="'searches_' || $id",
+                parentLayerParameterName="INPUT_SEARCHES",
+            ),
+            advanced=True,
+            help_text=tr(
+                "Used to identify this specific search in the results array. MUST be unique among all searches."
+            ),
+        )
+
         self.addParameter(
             QgsProcessingParameterEnum(
                 "INPUT_SEARCH_TYPE",
@@ -106,6 +121,7 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
     def processAlgorithmPrepareSubParameters(self, parameters, context, feedback):
 
         search_layer = self.params["INPUT_SEARCHES"].materialize(QgsFeatureRequest())
+        search_id_expression = self.params["INPUT_ID"]
 
         mode = SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
 
@@ -117,6 +133,7 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
 
         return {
             "INPUT_{}_SEARCHES".format(mode): search_layer,
+            "INPUT_{}_ID".format(mode): search_id_expression.expression(),
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
             "INPUT_{}_TIME".format(mode): "'" + time.toString(Qt.ISODate) + "'",
             "INPUT_THROTTLING_STRATEGY": THROTTLING_STRATEGIES.index(
@@ -334,6 +351,7 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         locations_layer = self.params["INPUT_LOCATIONS"].materialize(
             QgsFeatureRequest()
         )
+        input_id_expression = self.params["INPUT_LOCATIONS_ID"]
 
         mode = SEARCH_TYPES[self.params["INPUT_SEARCH_TYPE"]]
 
@@ -346,6 +364,7 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
                     min(900, self.params["INPUT_TRAVEL_TIME"] * 60)
                 ),
                 "INPUT_LOCATIONS": locations_layer,
+                "INPUT_LOCATIONS_ID": input_id_expression.expression(),
                 "PROPERTIES_FARES": self.params["PROPERTIES_FARES"],
             }
         )
@@ -371,6 +390,19 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             QgsProcessingParameterFeatureSource(
                 "INPUT_LOCATIONS", tr("Locations"), [QgsProcessing.TypeVectorPoint]
             )
+        )
+        self.addParameter(
+            QgsProcessingParameterExpression(
+                "INPUT_LOCATIONS_ID",
+                "Locations ID",
+                optional=True,
+                defaultValue="'locations_' || $id",
+                parentLayerParameterName="INPUT_LOCATIONS",
+            ),
+            advanced=True,
+            help_text=tr(
+                "Used to identify this specific location in the results array. MUST be unique among all locations."
+            ),
         )
 
         self.addParameter(
@@ -414,10 +446,12 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         locations_layer = self.params["INPUT_LOCATIONS"].materialize(
             QgsFeatureRequest()
         )
+        input_id_expression = self.params["INPUT_LOCATIONS_ID"]
 
         params.update(
             {
                 "INPUT_LOCATIONS": locations_layer,
+                "INPUT_LOCATIONS_ID": input_id_expression.expression(),
                 "PROPERTIES_FARES": self.params["PROPERTIES_FARES"],
                 "OUTPUT_RESULT_TYPE": self.params["OUTPUT_RESULT_TYPE"],
             }
@@ -433,6 +467,19 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             QgsProcessingParameterFeatureSource(
                 "INPUT_LOCATIONS", tr("Locations"), [QgsProcessing.TypeVectorPoint]
             )
+        )
+        self.addParameter(
+            QgsProcessingParameterExpression(
+                "INPUT_LOCATIONS_ID",
+                "Locations ID",
+                optional=True,
+                defaultValue="'locations_' || $id",
+                parentLayerParameterName="INPUT_LOCATIONS",
+            ),
+            advanced=True,
+            help_text=tr(
+                "Used to identify this specific location in the results array. MUST be unique among all locations."
+            ),
         )
 
         self.addParameter(

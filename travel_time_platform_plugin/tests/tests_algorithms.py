@@ -2,7 +2,7 @@ import itertools
 import random
 
 import processing
-from qgis.core import QgsFeature, QgsProject
+from qgis.core import QgsFeature, QgsJsonUtils, QgsProject
 
 from ..algorithms.simple import TRANSPORTATION_TYPES, TimeMapSimpleAlgorithm
 from ..utils import timezones
@@ -195,6 +195,7 @@ class AlgorithmsFeaturesTest(TestCaseBase):
                     ),
                     "INPUT_NO_HOLES": no_hole,
                     "INPUT_SINGLE_SHAPE": single_shape,
+                    "INPUT_ID": "'search_id_' || $id",
                 },
             )
             output_layer_simple = QgsProject.instance().mapLayer(
@@ -214,6 +215,7 @@ class AlgorithmsFeaturesTest(TestCaseBase):
                     else f"'{lod}'",
                     "INPUT_DEPARTURE_NO_HOLES": str(no_hole),
                     "INPUT_DEPARTURE_SINGLE_SHAPE": str(single_shape),
+                    "INPUT_DEPARTURE_ID": "'search_id_' || $id",
                 },
             )
             output_layer_advanced = QgsProject.instance().mapLayer(
@@ -226,7 +228,10 @@ class AlgorithmsFeaturesTest(TestCaseBase):
             # If all params are set, both results should be the same
             # (otherwise, default values may differ)
             if lod is not None and no_hole is not None and single_shape is not None:
+                ft_simple = output_layer_simple.getFeature(1)
+                ft_advanced = output_layer_advanced.getFeature(1)
                 self.assertEqual(
-                    output_layer_simple.getFeature(1),
-                    output_layer_advanced.getFeature(1),
+                    ft_simple,
+                    ft_advanced,
+                    f"{QgsJsonUtils.exportAttributes(ft_simple)} != {QgsJsonUtils.exportAttributes(ft_advanced)}",
                 )
