@@ -5,7 +5,7 @@ import os.path
 
 import processing
 from qgis.core import Qgis, QgsApplication
-from qgis.gui import QgsBrowserTreeView, QgsFilterLineEdit
+from qgis.gui import QgsFilterLineEdit
 from qgis.PyQt.QtCore import (
     QCoreApplication,
     QLocale,
@@ -21,6 +21,7 @@ from qgis.PyQt.QtWidgets import (
     QLineEdit,
     QMessageBox,
     QPushButton,
+    QTreeView,
 )
 
 from . import express, resources, tests, tiles, ui
@@ -209,7 +210,7 @@ class TTPPlugin:
         browser.raise_()
 
         # Get the XYZ item of the treeview
-        treeview = browser.findChild(QgsBrowserTreeView)
+        treeview = browser.findChild(QTreeView)
         model = treeview.model()
         xyz_tiles_group_idx = model.match(
             model.index(0, 0),
