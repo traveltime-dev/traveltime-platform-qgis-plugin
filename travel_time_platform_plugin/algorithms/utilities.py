@@ -18,12 +18,12 @@ from qgis.PyQt.QtCore import QVariant
 from .. import resources
 from ..libraries import iso3166
 from ..utils import tr
-from .base import EPSG4326, AlgorithmBase
+from .base import EPSG4326, ProcessingAlgorithmBase
 
 COUNTRIES = [(None, "-")] + list([(c.alpha2, c.name) for c in iso3166.countries])
 
 
-class GeocodingAlgorithmBase(AlgorithmBase):
+class GeocodingAlgorithmBase(ProcessingAlgorithmBase):
     input_type = QgsProcessing.TypeVector
 
     RESULT_TYPE = ["ALL", "BEST_MATCH"]
