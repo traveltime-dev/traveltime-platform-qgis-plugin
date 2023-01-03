@@ -16,6 +16,7 @@ def run_suite(stream) -> unittest.TestResult:
         [
             "travel_time_platform_plugin.tests.tests_express_tools",
             "travel_time_platform_plugin.tests.tests_algorithms",
+            "travel_time_platform_plugin.tests.tests_misc",
         ]
     )
     runner = unittest.TextTestRunner(stream=stream, verbosity=2)

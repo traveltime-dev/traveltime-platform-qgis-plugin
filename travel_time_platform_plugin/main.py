@@ -21,9 +21,7 @@ from qgis.PyQt.QtWidgets import (
     QLineEdit,
     QMessageBox,
     QPushButton,
-    QSplitter,
     QTreeView,
-    QWidget,
 )
 
 from . import express, resources, tests, tiles, ui
@@ -212,22 +210,37 @@ class TTPPlugin:
         browser.raise_()
 
         # Get the XYZ item of the treeview
-        treeview = (
-            self.iface.mainWindow()
-            .findChild(QDockWidget, "Browser")
-            .findChild(QWidget, "mContents")
-            .findChild(QSplitter)
-            .widget(0)
-            .findChild(QTreeView)
-        )
+        treeview = browser.findChild(QTreeView)
         model = treeview.model()
+        xyz_tiles_group_idx = model.match(
+            model.index(0, 0),
+            Qt.DisplayRole,
+            "XYZ Tiles",
+        )
+        if len(xyz_tiles_group_idx) == 0:
+            # Shouldn't happen, but let's play safe
+            return
 
-        match = model.match(model.index(0, 0), Qt.DisplayRole, "XYZ Tiles")[0]
+        # Fold everything and display it
         treeview.collapseAll()
         treeview.clearSelection()
-        treeview.expand(match)
-        treeview.setCurrentIndex(match)
-        treeview.scrollTo(match)
+        treeview.expand(xyz_tiles_group_idx[0])
+        treeview.setCurrentIndex(xyz_tiles_group_idx[0])
+        treeview.scrollTo(xyz_tiles_group_idx[0])
+
+        # If tiles were loaded, selected it
+        lux_tiles_idx = model.match(
+            model.index(0, 0, xyz_tiles_group_idx[0]),
+            Qt.DisplayRole,
+            "TravelTime - Lux",
+        )
+        if len(lux_tiles_idx) == 0:
+            # If not loaded (because missing API), good enough, we showed background tiles
+            return
+
+        # Display it
+        treeview.setCurrentIndex(lux_tiles_idx[0])
+        treeview.scrollTo(lux_tiles_idx[0])
 
     def show_config(self):
         self.config_dialog.exec_()
