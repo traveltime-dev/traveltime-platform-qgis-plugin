@@ -54,11 +54,6 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             False: collections.OrderedDict(),
         }
 
-    def flags(self):
-        # Disable threading to workaround issue https://github.com/traveltime-dev/traveltime-platform-qgis-plugin/issues/50
-        # (upstream https://github.com/qgis/QGIS/issues/51317)
-        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
-
     def addParameter(self, parameter, advanced=False, help_text=None, *args, **kwargs):
         """Helper to add parameters with help texts"""
         if advanced:
@@ -208,6 +203,22 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             ),
         )
 
+    def prepareAlgorithm(self, parameters, context, feedback):
+        # Get the API KEY. This must be done here, so it's run in the main thread, as it may require GUI (if master
+        # password is not set).
+        self.APP_ID, self.API_KEY = auth.get_app_id_and_api_key()
+
+        if not self.APP_ID or not self.API_KEY:
+            feedback.reportError(
+                tr(
+                    "Could not retrieve APP_ID and/or API_KEY. Make sure they are correctly defined in the plugin's settings."
+                ),
+                fatalError=True,
+            )
+            return False
+
+        return True
+
     def processAlgorithmComputeSearchCountForThrottling(self, data):
         """Returns how many searches the request will take for throttling"""
 
@@ -229,8 +240,7 @@ class ProcessingAlgorithmBase(AlgorithmBase):
         json_data = json.dumps(data)
 
         # Get API key
-        APP_ID, API_KEY = auth.get_app_id_and_api_key()
-        if not APP_ID or not API_KEY:
+        if not self.APP_ID or not self.API_KEY:
             feedback.reportError(
                 tr(
                     "You need a TravelTime platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin's setting dialog."
@@ -245,8 +255,8 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             "User-Agent": "QGIS / {} / {}".format(
                 Qgis.QGIS_VERSION_INT, constants.TTP_VERSION
             ),
-            "X-Application-Id": APP_ID,
-            "X-Api-Key": API_KEY,
+            "X-Application-Id": self.APP_ID,
+            "X-Api-Key": self.API_KEY,
         }
 
         endpoint = QSettings().value(
