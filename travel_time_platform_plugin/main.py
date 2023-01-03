@@ -37,9 +37,9 @@ class TTPPlugin:
 
         self.plugin_dir = os.path.dirname(__file__)
 
-        locale = QSettings().value("locale/userLocale", QLocale().name())[0:2]
+        locale = QSettings().value("locale/userLocale") or QLocale().name() or "en"
         locale_path = os.path.join(
-            self.plugin_dir, "i18n", "traveltime_platform_{}.qm".format(locale)
+            self.plugin_dir, "i18n", f"traveltime_platform_{locale[0:2]}.qm"
         )
 
         if os.path.exists(locale_path):
