@@ -107,6 +107,12 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             )
         )
 
+    def prepareAlgorithm(self, parameters, context, feedback) -> bool:
+        # Create the instance of the subalgorithm in prepareAlgorithm, since it must be done in the
+        # main thread to safely access authmanager.
+        self.subalgorithm_instance = self.subalgorithm().create()
+        return self.subalgorithm_instance.prepare({}, context, feedback)
+
     def processAlgorithmPrepareSubParameters(self, parameters, context, feedback):
 
         search_layer = self.params["INPUT_SEARCHES"].materialize(QgsFeatureRequest())
@@ -145,9 +151,11 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
         feedback.pushDebugInfo("Calling subcommand with following parameters...")
         feedback.pushDebugInfo(str(sub_parameters))
 
-        sub_id = "ttp_v4:" + self.subalgorithm._name
         results = processing.runAndLoadResults(
-            sub_id, sub_parameters, context=context, feedback=feedback
+            self.subalgorithm_instance,
+            sub_parameters,
+            context=context,
+            feedback=feedback,
         )
 
         feedback.pushDebugInfo("Got results fom subcommand...")

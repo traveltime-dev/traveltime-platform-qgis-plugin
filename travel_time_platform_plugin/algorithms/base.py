@@ -5,7 +5,6 @@ import json
 import requests
 from qgis.core import (
     Qgis,
-    QgsApplication,
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
     QgsExpression,
@@ -204,6 +203,22 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             ),
         )
 
+    def prepareAlgorithm(self, parameters, context, feedback):
+        # Get the API KEY. This must be done here, so it's run in the main thread, as it may require GUI (if master
+        # password is not set).
+        self.APP_ID, self.API_KEY = auth.get_app_id_and_api_key()
+
+        if not self.APP_ID or not self.API_KEY:
+            feedback.reportError(
+                tr(
+                    "Could not retrieve APP_ID and/or API_KEY. Make sure they are correctly defined in the plugin's settings."
+                ),
+                fatalError=True,
+            )
+            return False
+
+        return True
+
     def processAlgorithmComputeSearchCountForThrottling(self, data):
         """Returns how many searches the request will take for throttling"""
 
@@ -215,23 +230,17 @@ class ProcessingAlgorithmBase(AlgorithmBase):
     ):
         """Helper method to check the API limits and make an authenticated request"""
 
+        # Stop on user request
+        if feedback.isCanceled():
+            feedback.reportError(
+                tr("Algorithm was cancelled by the user."), fatalError=True
+            )
+            raise QgsProcessingException("Algorithm was cancelled by the user.")
+
         json_data = json.dumps(data)
 
         # Get API key
-
-        # QGIS hangs when accessing the auth database from a processing algorithm (see https://github.com/qgis/QGIS/issues/51317)
-        # Thus, we ensure the master password is set.
-        if not QgsApplication.instance().authManager().masterPasswordIsSet():
-            feedback.reportError(
-                tr(
-                    "The auth database must be unlocked before running this algorithm as it must retrieve your API keys. Please open the plugin settings once to unlock it. It is recommended to sync the master password with your password manager to avoid this error."
-                ),
-                fatalError=True,
-            )
-            raise QgsProcessingException("Auth database locked")
-
-        APP_ID, API_KEY = auth.get_app_id_and_api_key()
-        if not APP_ID or not API_KEY:
+        if not self.APP_ID or not self.API_KEY:
             feedback.reportError(
                 tr(
                     "You need a TravelTime platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin's setting dialog."
@@ -246,8 +255,8 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             "User-Agent": "QGIS / {} / {}".format(
                 Qgis.QGIS_VERSION_INT, constants.TTP_VERSION
             ),
-            "X-Application-Id": APP_ID,
-            "X-Api-Key": API_KEY,
+            "X-Application-Id": self.APP_ID,
+            "X-Api-Key": self.API_KEY,
         }
 
         endpoint = QSettings().value(
