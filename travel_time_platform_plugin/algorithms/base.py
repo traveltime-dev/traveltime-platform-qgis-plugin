@@ -5,7 +5,6 @@ import json
 import requests
 from qgis.core import (
     Qgis,
-    QgsApplication,
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
     QgsExpression,
@@ -54,6 +53,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             True: collections.OrderedDict(),
             False: collections.OrderedDict(),
         }
+
+    def flags(self):
+        # Disable threading to workaround issue https://github.com/traveltime-dev/traveltime-platform-qgis-plugin/issues/50
+        # (upstream https://github.com/qgis/QGIS/issues/51317)
+        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
 
     def addParameter(self, parameter, advanced=False, help_text=None, *args, **kwargs):
         """Helper to add parameters with help texts"""
@@ -215,21 +219,16 @@ class ProcessingAlgorithmBase(AlgorithmBase):
     ):
         """Helper method to check the API limits and make an authenticated request"""
 
+        # Stop on user request
+        if feedback.isCanceled():
+            feedback.reportError(
+                tr("Algorithm was cancelled by the user."), fatalError=True
+            )
+            raise QgsProcessingException("Algorithm was cancelled by the user.")
+
         json_data = json.dumps(data)
 
         # Get API key
-
-        # QGIS hangs when accessing the auth database from a processing algorithm (see https://github.com/qgis/QGIS/issues/51317)
-        # Thus, we ensure the master password is set.
-        if not QgsApplication.instance().authManager().masterPasswordIsSet():
-            feedback.reportError(
-                tr(
-                    "The auth database must be unlocked before running this algorithm as it must retrieve your API keys. Please open the plugin settings once to unlock it. It is recommended to sync the master password with your password manager to avoid this error."
-                ),
-                fatalError=True,
-            )
-            raise QgsProcessingException("Auth database locked")
-
         APP_ID, API_KEY = auth.get_app_id_and_api_key()
         if not APP_ID or not API_KEY:
             feedback.reportError(
