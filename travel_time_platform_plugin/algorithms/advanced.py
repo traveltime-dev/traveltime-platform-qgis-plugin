@@ -38,7 +38,7 @@ from qgis.PyQt.QtGui import QColor
 
 from .. import resources, utils
 from ..utils import tr
-from .base import EPSG4326, AlgorithmBase
+from .base import EPSG4326, ProcessingAlgorithmBase
 
 # Constants to define behaviour of available properties
 PROPERTY_DEFAULT_NO = 0
@@ -53,7 +53,7 @@ OUTPUT_ALIASES = {
 }
 
 
-class _SearchAlgorithmBase(AlgorithmBase):
+class _SearchAlgorithmBase(ProcessingAlgorithmBase):
     """Base class for the algorithms that share properties such as departure/arrival_searches"""
 
     available_properties = {}

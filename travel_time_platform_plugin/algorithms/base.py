@@ -46,11 +46,7 @@ COUNTRIES = [(None, "-")] + list([(c.alpha2, c.name) for c in iso3166.countries]
 
 
 class AlgorithmBase(QgsProcessingAlgorithm):
-    """Base class for all processing algorithms"""
-
-    method = "POST"
-    accept_header = "application/json"
-    output_aliases = {}
+    """Base class for all processing algorithms (simple/advanced/utilities)"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -82,20 +78,6 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             return self.params[key].evaluate(self.expressions_context)
         else:
             return None
-
-    def initAlgorithm(self, config):
-        self.addParameter(
-            QgsProcessingParameterEnum(
-                "INPUT_THROTTLING_STRATEGY",
-                "Throttling strategy",
-                THROTTLING_STRATEGIES,
-                defaultValue=THROTTLING_STRATEGIES.index(THROTTLING_PER_SETTINGS),
-            ),
-            advanced=True,
-            help_text=tr(
-                "Set which throttling strategy to use : either as per settings, or disabled."
-            ),
-        )
 
     def processAlgorithm(self, parameters, context, feedback):
         feedback.pushDebugInfo(
@@ -158,6 +140,69 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 )
 
             self.params[p.name()] = param
+
+    def createInstance(self):
+        return self.__class__()
+
+    # Cosmetic methods to allow less verbose definition of these propreties in child classes
+
+    def name(self):
+        return self._name
+
+    def displayName(self):
+        return self._displayName
+
+    def group(self):
+        return self._group
+
+    def groupId(self):
+        return self._groupId
+
+    def icon(self):
+        return self._icon
+
+    def helpUrl(self):
+        return self._helpUrl
+
+    def shortHelpString(self):
+        help_string = self._shortHelpString
+        if self.parameters_help[False]:
+            help_string += "<h2>Parameters description</h2>" + "".join(
+                [
+                    "\n<b>{}</b>: {}".format(key, val or "-")
+                    for key, val in self.parameters_help[False].items()
+                ]
+            )
+        if self.parameters_help[True]:
+            help_string += "<h2>Advanced parameters description</h2>" + "".join(
+                [
+                    "\n<b>{}</b>: {}".format(key, val or "-")
+                    for key, val in self.parameters_help[True].items()
+                ]
+            )
+        return help_string
+
+
+class ProcessingAlgorithmBase(AlgorithmBase):
+    """Base class for algorithms that do actuall processing (advanced/utilities)"""
+
+    method = "POST"
+    accept_header = "application/json"
+    output_aliases = {}
+
+    def initAlgorithm(self, config):
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                "INPUT_THROTTLING_STRATEGY",
+                "Throttling strategy",
+                THROTTLING_STRATEGIES,
+                defaultValue=THROTTLING_STRATEGIES.index(THROTTLING_PER_SETTINGS),
+            ),
+            advanced=True,
+            help_text=tr(
+                "Set which throttling strategy to use : either as per settings, or disabled."
+            ),
+        )
 
     def processAlgorithmComputeSearchCountForThrottling(self, data):
         """Returns how many searches the request will take for throttling"""
@@ -403,44 +448,3 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             layer.setMetadata(metadata)
 
         return super().postProcessAlgorithm(context, feedback)
-
-    def createInstance(self):
-        return self.__class__()
-
-    # Cosmetic methods to allow less verbose definition of these propreties in child classes
-
-    def name(self):
-        return self._name
-
-    def displayName(self):
-        return self._displayName
-
-    def group(self):
-        return self._group
-
-    def groupId(self):
-        return self._groupId
-
-    def icon(self):
-        return self._icon
-
-    def helpUrl(self):
-        return self._helpUrl
-
-    def shortHelpString(self):
-        help_string = self._shortHelpString
-        if self.parameters_help[False]:
-            help_string += "<h2>Parameters description</h2>" + "".join(
-                [
-                    "\n<b>{}</b>: {}".format(key, val or "-")
-                    for key, val in self.parameters_help[False].items()
-                ]
-            )
-        if self.parameters_help[True]:
-            help_string += "<h2>Advanced parameters description</h2>" + "".join(
-                [
-                    "\n<b>{}</b>: {}".format(key, val or "-")
-                    for key, val in self.parameters_help[True].items()
-                ]
-            )
-        return help_string

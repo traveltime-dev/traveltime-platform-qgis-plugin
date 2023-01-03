@@ -1,14 +1,6 @@
-import os
-import random
-
 import processing
 from qgis.core import (
-    QgsCategorizedSymbolRenderer,
-    QgsExpression,
-    QgsExpressionContext,
-    QgsFeature,
     QgsFeatureRequest,
-    QgsLineSymbol,
     QgsProcessing,
     QgsProcessingParameterBoolean,
     QgsProcessingParameterEnum,
@@ -17,11 +9,8 @@ from qgis.core import (
     QgsProcessingParameterFeatureSource,
     QgsProcessingParameterField,
     QgsProcessingParameterNumber,
-    QgsProcessingUtils,
-    QgsRendererCategory,
 )
 from qgis.PyQt.QtCore import QDateTime, Qt, QTimeZone
-from qgis.PyQt.QtGui import QColor
 
 from .. import parameters, resources, utils
 from ..utils import tr
@@ -157,37 +146,16 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
         feedback.pushDebugInfo(str(sub_parameters))
 
         sub_id = "ttp_v4:" + self.subalgorithm._name
-        results = processing.run(
+        results = processing.runAndLoadResults(
             sub_id, sub_parameters, context=context, feedback=feedback
         )
 
         feedback.pushDebugInfo("Got results fom subcommand...")
 
-        # For some reason, this doesn't work directly... We'll create a copy...
-        # return results
+        # Keep reference for further post processing
+        self.sink_id = results["OUTPUT"]
 
-        result_layer = results["OUTPUT"]
-
-        # Configure output
-        (sink, sink_id) = self.parameterAsSink(
-            parameters,
-            "OUTPUT",
-            context,
-            result_layer.fields(),
-            result_layer.wkbType(),
-            result_layer.sourceCrs(),
-        )
-        # Copy results to output
-        feedback.pushDebugInfo("Copying results to layer...")
-        for f in result_layer.getFeatures():
-            sink.addFeature(QgsFeature(f))
-
-        feedback.pushDebugInfo("{} done !".format(self.__class__.__name__))
-
-        # to get hold of the layer in post processing
-        self.sink_id = sink_id
-
-        return {"OUTPUT": sink_id}
+        return {"OUTPUT": self.sink_id}
 
 
 class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
@@ -311,24 +279,6 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             ),
         )
 
-    def postProcessAlgorithm(self, context, feedback):
-
-        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
-
-        if result_type == "NORMAL":
-            style_file = "style_time.qml"
-        elif result_type == "UNION":
-            style_file = "style_time_union.qml"
-        elif result_type == "INTERSECTION":
-            style_file = "style_time_intersection.qml"
-
-        style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
-        QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(
-            style_path
-        )
-
-        return super().postProcessAlgorithm(context, feedback)
-
 
 class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
     subalgorithm = TimeFilterAlgorithm
@@ -414,14 +364,6 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             ),
         )
 
-    def postProcessAlgorithm(self, context, feedback):
-        style_file = "style_filter.qml"
-        style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
-        QgsProcessingUtils.mapLayerFromString(self.sink_id, context).loadNamedStyle(
-            style_path
-        )
-        return super().postProcessAlgorithm(context, feedback)
-
 
 class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
     subalgorithm = RoutesAlgorithm
@@ -502,39 +444,3 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
                 "NORMAL and DURATION will return a simple linestring for each route. DETAILED will return several segments for each type of transportation for each route."
             ),
         )
-
-    def postProcessAlgorithm(self, context, feedback):
-        layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
-        result_type = self.RESULT_TYPE[self.params["OUTPUT_RESULT_TYPE"]]
-
-        feedback.pushInfo("result type is : " + result_type)
-
-        if result_type == "NORMAL":
-            exp = "'from ' || search_id || ' to ' || location_id"
-            # We get all uniques routes
-            expression = QgsExpression(exp)
-            exp_ctx = QgsExpressionContext()
-
-            values = set()
-            for f in layer.getFeatures():
-                exp_ctx.setFeature(f)
-                values.add(expression.evaluate(exp_ctx))
-
-            categories = []
-            for value in sorted(values):
-                symbol = QgsLineSymbol()
-                symbol.setWidth(1)
-                symbol.setColor(QColor.fromHsl(random.randint(0, 359), 255, 127))
-                category = QgsRendererCategory(value, symbol, value)
-                categories.append(category)
-
-            renderer = QgsCategorizedSymbolRenderer(exp, categories)
-            layer.setRenderer(renderer)
-        else:
-            if result_type == "DURATION":
-                style_file = "style_route_duration.qml"
-            else:
-                style_file = "style_route_mode.qml"
-            style_path = os.path.join(os.path.dirname(__file__), "styles", style_file)
-            layer.loadNamedStyle(style_path)
-        return super().postProcessAlgorithm(context, feedback)
