@@ -50,6 +50,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
     method = "POST"
     accept_header = "application/json"
+    output_aliases = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -360,9 +361,20 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         return response_data
 
     def postProcessAlgorithm(self, context, feedback):
-        # Save the metadata
+        """Sets the output layer metadata and field aliases"""
+
         if hasattr(self, "sink_id") and self.sink_id is not None:
             layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
+
+            # Set field aliases
+            for field_name, alias in self.output_aliases.items():
+                field_idx = layer.fields().indexOf(field_name)
+                if field_idx == -1:
+                    # field does not exist in ouput, we skip it
+                    continue
+                layer.setFieldAlias(field_idx, alias)
+
+            # Save the metadata
             metadata = QgsLayerMetadata()
 
             def serialize(o):

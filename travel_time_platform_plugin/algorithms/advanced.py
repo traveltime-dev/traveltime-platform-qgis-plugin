@@ -45,6 +45,13 @@ PROPERTY_DEFAULT_NO = 0
 PROPERTY_DEFAULT_YES = 1
 PROPERTY_ALWAYS = 2
 
+OUTPUT_ALIASES = {
+    "part_distance": tr("Distance (m)"),
+    "part_travel_time": tr("Travel time (s)"),
+    "prop_distance": tr("Distance (m)"),
+    "prop_travel_time": tr("Travel time (s)"),
+}
+
 
 class _SearchAlgorithmBase(AlgorithmBase):
     """Base class for the algorithms that share properties such as departure/arrival_searches"""
@@ -761,6 +768,7 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         "route": PROPERTY_DEFAULT_NO,
     }
     output_type = QgsProcessing.TypeVectorPoint
+    output_aliases = OUTPUT_ALIASES
 
     _name = "time_filter"
     _displayName = "Time Filter"
@@ -986,6 +994,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         "route": PROPERTY_ALWAYS,
     }
     output_type = QgsProcessing.TypeVectorLine
+    output_aliases = OUTPUT_ALIASES
 
     _name = "routes"
     _displayName = "Routes"
