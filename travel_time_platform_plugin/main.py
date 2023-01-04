@@ -2,6 +2,7 @@ import contextlib
 import io
 import json
 import os.path
+import webbrowser
 
 import processing
 from qgis.core import Qgis, QgsApplication
@@ -51,7 +52,6 @@ class TTPPlugin:
         # Add GUI elements
         self.splash_screen = ui.SplashScreen(self)
         self.config_dialog = ui.ConfigDialog()
-        self.help_dialog = ui.HelpWidget(self)
         self.tilesManager = tiles.TilesManager(self)
 
         self.toolbar = self.iface.addToolBar("TravelTime platform Toolbar")
@@ -271,7 +271,7 @@ class TTPPlugin:
         self.splash_screen.show()
 
     def show_help(self):
-        self.help_dialog.show()
+        webbrowser.open("https://hubs.ly/H0rnCjY0")
 
     def init_finished(self):
         # Show splash screen
