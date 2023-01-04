@@ -1,10 +1,12 @@
 import itertools
+import json
 import random
 
 import processing
-from qgis.core import QgsFeature, QgsJsonUtils, QgsProject
+from qgis.core import QgsFeature, QgsJsonUtils, QgsProcessingUtils, QgsProject
 
 from ..algorithms.simple import TRANSPORTATION_TYPES, TimeMapSimpleAlgorithm
+from ..constants import TTP_VERSION
 from ..utils import timezones
 from .base import TestCaseBase
 
@@ -12,103 +14,138 @@ from .base import TestCaseBase
 class AlgorithmsBasicTest(TestCaseBase):
     """Testing algorithms with basic parameters (mostly default)"""
 
+    def _test_algorithm(self, algorithm_name, parameters, expected_result_count):
+        """Runs tests on the given algorithm"""
+
+        # Run the algorithm
+        context = processing.createContext()
+        results = processing.runAndLoadResults(
+            algorithm_name,
+            {**parameters},  # copy the dict, as runAndLoadResults alters it (sic !)
+            context=context,
+        )
+
+        # Get the output layer
+        output_layer = QgsProcessingUtils.mapLayerFromString(results["OUTPUT"], context)
+
+        # self._feedback(20)
+
+        # Ensure we got the expected number of features
+        self.assertEqual(
+            output_layer.featureCount(),
+            expected_result_count,
+        )
+
+        # Assert TTP_ALGORITHM metadata
+        self.assertEquals(
+            output_layer.metadata().keywords("TTP_ALGORITHM")[0],
+            algorithm_name,
+        )
+
+        # Assert TTP_PARAMS metadata
+        self.assertEquals(
+            json.loads(output_layer.metadata().keywords("TTP_PARAMS")[0]),
+            parameters,
+            f"{output_layer.metadata().keywords('TTP_PARAMS')[0]}\n\n\nIS DIFFERNT FROM\n\n\n{parameters}",
+        )
+
+        # Assert TTP_VERSION metadata
+        self.assertEquals(
+            output_layer.metadata().keywords("TTP_VERSION")[0],
+            TTP_VERSION,
+        )
+
     def test_processing_time_map_simple(self):
         input_lyr = self._make_layer(["POINT(-3.1 55.9)"])
-        results = processing.runAndLoadResults(
+        self._test_algorithm(
             "ttp_v4:time_map_simple",
             {
-                "INPUT_SEARCHES": input_lyr,
+                "INPUT_SEARCHES": input_lyr.id(),
                 "INPUT_TIME": self._today_at_noon().isoformat(),
                 "OUTPUT": "memory:",
             },
+            expected_result_count=1,
         )
-        output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
-        self.assertEqual(output_layer.featureCount(), 1)
 
     def test_processing_time_filter_simple(self):
         input_lyr_a = self._make_layer(["POINT(0.0 51.5)"], name="a")
         input_lyr_b = self._make_layer(
             ["POINT(0.1 51.5)", "POINT(-0.1 51.5)", "POINT(0.0 51.6)"], name="b"
         )
-        results = processing.runAndLoadResults(
+        self._test_algorithm(
             "ttp_v4:time_filter_simple",
             {
-                "INPUT_SEARCHES": input_lyr_a,
-                "INPUT_LOCATIONS": input_lyr_b,
+                "INPUT_SEARCHES": input_lyr_a.id(),
+                "INPUT_LOCATIONS": input_lyr_b.id(),
                 "INPUT_TIME": self._today_at_noon().isoformat(),
                 "INPUT_TRAVEL_TIME": 15,
                 "OUTPUT": "memory:",
             },
+            expected_result_count=3,
         )
-        output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
-        self.assertEqual(output_layer.featureCount(), 3)
 
     def test_processing_routes_simple(self):
         input_lyr_a = self._make_layer(["POINT(0.0 51.5)"], name="a")
         input_lyr_b = self._make_layer(
             ["POINT(0.1 51.5)", "POINT(-0.1 51.5)", "POINT(0.0 51.6)"], name="b"
         )
-        results = processing.runAndLoadResults(
+        self._test_algorithm(
             "ttp_v4:routes_simple",
             {
-                "INPUT_SEARCHES": input_lyr_a,
-                "INPUT_LOCATIONS": input_lyr_b,
+                "INPUT_SEARCHES": input_lyr_a.id(),
+                "INPUT_LOCATIONS": input_lyr_b.id(),
                 "INPUT_TIME": self._today_at_noon().isoformat(),
                 "OUTPUT": "memory:",
             },
+            expected_result_count=3,
         )
-        output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
-        self.assertEqual(output_layer.featureCount(), 3)
 
     def test_processing_time_map(self):
         input_lyr_a = self._make_layer(["POINT(0.0 51.5)"])
-        results = processing.runAndLoadResults(
+        self._test_algorithm(
             "ttp_v4:time_map",
             {
-                "INPUT_DEPARTURE_SEARCHES": input_lyr_a,
+                "INPUT_DEPARTURE_SEARCHES": input_lyr_a.id(),
                 "INPUT_DEPARTURE_TIME": self._today_at_noon().isoformat(),
                 "INPUT_DEPARTURE_TRAVEL_TIME": "900",
                 "OUTPUT": "memory:",
             },
+            expected_result_count=1,
         )
-        output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
-        self.assertEqual(output_layer.featureCount(), 1)
 
     def test_processing_time_filter(self):
         input_lyr_a = self._make_layer(["POINT(0.0 51.5)"], name="a")
         input_lyr_b = self._make_layer(
             ["POINT(0.1 51.5)", "POINT(0.2 51.5)", "POINT(0.3 51.5)"], name="b"
         )
-        results = processing.runAndLoadResults(
+        self._test_algorithm(
             "ttp_v4:time_filter",
             {
-                "INPUT_DEPARTURE_SEARCHES": input_lyr_a,
+                "INPUT_DEPARTURE_SEARCHES": input_lyr_a.id(),
                 "INPUT_DEPARTURE_TIME": self._today_at_noon().isoformat(),
                 "INPUT_DEPARTURE_TRAVEL_TIME": "900",
-                "INPUT_LOCATIONS": input_lyr_b,
+                "INPUT_LOCATIONS": input_lyr_b.id(),
                 "OUTPUT": "memory:",
             },
+            expected_result_count=3,
         )
-        output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
-        self.assertEqual(output_layer.featureCount(), 3)
 
     def test_processing_routes(self):
         input_lyr_a = self._make_layer(["POINT(0.0 51.5)"], name="a")
         input_lyr_b = self._make_layer(
             ["POINT(0.1 51.5)", "POINT(-0.1 51.5)", "POINT(0.0 51.6)"], name="b"
         )
-        results = processing.runAndLoadResults(
+        self._test_algorithm(
             "ttp_v4:routes",
             {
-                "INPUT_DEPARTURE_SEARCHES": input_lyr_a,
+                "INPUT_DEPARTURE_SEARCHES": input_lyr_a.id(),
                 "INPUT_DEPARTURE_TIME": self._today_at_noon().isoformat(),
                 "INPUT_DEPARTURE_TRAVEL_TIME": "900",
-                "INPUT_LOCATIONS": input_lyr_b,
+                "INPUT_LOCATIONS": input_lyr_b.id(),
                 "OUTPUT": "memory:",
             },
+            expected_result_count=3,
         )
-        output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
-        self.assertEqual(output_layer.featureCount(), 3)
 
     def test_processing_geocoding(self):
         input_lyr = self._make_layer(
@@ -121,30 +158,28 @@ class AlgorithmsBasicTest(TestCaseBase):
             feat.setAttribute("place", place)
             input_lyr.dataProvider().addFeature(feat)
 
-        results = processing.runAndLoadResults(
+        self._test_algorithm(
             "ttp_v4:geocoding",
             {
-                "INPUT_DATA": input_lyr,
+                "INPUT_DATA": input_lyr.id(),
                 "INPUT_QUERY_FIELD": '"place"',
                 "OUTPUT": "memory:",
             },
+            expected_result_count=3,
         )
-        output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
-        self.assertEqual(output_layer.featureCount(), 3)
 
     def test_processing_reverse_geocoding(self):
         input_lyr = self._make_layer(
             ["POINT(0.1 51.5)", "POINT(-0.1 51.5)", "POINT(0.0 51.6)"]
         )
-        results = processing.runAndLoadResults(
+        self._test_algorithm(
             "ttp_v4:reverse_geocoding",
             {
-                "INPUT_DATA": input_lyr,
+                "INPUT_DATA": input_lyr.id(),
                 "OUTPUT": "memory:",
             },
+            expected_result_count=3,
         )
-        output_layer = QgsProject.instance().mapLayer(results["OUTPUT"])
-        self.assertEqual(output_layer.featureCount(), 3)
 
 
 class AlgorithmsFeaturesTest(TestCaseBase):

@@ -8,10 +8,12 @@ from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
     QgsExpression,
+    QgsExpressionContext,
     QgsLayerMetadata,
     QgsMapLayer,
     QgsProcessingAlgorithm,
     QgsProcessingException,
+    QgsProcessingOutputLayerDefinition,
     QgsProcessingParameterDefinition,
     QgsProcessingParameterEnum,
     QgsProcessingParameterNumber,
@@ -139,6 +141,48 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 )
 
             self.params[p.name()] = param
+
+    def postProcessAlgorithm(self, context, feedback):
+        """Sets the layer metadata"""
+
+        if hasattr(self, "sink_id") and self.sink_id is not None:
+            layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
+
+            # Save the metadata
+            metadata = QgsLayerMetadata()
+
+            def serialize(o):
+                """Serialize parameters, taking into account QGIS input/output types"""
+                if isinstance(o, QgsMapLayer):
+                    return o.dataUrl()
+                elif isinstance(o, QgsProcessingOutputLayerDefinition):
+                    return o.sink.valueAsString(QgsExpressionContext())[0]
+                else:
+                    feedback.pushWarning(
+                        f"Could not serialize `{repr(o)}`, metadata will likely be incomplete."
+                    )
+                    return str(o)
+
+            params_json = json.dumps(self.raw_parameters, default=serialize)
+            params_readable = "\n".join(
+                k + ": " + str(v) for k, v in json.loads(params_json).items()
+            )
+
+            metadata.setAbstract(
+                "This layer was generated using the '{}' algorithm from the TravelTime Platform plugin version {}. The following parameters were used : \n{}".format(
+                    self.displayName(), constants.TTP_VERSION, params_readable
+                )
+            )
+            metadata.setKeywords(
+                {
+                    "TTP_VERSION": [constants.TTP_VERSION],
+                    "TTP_ALGORITHM": [self.id()],
+                    "TTP_PARAMS": [params_json],
+                }
+            )
+            layer.setMetadata(metadata)
+
+        return super().postProcessAlgorithm(context, feedback)
 
     def createInstance(self):
         return self.__class__()
@@ -415,7 +459,7 @@ class ProcessingAlgorithmBase(AlgorithmBase):
         return response_data
 
     def postProcessAlgorithm(self, context, feedback):
-        """Sets the output layer metadata and field aliases"""
+        """Sets the field aliases"""
 
         if hasattr(self, "sink_id") and self.sink_id is not None:
             layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
@@ -427,33 +471,5 @@ class ProcessingAlgorithmBase(AlgorithmBase):
                     # field does not exist in ouput, we skip it
                     continue
                 layer.setFieldAlias(field_idx, alias)
-
-            # Save the metadata
-            metadata = QgsLayerMetadata()
-
-            def serialize(o):
-                if isinstance(o, QgsMapLayer):
-                    return o.dataUrl()
-                else:
-                    return None
-
-            params_json = json.dumps(self.raw_parameters, default=serialize)
-            params_readable = "\n".join(
-                k + ": " + str(v) for k, v in json.loads(params_json).items()
-            )
-
-            metadata.setAbstract(
-                "This layer was generated using the '{}' algorithm from the TravelTime Platform plugin version {}. The following parameters were used : \n{}".format(
-                    self.displayName(), constants.TTP_VERSION, params_readable
-                )
-            )
-            metadata.setKeywords(
-                {
-                    "TTP_VERSION": [constants.TTP_VERSION],
-                    "TTP_ALGORITHM": [self.id()],
-                    "TTP_PARAMS": [params_json],
-                }
-            )
-            layer.setMetadata(metadata)
 
         return super().postProcessAlgorithm(context, feedback)
