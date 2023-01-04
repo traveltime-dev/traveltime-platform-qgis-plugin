@@ -8,10 +8,12 @@ from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
     QgsExpression,
+    QgsExpressionContext,
     QgsLayerMetadata,
     QgsMapLayer,
     QgsProcessingAlgorithm,
     QgsProcessingException,
+    QgsProcessingOutputLayerDefinition,
     QgsProcessingParameterDefinition,
     QgsProcessingParameterEnum,
     QgsProcessingParameterNumber,
@@ -432,10 +434,16 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             metadata = QgsLayerMetadata()
 
             def serialize(o):
+                """Serialize parameters, taking into account QGIS input/output types"""
                 if isinstance(o, QgsMapLayer):
                     return o.dataUrl()
+                elif isinstance(o, QgsProcessingOutputLayerDefinition):
+                    return o.sink.valueAsString(QgsExpressionContext())[0]
                 else:
-                    return None
+                    feedback.pushWarning(
+                        f"Could not serialize `{repr(o)}`, metadata will likely be incomplete."
+                    )
+                    return str(o)
 
             params_json = json.dumps(self.raw_parameters, default=serialize)
             params_readable = "\n".join(
