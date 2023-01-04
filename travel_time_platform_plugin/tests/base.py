@@ -26,6 +26,9 @@ from qgis.utils import iface, plugins
 from .. import auth
 from ..main import TTPPlugin
 
+# Set to true to save artifacts and add some delay for visual inspection
+SHOW_OUTPUT = False
+
 TEST_MODE = os.environ.get("TEST_MODE", "DESKTOP")  # HEADLESS | HEADFULL | DESKTOP
 assert TEST_MODE in ["HEADLESS", "HEADFULL", "DESKTOP"]
 
@@ -88,12 +91,16 @@ class TestCaseBase(unittest.TestCase):
         """Waits a little so we can see what happens when running the tests with GUI"""
 
         self.__feedback_step += 1
+        QgsApplication.processEvents()
+
+        # Unless we want to show output, nothing to do
+        if not SHOW_OUTPUT:
+            return
 
         if TEST_MODE != "HEADLESS":
             t = datetime.now()
             while (datetime.now() - t).total_seconds() < seconds:
                 QgsApplication.processEvents()
-        QgsApplication.processEvents()
 
         # Save artifacts
         artifact_name = f"{self.__class__.__name__}-{self._testMethodName}-{self.__feedback_step:03}"

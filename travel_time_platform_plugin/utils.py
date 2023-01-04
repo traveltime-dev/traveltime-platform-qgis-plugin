@@ -2,6 +2,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 from qgis.core import (
+    Qgis,
     QgsCoordinateReferenceSystem,
     QgsFeature,
     QgsGeometry,
@@ -53,8 +54,8 @@ def clone_feature(request, source_layer, output_fields=None):
     return new_feature
 
 
-def log(msg, suffix=""):
-    QgsMessageLog.logMessage(str(msg), f"TimeTravelPlatform{suffix}")
+def log(msg, tag="TimeTravelPlatform", level=Qgis.Info):
+    QgsMessageLog.logMessage(str(msg), tag, level=level)
 
 
 def tr(string):
