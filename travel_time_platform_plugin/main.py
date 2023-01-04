@@ -246,24 +246,49 @@ class TTPPlugin:
         self.config_dialog.exec_()
 
     def run_tests(self):
+
+        box = QMessageBox(
+            QMessageBox.Question,
+            "Run software tests",
+            "You are about to run automated software tests. There is usually no reason to run them, unless you want to share a report to track down issues that you may encounter.\n\n"
+            "Warning:\n"
+            "- the current project will be closed without saving\n"
+            "- there may be some side-effects on your QGIS user profile\n"
+            "- this will use your API quota\n"
+            "- do not interact with QGIS while the tests run",
+        )
+        box.setInformativeText("Do you want to proceed ?")
+        box.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+
+        if box.exec_() != QMessageBox.Yes:
+            return
+
         with io.StringIO() as buf:
             with contextlib.redirect_stdout(buf):
                 result = tests.run_suite(stream=buf)
             output = buf.getvalue()
 
-        log(output, "-tests")
+        log(tests.system_info(), "TravelTimePlatform tests output")
+        log(output, "TravelTimePlatform tests output")
 
         success = result.wasSuccessful()
 
-        box = QMessageBox(
-            QMessageBox.Question if success else QMessageBox.Critical,
-            "Test results",
-            f"Ran {result.testsRun} tests, of which {len(result.errors) + len(result.failures)} failed.",
-        )
-        box.setInformativeText("Do you want to copy the test report ?")
-        box.setStandardButtons(QMessageBox.Yes | QMessageBox.Discard)
+        if success:
+            box = QMessageBox(
+                QMessageBox.Information,
+                "Success",
+                f"All {result.testsRun} tests succeeded.",
+            )
+        else:
+            box = QMessageBox(
+                QMessageBox.Critical,
+                "Failure",
+                f"{len(result.errors) + len(result.failures)} tests failed out of {result.testsRun}.",
+            )
+        box.setInformativeText("Do you want to copy the report to the clipboard ?")
+        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 
-        if box.exec_():
+        if box.exec_() == QMessageBox.Yes:
             QGuiApplication.clipboard().setText(f"{tests.system_info()}\n{output}")
 
     def show_splash(self):
