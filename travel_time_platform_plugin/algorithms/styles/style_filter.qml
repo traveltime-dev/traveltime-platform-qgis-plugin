@@ -5,14 +5,14 @@
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 symbollevels="0" type="categorizedSymbol" enableorderby="0" forceraster="0" attr="reachable">
+  <renderer-v2 symbollevels="1" type="categorizedSymbol" enableorderby="0" forceraster="0" attr="reachable">
     <categories>
       <category value="1" render="true" symbol="0" label="Reachable"/>
       <category value="0" render="true" symbol="1" label="Unreachable"/>
     </categories>
     <symbols>
       <symbol type="marker" clip_to_extent="1" force_rhr="0" alpha="1" name="0">
-        <layer pass="0" locked="0" enabled="1" class="SimpleMarker">
+        <layer pass="2" locked="0" enabled="1" class="SimpleMarker">
           <prop v="0" k="angle"/>
           <prop v="65,239,68,255" k="color"/>
           <prop v="1" k="horizontal_anchor_point"/>
@@ -39,7 +39,7 @@
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" locked="0" enabled="1" class="SimpleMarker">
+        <layer pass="3" locked="0" enabled="1" class="SimpleMarker">
           <prop v="0" k="angle"/>
           <prop v="255,255,255,255" k="color"/>
           <prop v="1" k="horizontal_anchor_point"/>
@@ -95,7 +95,7 @@
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" locked="0" enabled="1" class="SimpleMarker">
+        <layer pass="1" locked="0" enabled="1" class="SimpleMarker">
           <prop v="45" k="angle"/>
           <prop v="255,255,255,255" k="color"/>
           <prop v="1" k="horizontal_anchor_point"/>
