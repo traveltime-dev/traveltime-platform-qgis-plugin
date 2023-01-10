@@ -229,6 +229,9 @@ class AlgorithmsFeaturesTest(TestCaseBase):
                 lod_idx = TimeMapSimpleAlgorithm.LEVELS_OF_DETAILS.index(lod)
                 params_s.update({"INPUT_LEVEL_OF_DETAIL": lod_idx})
                 params_a.update({"INPUT_DEPARTURE_LEVEL_OF_DETAIL": f"'{lod}'"})
+            else:
+                # default forced by simple tool
+                params_a.update({"INPUT_DEPARTURE_LEVEL_OF_DETAIL": f"'lowest'"})
 
             if no_hole is True:
                 params_s.update({"INPUT_NO_HOLES": True})
