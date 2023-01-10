@@ -18,13 +18,14 @@ from qgis.core import (
     QgsVectorLayer,
 )
 from qgis.gui import QgsMapMouseEvent
-from qgis.PyQt.QtCore import QEvent, QPoint, Qt
+from qgis.PyQt.QtCore import QEvent, QPoint, QSettings, Qt
 from qgis.PyQt.QtGui import QPixmap
 from qgis.testing import unittest
 from qgis.utils import iface, plugins
 
 from .. import auth
 from ..main import TTPPlugin
+from ..utils import log
 
 # Set to true to save artifacts and add some delay for visual inspection
 SHOW_OUTPUT = False
@@ -66,6 +67,9 @@ class TestCaseBase(unittest.TestCase):
         QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(4326))
         self._center(-0.13, 51.5)
 
+        # Log calls
+        QSettings().setValue("traveltime_platform/log_calls", True)
+
         # Show which test is running
         iface.messageBar().clearWidgets()
         iface.messageBar().pushMessage(
@@ -73,6 +77,7 @@ class TestCaseBase(unittest.TestCase):
             f"Running test `{self._testMethodName}`",
             duration=0,
         )
+        log(f"========== Running test {self._testMethodName} ==========")
 
         # ready
         self._feedback()
@@ -80,6 +85,7 @@ class TestCaseBase(unittest.TestCase):
     def tearDown(self):
         self._feedback()
         QgsProject.instance().setDirty(False)
+
         iface.messageBar().clearWidgets()
         iface.newProject()
 

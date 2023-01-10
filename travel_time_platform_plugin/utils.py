@@ -54,8 +54,22 @@ def clone_feature(request, source_layer, output_fields=None):
     return new_feature
 
 
-def log(msg, tag="TimeTravelPlatform", level=Qgis.Info):
-    QgsMessageLog.logMessage(str(msg), tag, level=level)
+def log(msg, level=Qgis.Info):
+    QgsMessageLog.logMessage(str(msg), "TimeTravelPlatform", level=level)
+
+
+def print_query_enabled() -> bool:
+    return bool(QSettings().value("traveltime_platform/log_calls", False))
+
+
+def obfuscate_headers(headers: dict) -> dict:
+    """Returns the given headers with credentials hidden for logging purposes"""
+    headers_for_logs = {**headers}
+    if "X-Application-Id" in headers_for_logs:
+        headers_for_logs["X-Application-Id"] = "*hidden*"
+    if "X-Api-Key" in headers_for_logs:
+        headers_for_logs["X-Api-Key"] = "*hidden*"
+    return headers_for_logs
 
 
 def tr(string):

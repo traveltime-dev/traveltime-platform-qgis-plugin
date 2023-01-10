@@ -1,13 +1,12 @@
 import itertools
 import json
-import random
 
 import processing
-from qgis.core import QgsFeature, QgsJsonUtils, QgsProcessingUtils, QgsProject
+from qgis.core import QgsFeature, QgsProcessingUtils, QgsProject
 
 from ..algorithms.simple import TRANSPORTATION_TYPES, TimeMapSimpleAlgorithm
 from ..constants import TTP_VERSION
-from ..utils import timezones
+from ..utils import log, timezones
 from .base import TestCaseBase
 
 
@@ -187,23 +186,25 @@ class AlgorithmsFeaturesTest(TestCaseBase):
         """Test combinations of level_of_detail, no_holes, and single_shapes. This makes sure that
         both the simple and advanced algorithm return the same results"""
 
-        self._center(-0.018, 51.504, 50000)
-        input_lyr = self._make_layer(["POINT(-0.018 51.504)"])
+        self._center(-0.14403271, 51.4960242, 50000)
+        input_lyr = self._make_layer(["POINT(-0.14403271 51.4960242)"])
 
         now = self._today_at_noon().isoformat()
         params_simple = {
+            "INPUT_ID": "'search_id_' || $id",
             "INPUT_SEARCHES": input_lyr,
             "INPUT_TIME": now,
-            "INPUT_TRNSPT_TYPE": TRANSPORTATION_TYPES.index("driving"),
-            "INPUT_TRAVEL_TIME": 15,
+            "INPUT_TRNSPT_TYPE": TRANSPORTATION_TYPES.index("public_transport"),
+            "INPUT_TRAVEL_TIME": 30,
             "SETTINGS_TIMEZONE": timezones.index("UTC"),
             "OUTPUT": "memory:",
         }
         params_advanced = {
+            "INPUT_DEPARTURE_ID": "'search_id_' || $id",
             "INPUT_DEPARTURE_SEARCHES": input_lyr,
             "INPUT_DEPARTURE_TIME": f"'{now}'",
-            "INPUT_DEPARTURE_TRNSPT_TYPE": "'driving'",
-            "INPUT_DEPARTURE_TRAVEL_TIME": 15 * 60,
+            "INPUT_DEPARTURE_TRNSPT_TYPE": "'public_transport'",
+            "INPUT_DEPARTURE_TRAVEL_TIME": 30 * 60,
             "OUTPUT": "memory:",
         }
 
@@ -214,59 +215,70 @@ class AlgorithmsFeaturesTest(TestCaseBase):
         combinations = list(itertools.product(lods, no_holes, single_shapes))
 
         # we only test a deterministic subset of the combinations
-        random.Random(0).shuffle(combinations)
-        combinations = combinations[0:10]
+        # random.Random(0).shuffle(combinations)
+        # combinations = combinations[0:10]
 
         for lod, no_hole, single_shape in combinations:
-            # Run the simple
-            results_simple = processing.runAndLoadResults(
-                "ttp_v4:time_map_simple",
-                {
-                    **params_simple,
-                    "INPUT_LEVEL_OF_DETAIL": (
-                        None
-                        if lod is None
-                        else TimeMapSimpleAlgorithm.LEVELS_OF_DETAILS.index(lod)
-                    ),
-                    "INPUT_NO_HOLES": no_hole,
-                    "INPUT_SINGLE_SHAPE": single_shape,
-                    "INPUT_ID": "'search_id_' || $id",
-                },
-            )
-            output_layer_simple = QgsProject.instance().mapLayer(
-                results_simple["OUTPUT"]
-            )
-            output_layer_simple.setName(
-                f"simple lod: {lod}  no-holes: {no_hole}  single: {single_shape}"
-            )
 
-            # Run the advanced
-            results_advanced = processing.runAndLoadResults(
-                "ttp_v4:time_map",
-                {
-                    **params_advanced,
-                    "INPUT_DEPARTURE_LEVEL_OF_DETAIL": None
-                    if lod is None
-                    else f"'{lod}'",
-                    "INPUT_DEPARTURE_NO_HOLES": str(no_hole),
-                    "INPUT_DEPARTURE_SINGLE_SHAPE": str(single_shape),
-                    "INPUT_DEPARTURE_ID": "'search_id_' || $id",
-                },
-            )
-            output_layer_advanced = QgsProject.instance().mapLayer(
-                results_advanced["OUTPUT"]
-            )
-            output_layer_advanced.setName(
-                f"advanced lod: {lod}  no-holes: {no_hole}  single: {single_shape}"
-            )
+            subcase_name = f"lod: {lod} / no-holes: {no_hole} / single: {single_shape}"
 
-            # If all params are set, both results should be the same
-            # (otherwise, default values may differ)
-            if lod is not None and no_hole is not None and single_shape is not None:
-                ft_simple = output_layer_simple.getFeature(1)
-                ft_advanced = output_layer_advanced.getFeature(1)
-                self.assertEqual(
-                    ft_simple,
-                    ft_advanced,
-                    f"{QgsJsonUtils.exportAttributes(ft_simple)} != {QgsJsonUtils.exportAttributes(ft_advanced)}",
+            with self.subTest(
+                subcase_name, lod=lod, no_hole=no_hole, single_shape=single_shape
+            ):
+
+                log(f"---------- Subtest {subcase_name} ----------")
+
+                # Run the simple
+                params_s = {**params_simple}
+                params_a = {**params_advanced}
+                if lod is not None:
+                    lod_idx = TimeMapSimpleAlgorithm.LEVELS_OF_DETAILS.index(lod)
+                    params_s.update({"INPUT_LEVEL_OF_DETAIL": lod_idx})
+                    params_a.update({"INPUT_DEPARTURE_LEVEL_OF_DETAIL": f"'{lod}'"})
+                if no_hole is True:
+                    params_s.update({"INPUT_NO_HOLES": True})
+                    params_a.update({"INPUT_DEPARTURE_NO_HOLES": "true"})
+                elif no_hole is False:
+                    params_s.update({"INPUT_NO_HOLES": False})
+                    params_a.update({"INPUT_DEPARTURE_NO_HOLES": "false"})
+                if single_shape is True:
+                    params_s.update({"INPUT_SINGLE_SHAPE": True})
+                    params_a.update({"INPUT_DEPARTURE_SINGLE_SHAPE": "true"})
+                elif single_shape is False:
+                    params_s.update({"INPUT_SINGLE_SHAPE": False})
+                    params_a.update({"INPUT_DEPARTURE_SINGLE_SHAPE": "false"})
+
+                results_simple = processing.runAndLoadResults(
+                    "ttp_v4:time_map_simple",
+                    params_s,
                 )
+                output_layer_simple = QgsProject.instance().mapLayer(
+                    results_simple["OUTPUT"]
+                )
+                output_layer_simple.setName(f"simple lod: {subcase_name}")
+
+                # Run the advanced
+                results_advanced = processing.runAndLoadResults(
+                    "ttp_v4:time_map",
+                    params_a,
+                )
+                output_layer_advanced = QgsProject.instance().mapLayer(
+                    results_advanced["OUTPUT"]
+                )
+                output_layer_advanced.setName(f"advanced lod: {subcase_name}")
+
+                # If all params are set, both results should be the same
+                # (otherwise, default values may differ)
+                if lod is not None and no_hole is not None and single_shape is not None:
+                    ft_simple = output_layer_simple.getFeature(1)
+                    ft_advanced = output_layer_advanced.getFeature(1)
+                    self.assertEqual(
+                        ft_simple.attributeMap(),
+                        ft_advanced.attributeMap(),
+                        f"Mismatch between simple and advanced results attributes",
+                    )
+                    self.assertEqual(
+                        ft_simple.geometry().asJson(),
+                        ft_advanced.geometry().asJson(),
+                        f"Mismatch between simple and advanced results geometries",
+                    )

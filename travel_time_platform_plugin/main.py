@@ -268,8 +268,7 @@ class TTPPlugin:
                 result = tests.run_suite(stream=buf)
             output = buf.getvalue()
 
-        log(tests.system_info(), "TravelTimePlatform tests output")
-        log(output, "TravelTimePlatform tests output")
+        log(tests.system_info() + "\n" + output)
 
         success = result.wasSuccessful()
 

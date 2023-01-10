@@ -24,7 +24,7 @@ from qgis.PyQt.QtTest import QTest
 
 from .. import auth, cache, constants
 from ..libraries import iso3166
-from ..utils import log, throttler, tr
+from ..utils import log, obfuscate_headers, print_query_enabled, throttler, tr
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
 TRANSPORTATION_TYPES = [
@@ -89,6 +89,12 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         )
         # We save parameters to the instance to access it in postprocess
         self.raw_parameters = parameters
+
+        if print_query_enabled():
+            log("Running algorithm")
+            log("name: {}".format(self.__class__.__name__))
+            log("parameters: {}".format(parameters))
+
         return self.doProcessAlgorithm(parameters, context, feedback)
 
     def doProcessAlgorithm(self, parameters, context, feedback):
@@ -309,17 +315,10 @@ class ProcessingAlgorithmBase(AlgorithmBase):
         full_url = endpoint + self.url
 
         feedback.pushDebugInfo("Making request to API endpoint...")
-        print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
-        if print_query:
-            headers_for_logs = dict(headers)
-            if headers_for_logs["X-Application-Id"]:
-                headers_for_logs["X-Application-Id"] = "*hidden*"
-            if headers_for_logs["X-Api-Key"]:
-                headers_for_logs["X-Api-Key"] = "*hidden*"
-
-            log("Making request")
+        if print_query_enabled():
+            log("Making request to API")
             log("url: {}".format(full_url))
-            log("headers: {}".format(headers_for_logs))
+            log("headers: {}".format(obfuscate_headers(headers)))
             log("params: {}".format(str(params)))
             log("data: {}".format(json_data))
 
@@ -450,8 +449,8 @@ class ProcessingAlgorithmBase(AlgorithmBase):
                 int(QSettings().value("traveltime_platform/current_count", 0)) + 1,
             )
 
-        if print_query:
-            log("Got response")
+        if print_query_enabled():
+            log("Got response from API")
             log("status: {}".format(response.status_code))
             log("reason: {}".format(response.reason))
             log("text: {}".format(response.text))
