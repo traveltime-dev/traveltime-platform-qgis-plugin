@@ -19,7 +19,7 @@ def run_suite(stream) -> unittest.TestResult:
             "travel_time_platform_plugin.tests.tests_misc",
         ]
     )
-    runner = unittest.TextTestRunner(stream=stream, verbosity=2)
+    runner = unittest.TextTestRunner(stream=stream, verbosity=2, buffer=True)
     return runner.run(suite)
 
 

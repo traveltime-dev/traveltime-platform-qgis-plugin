@@ -183,8 +183,8 @@ class AlgorithmsBasicTest(TestCaseBase):
 
 class AlgorithmsFeaturesTest(TestCaseBase):
     def test_processing_time_map_level_of_detail(self):
-        """Test combinations of level_of_detail, no_holes, and single_shapes. This makes sure that
-        both the simple and advanced algorithm return the same results"""
+        # Test combinations of level_of_detail, no_holes, and single_shapes. This makes sure that
+        # both the simple and advanced algorithm return the same results
 
         self._center(-0.14403271, 51.4960242, 50000)
         input_lyr = self._make_layer(["POINT(-0.14403271 51.4960242)"])
@@ -222,63 +222,61 @@ class AlgorithmsFeaturesTest(TestCaseBase):
 
             subcase_name = f"lod: {lod} / no-holes: {no_hole} / single: {single_shape}"
 
-            with self.subTest(
-                subcase_name, lod=lod, no_hole=no_hole, single_shape=single_shape
-            ):
+            log(f"---------- Subtest {subcase_name} ----------")
 
-                log(f"---------- Subtest {subcase_name} ----------")
+            # Run the simple
+            params_s = {**params_simple}
+            params_a = {**params_advanced}
+            if lod is not None:
+                lod_idx = TimeMapSimpleAlgorithm.LEVELS_OF_DETAILS.index(lod)
+                params_s.update({"INPUT_LEVEL_OF_DETAIL": lod_idx})
+                params_a.update({"INPUT_DEPARTURE_LEVEL_OF_DETAIL": f"'{lod}'"})
+                if no_hole is False:
+                    params_a.update({"INPUT_DEPARTURE_LEVEL_OF_DETAIL": f"'lowest'"})
+            if no_hole is True:
+                params_s.update({"INPUT_NO_HOLES": True})
+                params_a.update({"INPUT_DEPARTURE_NO_HOLES": "true"})
+            elif no_hole is False:
+                params_s.update({"INPUT_NO_HOLES": False})
+                params_a.update({"INPUT_DEPARTURE_NO_HOLES": "false"})
+            if single_shape is True:
+                params_s.update({"INPUT_SINGLE_SHAPE": True})
+                params_a.update({"INPUT_DEPARTURE_SINGLE_SHAPE": "true"})
+            elif single_shape is False:
+                params_s.update({"INPUT_SINGLE_SHAPE": False})
+                params_a.update({"INPUT_DEPARTURE_SINGLE_SHAPE": "false"})
 
-                # Run the simple
-                params_s = {**params_simple}
-                params_a = {**params_advanced}
-                if lod is not None:
-                    lod_idx = TimeMapSimpleAlgorithm.LEVELS_OF_DETAILS.index(lod)
-                    params_s.update({"INPUT_LEVEL_OF_DETAIL": lod_idx})
-                    params_a.update({"INPUT_DEPARTURE_LEVEL_OF_DETAIL": f"'{lod}'"})
-                if no_hole is True:
-                    params_s.update({"INPUT_NO_HOLES": True})
-                    params_a.update({"INPUT_DEPARTURE_NO_HOLES": "true"})
-                elif no_hole is False:
-                    params_s.update({"INPUT_NO_HOLES": False})
-                    params_a.update({"INPUT_DEPARTURE_NO_HOLES": "false"})
-                if single_shape is True:
-                    params_s.update({"INPUT_SINGLE_SHAPE": True})
-                    params_a.update({"INPUT_DEPARTURE_SINGLE_SHAPE": "true"})
-                elif single_shape is False:
-                    params_s.update({"INPUT_SINGLE_SHAPE": False})
-                    params_a.update({"INPUT_DEPARTURE_SINGLE_SHAPE": "false"})
+            results_simple = processing.runAndLoadResults(
+                "ttp_v4:time_map_simple",
+                params_s,
+            )
+            output_layer_simple = QgsProject.instance().mapLayer(
+                results_simple["OUTPUT"]
+            )
+            output_layer_simple.setName(f"simple lod: {subcase_name}")
 
-                results_simple = processing.runAndLoadResults(
-                    "ttp_v4:time_map_simple",
-                    params_s,
+            # Run the advanced
+            results_advanced = processing.runAndLoadResults(
+                "ttp_v4:time_map",
+                params_a,
+            )
+            output_layer_advanced = QgsProject.instance().mapLayer(
+                results_advanced["OUTPUT"]
+            )
+            output_layer_advanced.setName(f"advanced lod: {subcase_name}")
+
+            # If all params are set, both results should be the same
+            # (otherwise, default values may differ)
+            if lod is not None and no_hole is not None and single_shape is not None:
+                ft_simple = output_layer_simple.getFeature(1)
+                ft_advanced = output_layer_advanced.getFeature(1)
+                self.assertEqual(
+                    ft_simple.attributeMap(),
+                    ft_advanced.attributeMap(),
+                    f"Mismatch between simple and advanced results attributes for `{subcase_name}`",
                 )
-                output_layer_simple = QgsProject.instance().mapLayer(
-                    results_simple["OUTPUT"]
+                self.assertEqual(
+                    ft_simple.geometry().asJson(),
+                    ft_advanced.geometry().asJson(),
+                    f"Mismatch between simple and advanced results geometries for `{subcase_name}`",
                 )
-                output_layer_simple.setName(f"simple lod: {subcase_name}")
-
-                # Run the advanced
-                results_advanced = processing.runAndLoadResults(
-                    "ttp_v4:time_map",
-                    params_a,
-                )
-                output_layer_advanced = QgsProject.instance().mapLayer(
-                    results_advanced["OUTPUT"]
-                )
-                output_layer_advanced.setName(f"advanced lod: {subcase_name}")
-
-                # If all params are set, both results should be the same
-                # (otherwise, default values may differ)
-                if lod is not None and no_hole is not None and single_shape is not None:
-                    ft_simple = output_layer_simple.getFeature(1)
-                    ft_advanced = output_layer_advanced.getFeature(1)
-                    self.assertEqual(
-                        ft_simple.attributeMap(),
-                        ft_advanced.attributeMap(),
-                        f"Mismatch between simple and advanced results attributes",
-                    )
-                    self.assertEqual(
-                        ft_simple.geometry().asJson(),
-                        ft_advanced.geometry().asJson(),
-                        f"Mismatch between simple and advanced results geometries",
-                    )

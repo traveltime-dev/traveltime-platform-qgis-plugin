@@ -56,6 +56,7 @@ def clone_feature(request, source_layer, output_fields=None):
 
 def log(msg, level=Qgis.Info):
     QgsMessageLog.logMessage(str(msg), "TimeTravelPlatform", level=level)
+    print(msg)
 
 
 def print_query_enabled() -> bool:
