@@ -570,11 +570,11 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
             }
 
         no_holes = self.eval_expr(f"INPUT_{DEPARR}_NO_HOLES")
-        if level is not None:
+        if no_holes is not None:
             data["no_holes"] = no_holes
 
         single_shape = self.eval_expr(f"INPUT_{DEPARR}_SINGLE_SHAPE")
-        if level is not None:
+        if single_shape is not None:
             data["single_shape"] = single_shape
 
         return data
