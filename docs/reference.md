@@ -60,23 +60,23 @@ By default, the toolbar appears at the top of the window. You can drag and drop 
 
 ### Content
 
-![](images/icons/toolbox.svg#icon) Open the QGIS processing toolbox showing available algorithms.
+![](../travel_time_platform_plugin/resources/icons/toolbox.svg#icon) Open the QGIS processing toolbox showing available algorithms.
 
-![](images/icons/rerun.svg#icon) [Rerun algorithm tool](#rerun-algorithm) (to re-run a previously run algorithm)
+![](../travel_time_platform_plugin/resources/icons/rerun.svg#icon) [Rerun algorithm tool](#rerun-algorithm) (to re-run a previously run algorithm)
 
-![](images/icons/timemap_express.svg#icon) [Quick time map](#quick-time-map) (map tool version of the the time map algorithm)
+![](../travel_time_platform_plugin/resources/icons/timemap_express.svg#icon) [Quick time map](#quick-time-map) (map tool version of the the time map algorithm)
 
-![](images/icons/timefilter_express.svg#icon) [Quick time filter](#quick-time-filter) (map tool version of the the map filter algorithm)
+![](../travel_time_platform_plugin/resources/icons/timefilter_express.svg#icon) [Quick time filter](#quick-time-filter) (map tool version of the the map filter algorithm)
 
-![](images/icons/route_express.svg#icon) [Quick route](#quick-route) (map tool version of the the route algorithm)
+![](../travel_time_platform_plugin/resources/icons/route_express.svg#icon) [Quick route](#quick-route) (map tool version of the the route algorithm)
 
-![](images/icons/geoclick.svg#icon) [Geoclick](#geoclick) (simulate mouse clicks using the geocoder)
+![](../travel_time_platform_plugin/resources/icons/geoclick.svg#icon) [Geoclick](#geoclick) (simulate mouse clicks using the geocoder)
 
-![](images/icons/tiles.svg#icon) Show [background tiles](#background-tiles)
+![](../travel_time_platform_plugin/resources/icons/tiles.svg#icon) Show [background tiles](#background-tiles)
 
-![](images/icons/help.svg#icon) Open [online help](#help-dialog)
+![](../travel_time_platform_plugin/resources/icons/help.svg#icon) Open [online help](#help-dialog)
 
-![](images/icons/settings.svg#icon) Open the [settings dialog](#settings-dialog)
+![](../travel_time_platform_plugin/resources/icons/settings.svg#icon) Open the [settings dialog](#settings-dialog)
 
 ### Menu
 
@@ -100,13 +100,13 @@ All successful queries are saved in a cache file on your computer. This means th
 
 ## Tools
 
-### ![](images/icons/rerun.svg#icon) Rerun algorithm
+### ![](../travel_time_platform_plugin/resources/icons/rerun.svg#icon) Rerun algorithm
 
 Re-opens the algorithm dialog with the same settings. To use this tool, you need to select a layer that was created from one of the algorithms in the legend.
 
 This feature is very useful to tweak your queries without having to reset all parameters manually.
 
-### ![](images/icons/timemap_express.svg#icon) Quick Time Map
+### ![](../travel_time_platform_plugin/resources/icons/timemap_express.svg#icon) Quick Time Map
 
 This runs the _quick time map_ tool. In the background, the advanced time map algorithm will be run. This algorithm returns a **polygon** layer representing the area that can be reached from one point, or the area from which a point can be reached.
 
@@ -116,7 +116,7 @@ Configuration : click on the small arrow, then configure using the following wid
 
 ![](images/reference/express_timemap_config.png)
 
-### ![](images/icons/timefilter_express.svg#icon) Quick Time Filter
+### ![](../travel_time_platform_plugin/resources/icons/timefilter_express.svg#icon) Quick Time Filter
 
 This runs the _quick time filter_ tool. In the background, the advanced time filter algorithm will be run. This algorithm allows to filter a **point** layer according to a time map search.
 
@@ -126,7 +126,7 @@ Configuration : click on the small arrow, then configure using the following wid
 
 ![](images/reference/express_timefilter_config.png)
 
-### ![](images/icons/route_express.svg#icon) Quick Route
+### ![](../travel_time_platform_plugin/resources/icons/route_express.svg#icon) Quick Route
 
 This runs the _quick route_ tool. In the background, the advanced route algorithm will be run. This algorithm allows to compute the best route between points.
 
@@ -136,7 +136,7 @@ Configuration : click on the small arrow, then configure using the following wid
 
 ![](images/reference/express_route_config.png)
 
-### ![](images/icons/geoclick.svg#icon) Geoclick
+### ![](../travel_time_platform_plugin/resources/icons/geoclick.svg#icon) Geoclick
 
 This runs the _geoclick_ tool.
 
@@ -148,7 +148,7 @@ In the background, the geocoding algorithm will be run.
 
 ## Settings dialog
 
-The main settings dialog can be open using the ![](images/icons/settings.svg#icon) icon.
+The main settings dialog can be open using the ![](../travel_time_platform_plugin/resources/icons/settings.svg#icon) icon.
 
 ![](images/reference/config.png)
 
@@ -164,11 +164,11 @@ The main settings dialog can be open using the ![](images/icons/settings.svg#ico
 
 **Customize endpoint** : if you are not using the default TravelTime API endpoint, you can customize it here.
 
-**Show a button to run software tests** : this will add the ![](images/icons/tests.svg#icon) button to the toolbar. Clicking this button will run automated software tests. There is usually no reason to run them, unless you want to share a report to track down issues that you may encounter.
+**Show a button to run software tests** : this will add the ![](../travel_time_platform_plugin/resources/icons/tests.svg#icon) button to the toolbar. Clicking this button will run automated software tests. There is usually no reason to run them, unless you want to share a report to track down issues that you may encounter.
 
 ## Help dialog
 
-The online help dialog can be open using the ![](images/icons/help.svg#icon) icon.
+The online help dialog can be open using the ![](../travel_time_platform_plugin/resources/icons/help.svg#icon) icon.
 
 ![](images/reference/help.png)
 
@@ -180,7 +180,7 @@ This dialog shows the online help directly in QGIS.
 
 ## Background tiles
 
-The background tiles icon ![](images/icons/tiles.svg#icon) opens up the browser at the XYZ tiles section. To use a background layer, double click it in the list or drag it into the map canvas.
+The background tiles icon ![](../travel_time_platform_plugin/resources/icons/tiles.svg#icon) opens up the browser at the XYZ tiles section. To use a background layer, double click it in the list or drag it into the map canvas.
 
 Depending on your API key capabilities, it will automatically add additional XYZ layers that you can use as background.
 
@@ -194,7 +194,7 @@ In any case, you'll be able to add the default XYZ layer configured by default b
 
 ## Algorithm toolbox
 
-The processing toolbox can be open using the ![](images/icons/toolbox.svg#icon). The only difference with the regular `open toolbox` action is that the list of actions will be prefiltered to show only TravelTime relative algorithms.
+The processing toolbox can be open using the ![](../travel_time_platform_plugin/resources/icons/toolbox.svg#icon). The only difference with the regular `open toolbox` action is that the list of actions will be prefiltered to show only TravelTime relative algorithms.
 
 ![](images/reference/toolbox.png)
 
@@ -204,33 +204,33 @@ Similarly to all other QGIS algorithms, all those algorithms can be run normally
 
 Algorithms regrouped under the `Simple` group provide simplified access to the advanced algorithms, but just call the advanced algorithms in the background. They cover most use cases and it is recommended to start with those before using the `Advanced` ones.
 
-![](images/icons/timefilter_simple.svg#icon) Run the [simplified time filter algorithm](#-time-map-simplified)
+![](../travel_time_platform_plugin/resources/icons/timefilter_simple.svg#icon) Run the [simplified time filter algorithm](#-time-map-simplified)
 
-![](images/icons/timemap_simple.svg#icon) Run the [simplified time map algorithm](#-time-filter-simplified)
+![](../travel_time_platform_plugin/resources/icons/timemap_simple.svg#icon) Run the [simplified time map algorithm](#-time-filter-simplified)
 
-![](images/icons/route_simple.svg#icon) Run the [simplified route algorithm](#-route-simplified)
+![](../travel_time_platform_plugin/resources/icons/route_simple.svg#icon) Run the [simplified route algorithm](#-route-simplified)
 
 ### Advanced
 
 Algorithms regrouped under the `Advanced` group provide access to the API endpoints. Since they have a lot of options, they are only recommended for advanced users that require to fine tune parameters that are not configurable in the simplified versions.
 
-![](images/icons/timefilter_advanced.svg#icon) Run the [advanced time filter algorithm](#-time-map-advanced)
+![](../travel_time_platform_plugin/resources/icons/timefilter_advanced.svg#icon) Run the [advanced time filter algorithm](#-time-map-advanced)
 
-![](images/icons/timemap_advanced.svg#icon) Run the [advanced time map algorithm](#-time-filter-advanced)
+![](../travel_time_platform_plugin/resources/icons/timemap_advanced.svg#icon) Run the [advanced time map algorithm](#-time-filter-advanced)
 
-![](images/icons/route_advanced.svg#icon) Run the [advanced route algorithm](#-route-advanced)
+![](../travel_time_platform_plugin/resources/icons/route_advanced.svg#icon) Run the [advanced route algorithm](#-route-advanced)
 
 ### Utils
 
 Algorithms regrouped under the `Utilities` group provide access to the Geocoding (assigning a point to a textual address) or Reverse geocoding (assigning a textual address to a point). algorithms.
 
-![](images/icons/geocoding.svg#icon) Run the [geocoding algorithm](#-geocoding)
+![](../travel_time_platform_plugin/resources/icons/geocoding.svg#icon) Run the [geocoding algorithm](#-geocoding)
 
-![](images/icons/geocoding_reversed.svg#icon) Run the [reverse geocoding algorithm](#-reverse-geocoding)
+![](../travel_time_platform_plugin/resources/icons/geocoding_reversed.svg#icon) Run the [reverse geocoding algorithm](#-reverse-geocoding)
 
 ## Algorithms
 
-### ![](images/icons/timemap_simple.svg#icon) Time map (Simplified)
+### ![](../travel_time_platform_plugin/resources/icons/timemap_simple.svg#icon) Time map (Simplified)
 
 This algorithm provides a simpified access to the time-map endpoint.
 
@@ -286,7 +286,7 @@ Enable to return only one shape from the search results. The returned shape will
 
 Enable to remove holes from returned polygons. Note that this will likely result in loss in accuracy.
 
-### ![](images/icons/timefilter_simple.svg#icon) Time filter (Simplified)
+### ![](../travel_time_platform_plugin/resources/icons/timefilter_simple.svg#icon) Time filter (Simplified)
 
 This algorithm provides a simpified access to the time-filter endpoint.
 
@@ -328,7 +328,7 @@ Used to identify this specific search in the results array. MUST be unique among
 
  Used to identify this specific location in the results array. MUST be unique among all locations. By default, this is the feature ID. If your data contains some specific identifier column, you can select it here to make it easier to identify results.
 
-### ![](images/icons/route_simple.svg#icon) Route (Simplified)
+### ![](../travel_time_platform_plugin/resources/icons/route_simple.svg#icon) Route (Simplified)
 
 This algorithm provides a simpified access to the route endpoint.
 
@@ -374,7 +374,7 @@ Used to identify this specific search in the results array. MUST be unique among
 
  Used to identify this specific location in the results array. MUST be unique among all locations. By default, this is the feature ID. If your data contains some specific identifier column, you can select it here to make it easier to identify results.
 
-### ![](images/icons/timemap_advanced.svg#icon) Time map (Advanced)
+### ![](../travel_time_platform_plugin/resources/icons/timemap_advanced.svg#icon) Time map (Advanced)
 
 This algorithm provides advanced access to the time-map endpoint.
 
@@ -408,7 +408,7 @@ It happens that the API returns invalid geometries. While usually making no visi
 
 By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
 
-### ![](images/icons/timefilter_advanced.svg#icon) Time filter (Advanced)
+### ![](../travel_time_platform_plugin/resources/icons/timefilter_advanced.svg#icon) Time filter (Advanced)
 
 The parameters match closely the API. They are best documented on [the API documentation](https://docs.traveltime.com/api/reference/travel-time-distance-matrix).
 
@@ -424,7 +424,7 @@ In the API, all coordinates are to be provided in the `locations` parameter, and
 
 By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
 
-### ![](images/icons/route_advanced.svg#icon) Route (Advanced)
+### ![](../travel_time_platform_plugin/resources/icons/route_advanced.svg#icon) Route (Advanced)
 
 The parameters match closely the API. They are best documented on [the API documentation](https://docs.traveltime.com/api/reference/routes/).
 
@@ -440,7 +440,7 @@ In the API, all coordinates are to be provided in the `locations` parameter, and
 
 By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
 
-### ![](images/icons/geocoding.svg#icon) Geocoding
+### ![](../travel_time_platform_plugin/resources/icons/geocoding.svg#icon) Geocoding
 
 This algorithm provides a simpified access to the geocoding endpoint.
 
@@ -465,7 +465,7 @@ It can be used to assign geographical coordinates to textual data such as addres
 
 **Output layer:** Where to save the output layer. If you leave this empty, the result will be loaded as a temporary layer. It is still possible to save a temporary layer afterwards by right-clicking it in the legend and choosing "make permanent".
 
-### ![](images/icons/geocoding_reversed.svg#icon) Reverse geocoding
+### ![](../travel_time_platform_plugin/resources/icons/geocoding_reversed.svg#icon) Reverse geocoding
 
 This algorithm provides a simpified access to the reverse geocoding endpoint.
 

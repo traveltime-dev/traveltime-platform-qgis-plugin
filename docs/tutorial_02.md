@@ -74,11 +74,11 @@ We'll now feed in this layer into the Simplified Time map algorithm.
 
 Make sure the `amenity restaurants` is selected in the layer, then press the selection icon ![](images/qgis_icons/mActionSelectRectangle.svg#icon). Drag a rectangle on the map to select the pizzerias  that you own. Make sure you have a select a reasonable amount of pizzerias (5-15).
 
-Click on the toolbox icon ![](images/icons/toolbox.svg#icon) to open the processing toolbox (note that this is exactly equivalent to showing the toolbox using QGIS's default button, and then manually filtering the algorithms).
+Click on the toolbox icon ![](../travel_time_platform_plugin/resources/icons/toolbox.svg#icon) to open the processing toolbox (note that this is exactly equivalent to showing the toolbox using QGIS's default button, and then manually filtering the algorithms).
 
 ![](images/reference/toolbox.png)
 
-In the toolbox, double-click on the Simplified Time map algorithm ![](images/icons/timemap_simple.svg#icon) to open the main dialog.
+In the toolbox, double-click on the Simplified Time map algorithm ![](../travel_time_platform_plugin/resources/icons/timemap_simple.svg#icon) to open the main dialog.
 
 Most of the parameters should look familiar. Choose the `amenity restaurants` layer in the first parameter to indicate that you want the searches to be taken from this layer. Make sure to check `Selected features only`. Set the travel time to 10 minutes and the transportation type to cycling.
 
@@ -131,7 +131,7 @@ Then, toggle the edit mode back off ![](images/qgis_icons/mActionToggleEditing.s
 
 ### 2. Running the advanced algorithm
 
-Open the processing toolbox ![](images/icons/toolbox.svg#icon) and double click on the Advanced Time map algorithm ![](images/icons/timemap_advanced.svg#icon) to open the dialog.
+Open the processing toolbox ![](../travel_time_platform_plugin/resources/icons/toolbox.svg#icon) and double click on the Advanced Time map algorithm ![](../travel_time_platform_plugin/resources/icons/timemap_advanced.svg#icon) to open the dialog.
 
 Again, some inputs may look familiar. But you'll notice there are more, especially under the `advanced` section, which allows to fine tune a lot of parameters.
 
