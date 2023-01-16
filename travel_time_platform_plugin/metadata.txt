@@ -90,7 +90,7 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - feature : include geometry cleanup step
     - 2022-04-25 : version 1.7.0
         - feature : added robust mode
-    - 2023-xx-xx : version 1.8.0
+    - 2023-01-16 : version 1.8.0
         - feature : added automated tests
         - feature : added "level of detail", "no holes" and "single shape" parameters to time map
         - fix : hang when no QGIS master password was set
