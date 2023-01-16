@@ -1,7 +1,7 @@
 #Mandatory items
 [general]
 name=TravelTime Plugin
-qgisMinimumVersion=2.99
+qgisMinimumVersion=3.16
 qgisMaximumVersion=3.99
 description=Get travel time polygons from the TravelTime API directly from QGIS
 about=This plugin adds a toolbar and processing algorithms allowing to query the TravelTime API directly from QGIS. The TravelTime API allows to obtain polygons based on actual travel time using several transport modes rather, allowing for much more accurate results than simple distance calculations.

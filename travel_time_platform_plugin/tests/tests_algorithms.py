@@ -267,7 +267,12 @@ class AlgorithmsFeaturesTest(TestCaseBase):
             ft_simple = output_s.getFeature(1)
             ft_advanced = output_a.getFeature(1)
             self.assertEqual(
-                ft_simple,
-                ft_advanced,
-                f"Simple and advanced algorithm did not yield same results for {subcase_name}",
+                ft_simple.attributes(),
+                ft_advanced.attributes(),
+                f"Simple and advanced algorithm did not yield same attributes for {subcase_name}",
+            )
+            self.assertEqual(
+                ft_simple.geometry().asWkt(),
+                ft_advanced.geometry().asWkt(),
+                f"Simple and advanced algorithm did not yield same geometries for {subcase_name}",
             )
