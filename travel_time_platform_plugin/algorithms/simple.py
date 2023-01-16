@@ -39,7 +39,6 @@ SEARCH_TYPES = [
 class _SimpleSearchAlgorithmBase(AlgorithmBase):
     _group = "Simplified"
     _groupId = "simple"
-    _helpUrl = "http://docs.traveltimeplatform.com/reference/time-map/"
 
     def initAlgorithm(self, config):
 
@@ -174,7 +173,7 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
     _group = "Simplified"
     _groupId = "simple"
     _icon = resources.icon_time_map_simple
-    _helpUrl = "http://docs.traveltimeplatform.com/reference/time-map/"
+    _helpUrl = "https://docs.traveltime.com/api/reference/isochrones/"
     _shortHelpString = tr(
         "This algorithms provides a simpified access to the time-map endpoint.\n\nPlease see the help on {url} for more details on how to use it."
     ).format(url=_helpUrl)
@@ -296,7 +295,7 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
     _group = "Simplified"
     _groupId = "simple"
     _icon = resources.icon_time_filter_simple
-    _helpUrl = "http://docs.traveltimeplatform.com/reference/time-filter/"
+    _helpUrl = "https://docs.traveltime.com/api/reference/travel-time-distance-matrix/"
     _shortHelpString = tr(
         "This algorithms provides a simpified access to the time-filter endpoint.\n\nPlease see the help on {url} for more details on how to use it."
     ).format(url=_helpUrl)
@@ -381,7 +380,7 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
     _group = "Simplified"
     _groupId = "simple"
     _icon = resources.icon_routes_simple
-    _helpUrl = "http://docs.traveltimeplatform.com/reference/routes/"
+    _helpUrl = "https://docs.traveltime.com/api/reference/routes/"
     _shortHelpString = tr(
         "This algorithms provides a simpified access to the routes endpoint.\n\nPlease see the help on {url} for more details on how to use it."
     ).format(url=_helpUrl)

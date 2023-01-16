@@ -1,13 +1,13 @@
 ---
 title: "Advanced tutorial | Travel time isochrone QGIS tutorial 3/3"
-description: "Learn how to make and run a processing model using the TravelTime platform QGIS plugin. You can also learn how to run batch algorithms."
+description: "Learn how to make and run a processing model using the TravelTime QGIS plugin. You can also learn how to run batch algorithms."
 ---
 
 # Tutorial 03. Making the most out of algorithms ![](../travel_time_platform_plugin/resources/icon.png)
 
-This tutorial intends to showcase how far it is possible to go using the TravelTime platform algorithms in conjunction with QGIS's capabilities.
+This tutorial intends to showcase how far it is possible to go using the TravelTime algorithms in conjunction with QGIS's capabilities.
 
-To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
+To learn more about TravelTime and to discuss commercial licences visit [our website](https://traveltime.com/).
 
 ## Video version
 
@@ -130,11 +130,10 @@ What a dramatic result. To me, this looks like a pizza that went wrong! It seems
 
 Well done! You've completed the tutorials that are currently available. But there's more to discover! 
 
-The QGIS processing modeller offers much more, including the ability to iterate per feature (which could for instance be used to create one route layer per layer feature). The TravelTime platform plugin also offers a Geocoding algorithm, that we didn't look into as part of this tutorial.
+The QGIS processing modeller offers much more, including the ability to iterate per feature (which could for instance be used to create one route layer per layer feature). The TravelTime plugin also offers a Geocoding algorithm, that we didn't look into as part of this tutorial.
 
 But the plugin as well as the TravelTime API will by no doubt evolve over time, and so will this tutorial series. So make sure to come back every now and then to see what's new.
 
-And please [share with us](https://www.traveltimeplatform.com/contact-us) any interesting results you've got with these tools !
+And please [share with us](https://traveltime.com/contact-us) any interesting results you've got with these tools !
 
-
-If you haven't done it yet, have a look at the [reference documentation](reference.md), that describes everything the plugin does, as well as at the [TravelTime platform blog](https://blog.traveltimeplatform.com) which includes numerous quality articles around the TravelTime API.
+If you haven't done it yet, have a look at the [reference documentation](reference.md), that describes everything the plugin does, as well as at the [TravelTime blog](https://traveltime.com/blogs) which includes numerous quality articles around the TravelTime API.

@@ -169,7 +169,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             )
 
             metadata.setAbstract(
-                "This layer was generated using the '{}' algorithm from the TravelTime Platform plugin version {}. The following parameters were used : \n{}".format(
+                "This layer was generated using the '{}' algorithm from the TravelTime plugin version {}. The following parameters were used : \n{}".format(
                     self.displayName(), constants.TTP_VERSION, params_readable
                 )
             )
@@ -287,7 +287,7 @@ class ProcessingAlgorithmBase(AlgorithmBase):
         if not self.APP_ID or not self.API_KEY:
             feedback.reportError(
                 tr(
-                    "You need a TravelTime platform API key to make requests. Please head to {} to obtain one, and enter it in the plugin's setting dialog."
+                    "You need a TravelTime API key to make requests. Please head to {} to obtain one, and enter it in the plugin's setting dialog."
                 ).format("http://docs.traveltimeplatform.com/overview/getting-keys/"),
                 fatalError=True,
             )

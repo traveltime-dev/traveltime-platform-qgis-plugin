@@ -195,7 +195,7 @@ class GeocodingAlgorithm(GeocodingAlgorithmBase):
     _group = "Utilities"
     _groupId = "utils"
     _icon = resources.icon_geocoding
-    _helpUrl = "https://docs.traveltimeplatform.com/reference/geocoding-search/"
+    _helpUrl = "https://docs.traveltime.com/api/reference/geocoding-search/"
     _shortHelpString = tr(
         "This algorithms provides access to the geocoding endpoint.\n\nPlease see the help on {url} for more details on how to use it."
     ).format(url=_helpUrl)
@@ -246,7 +246,7 @@ class ReverseGeocodingAlgorithm(GeocodingAlgorithmBase):
     _group = "Utilities"
     _groupId = "utils"
     _icon = resources.icon_reverse_geocoding
-    _helpUrl = "https://docs.traveltimeplatform.com/reference/geocoding-reverse/"
+    _helpUrl = "https://docs.traveltime.com/api/reference/geocoding-reverse/"
     _shortHelpString = tr(
         "This algorithms provides access to the reverse geocoding endpoint.\n\nPlease see the help on {url} for more details on how to use it."
     ).format(url=_helpUrl)

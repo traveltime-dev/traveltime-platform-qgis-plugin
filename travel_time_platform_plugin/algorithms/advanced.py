@@ -467,9 +467,9 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
     _group = "Advanced"
     _groupId = "advanced"
     _icon = resources.icon_time_map_advanced
-    _helpUrl = "http://docs.traveltimeplatform.com/reference/time-map/"
+    _helpUrl = "https://docs.traveltime.com/api/reference/isochrones/"
     _shortHelpString = tr(
-        "This algorithms allows to use the time-map endpoint from the TravelTime platform API.\n\nIt matches the endpoint data structure as closely as possible. Please see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
+        "This algorithms allows to use the time-map endpoint from the TravelTime API.\n\nIt matches the endpoint data structure as closely as possible. Please see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
     ).format(url=_helpUrl)
 
     RESULT_TYPE = ["NORMAL", "UNION", "INTERSECTION"]
@@ -778,9 +778,9 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
     _group = "Advanced"
     _groupId = "advanced"
     _icon = resources.icon_time_filter_advanced
-    _helpUrl = "http://docs.traveltimeplatform.com/reference/time-filter/"
+    _helpUrl = "https://docs.traveltime.com/api/reference/travel-time-distance-matrix/"
     _shortHelpString = tr(
-        "This algorithms allows to use the time-filter endpoint from the TravelTime platform API.\n\nIt matches the endpoint data structure as closely as possible. The key difference with the API is that the filter is automatically done on ALL locations, while the API technically allows to specify which locations to filter for each search.\n\nPlease see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
+        "This algorithms allows to use the time-filter endpoint from the TravelTime API.\n\nIt matches the endpoint data structure as closely as possible. The key difference with the API is that the filter is automatically done on ALL locations, while the API technically allows to specify which locations to filter for each search.\n\nPlease see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
     ).format(url=_helpUrl)
 
     def initAlgorithm(self, config):
@@ -1004,9 +1004,9 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
     _group = "Advanced"
     _groupId = "advanced"
     _icon = resources.icon_routes_advanced
-    _helpUrl = "http://docs.traveltimeplatform.com/reference/routes/"
+    _helpUrl = "https://docs.traveltime.com/api/reference/routes/"
     _shortHelpString = tr(
-        "This algorithms allows to use the routes endpoint from the TravelTime platform API.\n\nIt matches the endpoint data structure as closely as possible. The key difference with the API is that the routes are automatically computd on ALL locations, while the API technically allows to specify which locations to filter for each search.\n\nPlease see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
+        "This algorithms allows to use the routes endpoint from the TravelTime API.\n\nIt matches the endpoint data structure as closely as possible. The key difference with the API is that the routes are automatically computd on ALL locations, while the API technically allows to specify which locations to filter for each search.\n\nPlease see the help on {url} for more details on how to use it.\n\nConsider using the simplified algorithms as they may be easier to work with."
     ).format(url=_helpUrl)
 
     RESULT_TYPE = ["BY_ROUTE", "BY_DURATION", "BY_TYPE"]

@@ -1,15 +1,15 @@
 ---
 title: "QGIS isochrones using TravelTime | Reference Manual"
-description: "This reference manual covers all features of the TravelTime platform plugin for QGIS."
+description: "This reference manual covers all features of the TravelTime plugin for QGIS."
 ---
 
 # Reference manual ![](../travel_time_platform_plugin/resources/icon.png)
 
-This reference manual covers all features of the TravelTime platform plugin for QGIS.
+This reference manual covers all features of the TravelTime plugin for QGIS.
 
 For an introduction about how to use it, you may prefer to have a look at the tutorials first.
 
-To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
+To learn more about TravelTime and to discuss commercial licences visit [our website](https://traveltime.com/).
 
 ## Installation
 
@@ -45,7 +45,7 @@ After installation and on QGIS start, the plugin will show a splash screen. You 
 
 ### Move, show or hide
 
-By default, the toolbar appears at the top of the window. You can drag and drop it to move it elsewhere, or completely toggle its visibility by right-clicking on an empty space of the user interface and by (un)checking "TravelTime platform toolbar".
+By default, the toolbar appears at the top of the window. You can drag and drop it to move it elsewhere, or completely toggle its visibility by right-clicking on an empty space of the user interface and by (un)checking "TravelTime toolbar".
 
 ### Content
 
@@ -151,7 +151,7 @@ The main settings dialog can be open using the ![](images/icons/settings.svg#ico
 
 **Disable HTTPS certificate verification** : under certain circumstances (such as connection from an enterprise network), requests made from Python may fail because the SSL certificates can not be verified. If this happens, you can disable the verification by checking this box. Please be aware that this makes your requests to the API more vulnerable to interception by an attacker.
 
-**Customize endpoint** : if you are not using the default TravelTime Platform API endpoint, you can customize it here.
+**Customize endpoint** : if you are not using the default TravelTime API endpoint, you can customize it here.
 
 ## Help dialog
 
@@ -335,7 +335,7 @@ It can be used to get information such as a service area polygon based on travel
 
 #### Parameters description
 
-The parameters match closely the API. They are best documented on [the API documentation](http://docs.traveltimeplatform.com/reference/time-map/).
+The parameters match closely the API. They are best documented on [the API documentation](https://docs.traveltime.com/api/reference/isochrones).
 
 All parameters are expressions, which allow you to freely use the QGIS expression engine to define each of those parameters, which includes access to all features attributes.
 
@@ -361,7 +361,7 @@ By default, if any error happens, even on just one search, the algorithm fails a
 
 ### ![](images/icons/timefilter_advanced.svg#icon) Time filter (Advanced)
 
-The parameters match closely the API. They are best documented on [the API documentation](http://docs.traveltimeplatform.com/reference/time-filter/).
+The parameters match closely the API. They are best documented on [the API documentation](https://docs.traveltime.com/api/reference/travel-time-distance-matrix).
 
 All parameters are expressions, which allow you to freely use the QGIS expression engine to define each of those parameters, which includes access to all features attributes.
 
@@ -377,7 +377,7 @@ By default, if any error happens, even on just one search, the algorithm fails a
 
 ### ![](images/icons/route_advanced.svg#icon) Route (Advanced)
 
-The parameters match closely the API. They are best documented on [the API documentation](http://docs.traveltimeplatform.com/reference/routes/).
+The parameters match closely the API. They are best documented on [the API documentation](https://docs.traveltime.com/api/reference/routes/).
 
 All parameters are expressions, which allow you to freely use the QGIS expression engine to define each of those parameters, which includes access to all features attributes.
 
@@ -451,9 +451,9 @@ Have a close look at the first few lines in red of the output, and see if you so
 
 This means that the plugin could not connect to the webservice. Make sure you are online and that your connection works properly. If the error persists, please [contact us](#contact-us) as it may be due to some issue with the web service.
 
-##### You need a TravelTime platform API key to make requests
+##### You need a TravelTime API key to make requests
 
-Before using the TravelTime platform plugin, you need to get and configure an API key. Please refer to the [configuration dialog](#settings-dialog) section about how to get and configure an API key.
+Before using the TravelTime plugin, you need to get and configure an API key. Please refer to the [configuration dialog](#settings-dialog) section about how to get and configure an API key.
 
 ##### You have exceeded your request limit
 
@@ -471,10 +471,10 @@ This means that the plugin is not able to create a connection with the TravelTim
 
 If you encounter another issue that is not described above, please report it on the [issue tracker](https://github.com/igeolise/traveltime-platform-qgis-plugin/issues).
 
-Include as much information as possible, such as what steps exactly triggered the issue, the error message or unexpected behaviour, a copy of the message log (`view > panels > Log messages` under the `TravelTime platform` tab).
+Include as much information as possible, such as what steps exactly triggered the issue, the error message or unexpected behaviour, a copy of the message log (`view > panels > Log messages` under the `TravelTime` tab).
 
 By doing so, we'll be able to fix the issue and you will be notified.
 
 ### Contact us
 
-For anything else, including to request higher API limit, please visit https://www.traveltimeplatform.com/contact-us
+For anything else, including to request higher API limit, please visit https://traveltime.com/contact-us

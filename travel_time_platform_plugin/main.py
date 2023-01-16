@@ -37,7 +37,7 @@ class TTPPlugin:
 
         locale = QSettings().value("locale/userLocale") or QLocale().name() or "en"
         locale_path = os.path.join(
-            self.plugin_dir, "i18n", f"traveltime_platform_{locale[0:2]}.qm"
+            self.plugin_dir, "i18n", f"traveltime_{locale[0:2]}.qm"
         )
 
         if os.path.exists(locale_path):
@@ -54,7 +54,7 @@ class TTPPlugin:
         self.help_dialog = ui.HelpWidget(self)
         self.tilesManager = tiles.TilesManager(self)
 
-        self.toolbar = self.iface.addToolBar("TravelTime platform Toolbar")
+        self.toolbar = self.iface.addToolBar("TravelTime Toolbar")
 
         # Logo
         button = QPushButton(resources.banner_toolbar, "")
@@ -71,7 +71,7 @@ class TTPPlugin:
         )
         self.action_show_toolbox.triggered.connect(self.show_toolbox)
         self.toolbar.addAction(self.action_show_toolbox)
-        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_toolbox)
+        self.iface.addPluginToMenu("&TravelTime", self.action_show_toolbox)
 
         # Rerun algorithm action
         self.action_rerun = QAction(
@@ -79,7 +79,7 @@ class TTPPlugin:
         )
         self.action_rerun.triggered.connect(self.rerun_algorithm)
         self.toolbar.addAction(self.action_rerun)
-        self.iface.addPluginToMenu("&TravelTime platform", self.action_rerun)
+        self.iface.addPluginToMenu("&TravelTime", self.action_rerun)
         self.action_rerun.setEnabled(False)
 
         self.toolbar.addSeparator()
@@ -114,7 +114,7 @@ class TTPPlugin:
         )
         self.action_show_tiles.triggered.connect(self.show_tiles)
         self.toolbar.addAction(self.action_show_tiles)
-        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_tiles)
+        self.iface.addPluginToMenu("&TravelTime", self.action_show_tiles)
 
         # Show help actions
         self.action_show_help = QAction(
@@ -122,17 +122,17 @@ class TTPPlugin:
         )
         self.action_show_help.triggered.connect(self.show_help)
         self.toolbar.addAction(self.action_show_help)
-        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_help)
+        self.iface.addPluginToMenu("&TravelTime", self.action_show_help)
 
         # Show config actions
         self.action_show_config = QAction(
             resources.icon_config,
-            tr("Configure TravelTime platform plugin"),
+            tr("Configure TravelTime plugin"),
             self.iface.mainWindow(),
         )
         self.action_show_config.triggered.connect(self.show_config)
         self.toolbar.addAction(self.action_show_config)
-        self.iface.addPluginToMenu("&TravelTime platform", self.action_show_config)
+        self.iface.addPluginToMenu("&TravelTime", self.action_show_config)
 
         # Show run tests
         self.action_run_tests = QAction(
@@ -142,7 +142,7 @@ class TTPPlugin:
         )
         self.action_run_tests.triggered.connect(self.run_tests)
         self.toolbar.addAction(self.action_run_tests)
-        self.iface.addPluginToMenu("&TravelTime platform", self.action_run_tests)
+        self.iface.addPluginToMenu("&TravelTime", self.action_run_tests)
 
         # Add the provider to the registry
         QgsApplication.processingRegistry().addProvider(self.provider)
@@ -162,12 +162,12 @@ class TTPPlugin:
     def unload(self):
         # Remove GUI elements
         del self.toolbar
-        self.iface.removePluginMenu("&TravelTime platform", self.action_show_toolbox)
-        self.iface.removePluginMenu("&TravelTime platform", self.action_show_tiles)
-        self.iface.removePluginMenu("&TravelTime platform", self.action_show_config)
-        self.iface.removePluginMenu("&TravelTime platform", self.action_show_help)
-        self.iface.removePluginMenu("&TravelTime platform", self.action_rerun)
-        self.iface.removePluginMenu("&TravelTime platform", self.action_run_tests)
+        self.iface.removePluginMenu("&TravelTime", self.action_show_toolbox)
+        self.iface.removePluginMenu("&TravelTime", self.action_show_tiles)
+        self.iface.removePluginMenu("&TravelTime", self.action_show_config)
+        self.iface.removePluginMenu("&TravelTime", self.action_show_help)
+        self.iface.removePluginMenu("&TravelTime", self.action_rerun)
+        self.iface.removePluginMenu("&TravelTime", self.action_run_tests)
 
         # Remove the provider from the registry
         QgsApplication.processingRegistry().removeProvider(self.provider)
@@ -189,10 +189,10 @@ class TTPPlugin:
         toolBox.setVisible(True)
         toolBox.raise_()
         searchBox = toolBox.findChild(QgsFilterLineEdit, "searchBox")
-        if searchBox.value() == "TravelTime platform":
-            searchBox.textChanged.emit("TravelTime platform")
+        if searchBox.value() == "TravelTime":
+            searchBox.textChanged.emit("TravelTime")
         else:
-            searchBox.setValue("TravelTime platform")
+            searchBox.setValue("TravelTime")
 
     def rerun_algorithm(self):
         alg_id = self.iface.activeLayer().metadata().keywords()["TTP_ALGORITHM"][0]
@@ -268,8 +268,8 @@ class TTPPlugin:
                 result = tests.run_suite(stream=buf)
             output = buf.getvalue()
 
-        log(tests.system_info(), "TravelTimePlatform tests output")
-        log(output, "TravelTimePlatform tests output")
+        log(tests.system_info(), "TravelTime tests output")
+        log(output, "TravelTime tests output")
 
         success = result.wasSuccessful()
 
