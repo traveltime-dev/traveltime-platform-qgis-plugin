@@ -3,6 +3,17 @@ title: "Advanced tutorial | Travel time isochrone QGIS tutorial 3/3"
 description: "Learn how to make and run a processing model using the TravelTime QGIS plugin. You can also learn how to run batch algorithms."
 ---
 
+<style>
+img[src$="#icon"] {
+  width: 24px; height: 24px;
+  background: #eee;
+  border: solid 1px #ccc;
+  padding: 3px; border-radius: 3px;
+  box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+  vertical-align: middle;
+}
+</style>
+
 # Tutorial 03. Making the most out of algorithms ![](../travel_time_platform_plugin/resources/icon.png)
 
 This tutorial intends to showcase how far it is possible to go using the TravelTime algorithms in conjunction with QGIS's capabilities.
@@ -44,7 +55,7 @@ Before we get started, let's clarify what we need to do to get the area that is 
 2. create a time map for 15 minutes by car
 3. subtract the area 2. from the area 1.
 
-Open the processing toolbox ![](images/icons/toolbox.svg#icon) and select `create new model` under the model button ![](images/qgis_icons/processingModel.svg#icon).
+Open the processing toolbox ![](../travel_time_platform_plugin/resources/icons/toolbox.svg#icon) and select `create new model` under the model button ![](images/qgis_icons/processingModel.svg#icon).
 
 This will open the processing modeller, an awesome tool that allows to build reusable workflows, using algorithms from the toolbox as building blocks
 
@@ -107,7 +118,7 @@ To get started, we'll create a temporary point layer containing just one point. 
 
 ### 2. Run the batch
 
-Open the processing toolbox ![](images/icons/toolbox.svg#icon), right click on the Simplified Time Map algorithm ![](images/icons/timemap_simple.svg#icon), and choose `execute as batch process`.
+Open the processing toolbox ![](../travel_time_platform_plugin/resources/icons/toolbox.svg#icon), right click on the Simplified Time Map algorithm ![](../travel_time_platform_plugin/resources/icons/timemap_simple.svg#icon), and choose `execute as batch process`.
 
 Click 5 times on the plus button to get a total of 6 rows. In the first row, in the `searches` column, click on the button, and choose the `headquarters` layer from the open layers. Then, double-click on the `searches` column header, to copy the value to all rows. Set the transportation type to `public transport` on the first row, and again, double click on the header to copy that to all rows.
 
