@@ -3,7 +3,7 @@ title: "Get Started | Travel time isochrone QGIS tutorial 1/3"
 description: "Learn how to install the TravelTime isochrone plugin into QGIS and make a basic travel time polygon shape."
 ---
 
-# Tutorial 01. The Basics ![](images/icons/general.svg#header)
+# Tutorial 01. The Basics ![](../travel_time_platform_plugin/resources/icon.png)
 
 This tutorial covers basic usage of the TravelTime platform Plugin for QGIS.
 
@@ -93,7 +93,7 @@ To get a sense of what the plugin can do, we'll start with the express tools. We
 
 To help us navigate the map and actually understand what we look at, we'll add a background layer.
 
-Click on the tiles button ![](images/icons/tiles.svg#icon) and double click on one of the available XYZ layers. Depending on your API key, you may have just the default XYZ layer or additionnal layers provided by the TravelTime platform.
+Click on the tiles button ![](images/icons/tiles.svg#icon) and double click on one of the available XYZ layers. Depending on your API key, you may have just the default XYZ layer or additionnal layers provided by TravelTime.
 
 The background layer should now be added to your project.
 

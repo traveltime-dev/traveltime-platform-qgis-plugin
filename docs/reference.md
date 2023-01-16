@@ -3,7 +3,7 @@ title: "QGIS isochrones using TravelTime | Reference Manual"
 description: "This reference manual covers all features of the TravelTime platform plugin for QGIS."
 ---
 
-# Reference manual ![](images/icons/general.svg#header)
+# Reference manual ![](../travel_time_platform_plugin/resources/icon.png)
 
 This reference manual covers all features of the TravelTime platform plugin for QGIS.
 
@@ -181,7 +181,7 @@ In any case, you'll be able to add the default XYZ layer configured by default b
 
 ## Algorithm toolbox
 
-The processing toolbox can be open using the ![](images/icons/toolbox.svg#icon). The only difference with the regular `open toolbox` action is that the list of actions will be prefiltered to show only TravelTime platform relative algorithms.
+The processing toolbox can be open using the ![](images/icons/toolbox.svg#icon). The only difference with the regular `open toolbox` action is that the list of actions will be prefiltered to show only TravelTime relative algorithms.
 
 ![](images/reference/toolbox.png)
 

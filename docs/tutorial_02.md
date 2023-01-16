@@ -3,7 +3,7 @@ title: "Using algorithms | Travel time isochrone QGIS tutorial 2/3"
 description: "Learn how to use the simplified and advance algorithms to make travel time polygons using the toolbox."
 ---
 
-# Tutorial 02. Using the algorithms ![](images/icons/general.svg#header)
+# Tutorial 02. Using the algorithms ![](../travel_time_platform_plugin/resources/icon.png)
 
 This tutorial covers intermediate usage of the TravelTime platform plugin. It looks at how to use the algorithms from the processing toolbox.
 
