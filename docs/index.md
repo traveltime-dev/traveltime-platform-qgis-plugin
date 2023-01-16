@@ -3,17 +3,17 @@ title: "Make QGIS Isochrones with the TravelTime plugin"
 description: "Create QGIS isochrones with drive time, walking, cycling or public transport. Adjust the polygon by changing the maximum travel time and start location."
 ---
 
-# TravelTime platform plugin for QGIS ![](images/icons/general.svg#header) 
+# TravelTime plugin for QGIS ![](../travel_time_platform_plugin/resources/icon.png) 
 
-This is the official home for the TravelTime platform plugin for QGIS.
+This is the official home for the TravelTime plugin for QGIS.
 
 ![](images/timemap_example.png)
 
 *Travel time is much more accurate than distance to make informed decisions, such as where to locate a new office, what type of transport to choose, or at what time a meeting should start.*
 
-*The TravelTime platform Plugin for QGIS adds several algorithms that aim to allow this type of analysis right in QGIS. It works by making use of the TravelTime platform API, an extremely fast web service for such computations.*
+*The TravelTime plugin for QGIS adds several algorithms that aim to allow this type of analysis right in QGIS. It works by making use of the TravelTime API, an extremely fast web service for such computations.*
 
-To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
+To learn more about TravelTime and to discuss commercial licences visit [our website](https://traveltime.com/).
 
 ## Help contents
 
@@ -30,5 +30,5 @@ Which contains detailed information about all aspects of the plugin, from instal
 ## Additionnal support
 
 - **[Issue tracker](https://github.com/igeolise/traveltime-platform-qgis-plugin/issues)**
-- **[Contact us](https://www.traveltimeplatform.com/contact-us)**
+- **[Contact us](https://traveltime.com/contact-us)**
 - **[QGIS help resources](https://docs.qgis.org/3.4/en/docs/training_manual/index.html)**

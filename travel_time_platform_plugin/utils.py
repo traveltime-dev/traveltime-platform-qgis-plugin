@@ -54,7 +54,7 @@ def clone_feature(request, source_layer, output_fields=None):
     return new_feature
 
 
-def log(msg, tag="TimeTravelPlatform", level=Qgis.Info):
+def log(msg, tag="TravelTime", level=Qgis.Info):
     QgsMessageLog.logMessage(str(msg), tag, level=level)
 
 

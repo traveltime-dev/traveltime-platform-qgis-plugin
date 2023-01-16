@@ -3,11 +3,11 @@ title: "Get Started | Travel time isochrone QGIS tutorial 1/3"
 description: "Learn how to install the TravelTime isochrone plugin into QGIS and make a basic travel time polygon shape."
 ---
 
-# Tutorial 01. The Basics ![](images/icons/general.svg#header)
+# Tutorial 01. The Basics ![](../travel_time_platform_plugin/resources/icon.png)
 
-This tutorial covers basic usage of the TravelTime platform Plugin for QGIS.
+This tutorial covers basic usage of the TravelTime plugin for QGIS.
 
-To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
+To learn more about TravelTime and to discuss commercial licences visit [our website](https://traveltime.com/).
 
 ## Video version
 
@@ -22,7 +22,7 @@ Travel times are much more accurate than distance to make informed decisions, su
 ![](images/tutorial_01/timemap_example.png)  
 *This demonstrates the difference between a normal radius (blue) and a time based reachable area (pink)*
 
-The TravelTime platform Plugin for QGIS adds several algorithms that aim to allow this type of analysis right in QGIS. It works by making use of the TravelTime platform API, an extremely fast web service for such computations.
+The TravelTime plugin for QGIS adds several algorithms that aim to allow this type of analysis right in QGIS. It works by making use of the TravelTime API, an extremely fast web service for such computations.
 
 ## What we'll cover
 
@@ -47,7 +47,7 @@ If you are on Windows, make sure to pick the Standalone Installer as it is easie
 
 Once QGIS is installed, launch it.
 
-To install the plugin, open the `Plugin manager` in the `Plugin` menu. In the dialog, search for `TravelTime platform`, and click on install.
+To install the plugin, open the `Plugin manager` in the `Plugin` menu. In the dialog, search for `TravelTime`, and click on install.
 
 If the plugin was installed correctly, you should see a new tool bar.
 
@@ -93,7 +93,7 @@ To get a sense of what the plugin can do, we'll start with the express tools. We
 
 To help us navigate the map and actually understand what we look at, we'll add a background layer.
 
-Click on the tiles button ![](images/icons/tiles.svg#icon) and double click on one of the available XYZ layers. Depending on your API key, you may have just the default XYZ layer or additionnal layers provided by the TravelTime platform.
+Click on the tiles button ![](images/icons/tiles.svg#icon) and double click on one of the available XYZ layers. Depending on your API key, you may have just the default XYZ layer or additionnal layers provided by TravelTime.
 
 The background layer should now be added to your project.
 
@@ -165,4 +165,4 @@ Congratulations! This concludes our first tutorial. Keep up the good work, an, y
 
 To learn more, have a look at the next tutorial of the series : **[Tutorial 02. Intermediate](tutorial_02.md)**.
 
-Also don't forget to have a look at the [reference documentation](reference.md), that describes everything the plugin does, as well as at the [TravelTime platform blog](https://blog.traveltimeplatform.com) which includes numerous quality articles around the TravelTime API.
+Also don't forget to have a look at the [reference documentation](reference.md), that describes everything the plugin does, as well as at the [TravelTime blog](https://traveltime.com/blogs) which includes numerous quality articles around the TravelTime API.

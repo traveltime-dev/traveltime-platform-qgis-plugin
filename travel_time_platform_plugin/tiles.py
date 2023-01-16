@@ -34,7 +34,7 @@ class TilesManager:
             self.main.iface.messageBar().pushMessage(
                 "Info",
                 tr(
-                    "TravelTime also offers some background maps for their users. <a href='https://docs.traveltimeplatform.com/tiles/getting-started/'>Click here to request access !</a>"
+                    "TravelTime also offers some background maps for their users. <a href='https://docs.traveltime.com/api/tiles/getting-started'>Click here to request access !</a>"
                 ),
                 level=Qgis.Info,
             )

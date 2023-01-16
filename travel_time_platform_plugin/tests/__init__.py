@@ -26,7 +26,7 @@ def run_suite(stream) -> unittest.TestResult:
 def system_info():
     return "\n".join(
         [
-            "Travel Time Platform Plugin tests report",
+            "TravelTime Plugin tests report",
             "----------------------------------------------------------------------",
             f"Date: {datetime.now().isoformat()}",
             f"QGIS version: {Qgis.version()} [{Qgis.devVersion()}]",

@@ -1,10 +1,10 @@
-# ![Travel Time Platform](travel_time_platform_plugin/resources/TravelTime_logo_horizontal.svg)
+# ![Travel Time](travel_time_platform_plugin/resources/banner.png)
 
 [![.github/workflows/tests.yml](https://github.com/traveltime-dev/traveltime-platform-qgis-plugin/actions/workflows/tests.yml/badge.svg)](https://github.com/traveltime-dev/traveltime-platform-qgis-plugin/actions/workflows/tests.yml)
 
-This is the repository for the TravelTime platform plugin for QGIS.
+This is the repository for the TravelTime plugin for QGIS.
 
-This plugin intends to make the TravelTime platform API available for ues in QGIS through processing algorithms.
+This plugin intends to make the TravelTime API available for ues in QGIS through processing algorithms.
 
 ## Installation
 
@@ -12,7 +12,7 @@ This plugin is available in the official QGIS repository (you need to enable exp
 
 ## Documentation
 
-The documentation is available here : https://qgis.traveltimeplatform.com/
+The documentation is available here : https://docs.traveltime.com/qgis/
 
 ## Bug reports
 
@@ -54,12 +54,12 @@ To update the translations :
 
 ```
 # Update the translations files
-pylupdate5 i18n/traveltime_platform.pro
+pylupdate5 i18n/traveltime.pro
 
 # Make modifications to *.ts files either manually or using QtLinguist
 
 # Regenerate the .qm files
-lrelease i18n/traveltime_platform_fr.ts
+lrelease i18n/traveltime_fr.ts
 ```
 
 Note : under Windows, make sure you installed `qt5-devel` and `qt5-tools` (using osgeo4w installer) and run the above commands from the `OSGeo4W shell`. You will need to setup the shell for qt5 and python3 by running `o4w_env`, `qt5_env` and `py3_env` beforehand.

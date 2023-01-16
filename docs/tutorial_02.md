@@ -3,11 +3,11 @@ title: "Using algorithms | Travel time isochrone QGIS tutorial 2/3"
 description: "Learn how to use the simplified and advance algorithms to make travel time polygons using the toolbox."
 ---
 
-# Tutorial 02. Using the algorithms ![](images/icons/general.svg#header)
+# Tutorial 02. Using the algorithms ![](../travel_time_platform_plugin/resources/icon.png)
 
-This tutorial covers intermediate usage of the TravelTime platform plugin. It looks at how to use the algorithms from the processing toolbox.
+This tutorial covers intermediate usage of the TravelTime plugin. It looks at how to use the algorithms from the processing toolbox.
 
-To learn more about TravelTime platform and to discuss commercial licences visit [our website](http://traveltimeplatform.com).
+To learn more about TravelTime and to discuss commercial licences visit [our website](https://traveltime.com/).
 
 ## Video version
 
@@ -93,7 +93,7 @@ Your project should now look like this.
 
 Awesome !
 
-Using different algorithms together is extremely powerful. Have a quick look at the quantity of algorithms in the toolbox. You'll be able to use all of those with the outputs of the TravelTime platform plugin, opening endless possibilities.
+Using different algorithms together is extremely powerful. Have a quick look at the quantity of algorithms in the toolbox. You'll be able to use all of those with the outputs of the TravelTime plugin, opening endless possibilities.
 
 > Note : the algorithm has a "result aggregation" option that can be set to UNION. This option allows to get the dissolved polygons directly in one step. The only issue is that it works correctly only if the input layer has less than 10 points, after which the requests are made in batch to the endpoint, and thus several polygons are returned. So, if you're working with bigger datasets than 10 points, it's better to rely on the dissolved algorithm as shown.
 
@@ -139,4 +139,4 @@ This concludes our second tutorial !
 
 To continue discovering what the plugin has to offer, have a look at the next tutorial of the series : **[Tutorial 03. Going further with algorithms](tutorial_03.md)**.
 
-Again, don't forget to have a look at the [reference documentation](reference.md), that describes everything the plugin does, as well as at the [TravelTime platform blog](https://blog.traveltimeplatform.com) which includes numerous quality articles around the TravelTime API.
+Again, don't forget to have a look at the [reference documentation](reference.md), that describes everything the plugin does, as well as at the [TravelTime blog](https://traveltime.com/blogs) which includes numerous quality articles around the TravelTime API.

@@ -1,4 +1,4 @@
-
+exclude: "^travel_time_platform_plugin/libraries"
 
 repos:
   # Fix end of files
@@ -10,7 +10,7 @@ repos:
       - id: end-of-file-fixer
       - id: mixed-line-ending
         args:
-          - '--fix=lf'
+          - "--fix=lf"
 
   # Remove unused imports/variables
   - repo: https://github.com/myint/autoflake

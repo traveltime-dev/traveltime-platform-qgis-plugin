@@ -1,325 +1,334 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ConfigDialog</class>
- <widget class="QDialog" name="ConfigDialog">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>532</width>
-    <height>456</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>TravelTime platform Plugin Configuration</string>
-  </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string/>
-     </property>
-     <property name="pixmap">
-      <pixmap>../resources/TravelTime_logo_graytext.svg</pixmap>
-     </property>
+    <class>ConfigDialog</class>
+    <widget class="QDialog" name="ConfigDialog">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>532</width>
+                <height>456</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>TravelTime plugin Configuration</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+                <widget class="QLabel" name="label">
+                    <property name="maximumSize">
+                        <size>
+                            <width>400</width>
+                            <height>78</height>
+                        </size>
+                    </property>
+                    <property name="text">
+                        <string/>
+                    </property>
+                    <property name="pixmap">
+                        <pixmap>../resources/banner.png</pixmap>
+                    </property>
+                    <property name="scaledContents">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </item>
+            <item>
+                <widget class="QGroupBox" name="groupBox">
+                    <property name="title">
+                        <string>API authentication</string>
+                    </property>
+                    <layout class="QFormLayout" name="formLayout_2">
+                        <item row="0" column="0" colspan="2">
+                            <layout class="QHBoxLayout" name="horizontalLayout">
+                                <item>
+                                    <widget class="QLabel" name="label_4">
+                                        <property name="styleSheet">
+                                            <string notr="true">font-style:italic;color:gray;</string>
+                                        </property>
+                                        <property name="text">
+                                            <string>To use the TravelTime API, you need an API key.</string>
+                                        </property>
+                                        <property name="textFormat">
+                                            <enum>Qt::PlainText</enum>
+                                        </property>
+                                        <property name="wordWrap">
+                                            <bool>true</bool>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QToolButton" name="getKeyButton">
+                                        <property name="text">
+                                            <string>Get a free API key</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                            </layout>
+                        </item>
+                        <item row="1" column="0">
+                            <widget class="QLabel" name="label_2">
+                                <property name="text">
+                                    <string>App ID</string>
+                                </property>
+                            </widget>
+                        </item>
+                        <item row="1" column="1">
+                            <widget class="QLineEdit" name="appIDLineEdit"/>
+                        </item>
+                        <item row="2" column="0">
+                            <widget class="QLabel" name="label_3">
+                                <property name="text">
+                                    <string>API Key</string>
+                                </property>
+                            </widget>
+                        </item>
+                        <item row="2" column="1">
+                            <widget class="QgsPasswordLineEdit" name="apiKeyLineEdit"/>
+                        </item>
+                        <item row="3" column="0" colspan="2">
+                            <widget class="QLabel" name="apiKeyHelpLabel">
+                                <property name="styleSheet">
+                                    <string notr="true">font-style:italic;color:gray;</string>
+                                </property>
+                                <property name="text">
+                                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Log in to your account &lt;a href=&quot;https://account.traveltime.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;here&lt;/span&gt;&lt;/a&gt; to track your usage and upgrade your plan.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                                </property>
+                            </widget>
+                        </item>
+                    </layout>
+                </widget>
+            </item>
+            <item>
+                <widget class="QGroupBox" name="groupBox_2">
+                    <property name="title">
+                        <string>Advanced</string>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_2">
+                        <item>
+                            <layout class="QHBoxLayout" name="horizontalLayout_2">
+                                <item>
+                                    <widget class="QToolButton" name="clearCacheButton">
+                                        <property name="text">
+                                            <string>clear cache</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QLabel" name="cacheLabel">
+                                        <property name="styleSheet">
+                                            <string notr="true">background-color: rgba(255,255,255,0); font-style:italic;color:gray;</string>
+                                        </property>
+                                        <property name="text">
+                                            <string>current cache is 0.00 Mb</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                            </layout>
+                        </item>
+                        <item>
+                            <layout class="QHBoxLayout" name="horizontalLayout_5">
+                                <item>
+                                    <widget class="QCheckBox" name="throttleCallsCheckBox">
+                                        <property name="toolTip">
+                                            <string>If checked, the plugin will throttle API calls to avoid hitting the limit</string>
+                                        </property>
+                                        <property name="text">
+                                            <string>Throttle API calls to </string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QSpinBox" name="throttleCallsSpinBox">
+                                        <property name="maximum">
+                                            <number>10000</number>
+                                        </property>
+                                        <property name="value">
+                                            <number>300</number>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QLabel" name="label_6">
+                                        <property name="text">
+                                            <string>per minute</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <spacer name="horizontalSpacer">
+                                        <property name="orientation">
+                                            <enum>Qt::Horizontal</enum>
+                                        </property>
+                                        <property name="sizeHint" stdset="0">
+                                            <size>
+                                                <width>40</width>
+                                                <height>20</height>
+                                            </size>
+                                        </property>
+                                    </spacer>
+                                </item>
+                            </layout>
+                        </item>
+                        <item>
+                            <widget class="QCheckBox" name="logCallsCheckBox">
+                                <property name="text">
+                                    <string>Log all api calls to the message logs</string>
+                                </property>
+                            </widget>
+                        </item>
+                        <item>
+                            <widget class="QCheckBox" name="disableHttpsCheckBox">
+                                <property name="text">
+                                    <string>Disable HTTPS certificate verification</string>
+                                </property>
+                            </widget>
+                        </item>
+                        <item>
+                            <widget class="QLabel" name="label_7">
+                                <property name="styleSheet">
+                                    <string notr="true">font-style:italic;color:gray;</string>
+                                </property>
+                                <property name="text">
+                                    <string>Under certain circumstances (such as connection from an enterprise network), requests made from Python may fail because the SSL certificates can not be verified. If this happens, you can disable the verification by checking this box. Please be aware that this makes your requests to the API more vulnerable to interception by an attacker.</string>
+                                </property>
+                                <property name="wordWrap">
+                                    <bool>true</bool>
+                                </property>
+                            </widget>
+                        </item>
+                        <item>
+                            <layout class="QHBoxLayout" name="horizontalLayout_4">
+                                <item>
+                                    <widget class="QLabel" name="label_5">
+                                        <property name="text">
+                                            <string>Customize endpoint</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QLineEdit" name="endpointLineEdit"/>
+                                </item>
+                                <item>
+                                    <widget class="QToolButton" name="endpointResetButton">
+                                        <property name="text">
+                                            <string>reset</string>
+                                        </property>
+                                    </widget>
+                                </item>
+                            </layout>
+                        </item>
+                        <item>
+                            <widget class="QCheckBox" name="showRunTestsButton">
+                                <property name="text">
+                                    <string>Show a button to run software tests (for developpers only)</string>
+                                </property>
+                            </widget>
+                        </item>
+                    </layout>
+                </widget>
+            </item>
+            <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_3">
+                    <item>
+                        <widget class="QSpinBox" name="countSpinBox">
+                            <property name="styleSheet">
+                                <string notr="true">background-color: rgba(255,255,255,0); font-style:italic;color:gray;</string>
+                            </property>
+                            <property name="frame">
+                                <bool>false</bool>
+                            </property>
+                            <property name="alignment">
+                                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                            </property>
+                            <property name="readOnly">
+                                <bool>true</bool>
+                            </property>
+                            <property name="buttonSymbols">
+                                <enum>QAbstractSpinBox::NoButtons</enum>
+                            </property>
+                            <property name="suffix">
+                                <string> queries have been made so far</string>
+                            </property>
+                            <property name="maximum">
+                                <number>999999999</number>
+                            </property>
+                        </widget>
+                    </item>
+                    <item>
+                        <widget class="QToolButton" name="countResetButton">
+                            <property name="text">
+                                <string>reset</string>
+                            </property>
+                        </widget>
+                    </item>
+                </layout>
+            </item>
+            <item>
+                <spacer name="verticalSpacer">
+                    <property name="orientation">
+                        <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                        <size>
+                            <width>20</width>
+                            <height>40</height>
+                        </size>
+                    </property>
+                </spacer>
+            </item>
+            <item>
+                <widget class="QDialogButtonBox" name="buttonBox">
+                    <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="standardButtons">
+                        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+                    </property>
+                </widget>
+            </item>
+        </layout>
     </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>API authentication</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout_2">
-      <item row="0" column="0" colspan="2">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QLabel" name="label_4">
-          <property name="styleSheet">
-           <string notr="true">font-style:italic;color:gray;</string>
-          </property>
-          <property name="text">
-           <string>To use the TravelTime platform API, you need an API key.</string>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::PlainText</enum>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="getKeyButton">
-          <property name="text">
-           <string>Get a free API key</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>App ID</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="appIDLineEdit"/>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>API Key</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QgsPasswordLineEdit" name="apiKeyLineEdit"/>
-      </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="QLabel" name="apiKeyHelpLabel">
-        <property name="styleSheet">
-         <string notr="true">font-style:italic;color:gray;</string>
-        </property>
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Log in to your account &lt;a href=&quot;https://account.traveltime.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;here&lt;/span&gt;&lt;/a&gt; to track your usage and upgrade your plan.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>Advanced</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <widget class="QToolButton" name="clearCacheButton">
-          <property name="text">
-           <string>clear cache</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="cacheLabel">
-          <property name="styleSheet">
-           <string notr="true">background-color: rgba(255,255,255,0); font-style:italic;color:gray;</string>
-          </property>
-          <property name="text">
-           <string>current cache is 0.00 Mb</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
-        <item>
-         <widget class="QCheckBox" name="throttleCallsCheckBox">
-          <property name="toolTip">
-           <string>If checked, the plugin will throttle API calls to avoid hitting the limit</string>
-          </property>
-          <property name="text">
-           <string>Throttle API calls to </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QSpinBox" name="throttleCallsSpinBox">
-          <property name="maximum">
-           <number>10000</number>
-          </property>
-          <property name="value">
-           <number>300</number>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>per minute</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="logCallsCheckBox">
-        <property name="text">
-         <string>Log all api calls to the message logs</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="disableHttpsCheckBox">
-        <property name="text">
-         <string>Disable HTTPS certificate verification</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_7">
-        <property name="styleSheet">
-         <string notr="true">font-style:italic;color:gray;</string>
-        </property>
-        <property name="text">
-         <string>Under certain circumstances (such as connection from an enterprise network), requests made from Python may fail because the SSL certificates can not be verified. If this happens, you can disable the verification by checking this box. Please be aware that this makes your requests to the API more vulnerable to interception by an attacker.</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
-         <widget class="QLabel" name="label_5">
-          <property name="text">
-           <string>Customize endpoint</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="endpointLineEdit"/>
-        </item>
-        <item>
-         <widget class="QToolButton" name="endpointResetButton">
-          <property name="text">
-           <string>reset</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="showRunTestsButton">
-        <property name="text">
-         <string>Show a button to run software tests (for developpers only)</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QSpinBox" name="countSpinBox">
-       <property name="styleSheet">
-        <string notr="true">background-color: rgba(255,255,255,0); font-style:italic;color:gray;</string>
-       </property>
-       <property name="frame">
-        <bool>false</bool>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-       <property name="buttonSymbols">
-        <enum>QAbstractSpinBox::NoButtons</enum>
-       </property>
-       <property name="suffix">
-        <string> queries have been made so far</string>
-       </property>
-       <property name="maximum">
-        <number>999999999</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="countResetButton">
-       <property name="text">
-        <string>reset</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
-  </layout>
- </widget>
- <customwidgets>
-  <customwidget>
-   <class>QgsPasswordLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>qgspasswordlineedit.h</header>
-  </customwidget>
- </customwidgets>
- <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>ConfigDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>ConfigDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+    <customwidgets>
+        <customwidget>
+            <class>QgsPasswordLineEdit</class>
+            <extends>QLineEdit</extends>
+            <header>qgspasswordlineedit.h</header>
+        </customwidget>
+    </customwidgets>
+    <resources/>
+    <connections>
+        <connection>
+            <sender>buttonBox</sender>
+            <signal>accepted()</signal>
+            <receiver>ConfigDialog</receiver>
+            <slot>accept()</slot>
+            <hints>
+                <hint type="sourcelabel">
+                    <x>248</x>
+                    <y>254</y>
+                </hint>
+                <hint type="destinationlabel">
+                    <x>157</x>
+                    <y>274</y>
+                </hint>
+            </hints>
+        </connection>
+        <connection>
+            <sender>buttonBox</sender>
+            <signal>rejected()</signal>
+            <receiver>ConfigDialog</receiver>
+            <slot>reject()</slot>
+            <hints>
+                <hint type="sourcelabel">
+                    <x>316</x>
+                    <y>260</y>
+                </hint>
+                <hint type="destinationlabel">
+                    <x>286</x>
+                    <y>274</y>
+                </hint>
+            </hints>
+        </connection>
+    </connections>
 </ui>
