@@ -57,7 +57,7 @@ class TTPPlugin:
         self.toolbar = self.iface.addToolBar("TravelTime platform Toolbar")
 
         # Logo
-        button = QPushButton(resources.logo, "")
+        button = QPushButton(resources.banner_toolbar, "")
         button.setIconSize(QSize(112, 30))
         button.setFlat(True)
         button.pressed.connect(self.show_splash)

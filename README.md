@@ -1,4 +1,4 @@
-# ![Travel Time Platform](travel_time_platform_plugin/resources/TravelTime_logo_horizontal.svg)
+# ![Travel Time Platform](travel_time_platform_plugin/resources/banner.png)
 
 [![.github/workflows/tests.yml](https://github.com/traveltime-dev/traveltime-platform-qgis-plugin/actions/workflows/tests.yml/badge.svg)](https://github.com/traveltime-dev/traveltime-platform-qgis-plugin/actions/workflows/tests.yml)
 

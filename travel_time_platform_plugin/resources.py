@@ -7,7 +7,7 @@ def icon(icon_name):
     return QIcon(os.path.join(os.path.dirname(__file__), "resources", icon_name))
 
 
-logo = icon("TravelTime_logo_horizontal_grey.svg")
+banner_toolbar = icon("banner_toolbar.png")
 
 icon_toolbox = icon("icons/toolbox.svg")
 icon_rerun = icon("icons/rerun.svg")
