@@ -17,6 +17,7 @@ jobs:
         qgis_image:
           - opengisch/qgis:3.28-jammy
           - opengisch/qgis:3.22-focal
+          - opengisch/qgis:focal-3.16
 
     env:
       QGIS_IMAGE: ${{ matrix.qgis_image }}
