@@ -36,7 +36,7 @@ assert TEST_MODE in ["HEADLESS", "HEADFULL", "DESKTOP"]
 class TestCaseBase(unittest.TestCase):
     def setUp(self):
         self.__feedback_step = 0
-        self.plugin: TTPPlugin = plugins["traveltime_plugin"]
+        self.plugin: TTPPlugin = plugins["travel_time_platform_plugin"]
 
         # Unless we're in desktop (where we use the existing config), we must setup API keys from env vars
         if TEST_MODE != "DESKTOP":

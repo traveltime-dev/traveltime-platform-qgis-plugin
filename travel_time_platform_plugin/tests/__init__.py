@@ -14,9 +14,9 @@ def run_suite(stream) -> unittest.TestResult:
     loader = unittest.TestLoader()
     suite = loader.loadTestsFromNames(
         [
-            "traveltime_plugin.tests.tests_express_tools",
-            "traveltime_plugin.tests.tests_algorithms",
-            "traveltime_plugin.tests.tests_misc",
+            "travel_time_platform_plugin.tests.tests_express_tools",
+            "travel_time_platform_plugin.tests.tests_algorithms",
+            "travel_time_platform_plugin.tests.tests_misc",
         ]
     )
     runner = unittest.TextTestRunner(stream=stream, verbosity=2)
@@ -33,7 +33,7 @@ def system_info():
             f"Qt version: {qVersion()}",
             f"Python version: {sys.version}",
             f"Platform: {platform.system()} {platform.release()} {platform.version()}",
-            f"Plugin version: {pluginMetadata('traveltime_plugin', 'version')}",
+            f"Plugin version: {pluginMetadata('travel_time_platform_plugin', 'version')}",
             "----------------------------------------------------------------------",
         ]
     )

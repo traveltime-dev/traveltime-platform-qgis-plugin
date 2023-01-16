@@ -97,6 +97,6 @@ tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochro
 homepage=https://docs.traveltime.com/qgis/
 tracker=https://github.com/traveltime-dev/traveltime-platform-qgis-plugin/issues
 repository=https://github.com/traveltime-dev/traveltime-platform-qgis-plugin
-icon=traveltime_plugin/resources/icon.png
+icon=travel_time_platform_plugin/resources/icon.png
 experimental=False
 deprecated=False
