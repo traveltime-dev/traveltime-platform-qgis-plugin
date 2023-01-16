@@ -90,8 +90,12 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - feature : include geometry cleanup step
     - 2022-04-25 : version 1.7.0
         - feature : added robust mode
-    - 2023-XX-XX : version 1.8.0
-        - infra : added automated tests
+    - 2023-xx-xx : version 1.8.0
+        - feature : added automated tests
+        - feature : added "level of detail", "no holes" and "single shape" parameters to time map
+        - fix : hang when no QGIS master password was set
+        - fix : exception when clicking on the map tiles button
+        - fix : improved output style for the map filter algorithm
 
 tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing,polygon,polygons,network analysis,shortest path
 homepage=https://docs.traveltime.com/qgis/
