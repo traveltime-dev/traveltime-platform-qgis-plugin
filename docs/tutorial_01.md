@@ -3,6 +3,17 @@ title: "Get Started | Travel time isochrone QGIS tutorial 1/3"
 description: "Learn how to install the TravelTime isochrone plugin into QGIS and make a basic travel time polygon shape."
 ---
 
+<style>
+img[src$="#icon"] {
+  width: 24px; height: 24px;
+  background: #eee;
+  border: solid 1px #ccc;
+  padding: 3px; border-radius: 3px;
+  box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+  vertical-align: middle;
+}
+</style>
+
 # Tutorial 01. The Basics ![](../travel_time_platform_plugin/resources/icon.png)
 
 This tutorial covers basic usage of the TravelTime plugin for QGIS.

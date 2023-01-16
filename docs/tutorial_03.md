@@ -3,6 +3,17 @@ title: "Advanced tutorial | Travel time isochrone QGIS tutorial 3/3"
 description: "Learn how to make and run a processing model using the TravelTime QGIS plugin. You can also learn how to run batch algorithms."
 ---
 
+<style>
+img[src$="#icon"] {
+  width: 24px; height: 24px;
+  background: #eee;
+  border: solid 1px #ccc;
+  padding: 3px; border-radius: 3px;
+  box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+  vertical-align: middle;
+}
+</style>
+
 # Tutorial 03. Making the most out of algorithms ![](../travel_time_platform_plugin/resources/icon.png)
 
 This tutorial intends to showcase how far it is possible to go using the TravelTime algorithms in conjunction with QGIS's capabilities.

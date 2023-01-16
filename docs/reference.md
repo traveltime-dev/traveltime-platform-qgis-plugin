@@ -3,6 +3,17 @@ title: "QGIS isochrones using TravelTime | Reference Manual"
 description: "This reference manual covers all features of the TravelTime plugin for QGIS."
 ---
 
+<style>
+img[src$="#icon"] {
+  width: 24px; height: 24px;
+  background: #eee;
+  border: solid 1px #ccc;
+  padding: 3px; border-radius: 3px;
+  box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+  vertical-align: middle;
+}
+</style>
+
 # Reference manual ![](../travel_time_platform_plugin/resources/icon.png)
 
 This reference manual covers all features of the TravelTime plugin for QGIS.
@@ -153,6 +164,8 @@ The main settings dialog can be open using the ![](images/icons/settings.svg#ico
 
 **Customize endpoint** : if you are not using the default TravelTime API endpoint, you can customize it here.
 
+**Show a button to run software tests** : this will add the ![](images/icons/tests.svg#icon) button to the toolbar. Clicking this button will run automated software tests. There is usually no reason to run them, unless you want to share a report to track down issues that you may encounter.
+
 ## Help dialog
 
 The online help dialog can be open using the ![](images/icons/help.svg#icon) icon.
@@ -253,6 +266,26 @@ It can be used to get information such as a service area polygon based on travel
 
 By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
 
+**Searches ID (advanced parameters):**
+
+Used to identify this specific search in the results array. MUST be unique among all searches. By default, this is the feature ID. If your data contains some specific identifier column, you can select it here to make it easier to identify results.
+
+**Fields to keep (advanced parameters):**
+
+Set which fields should be joined back in the output layer.
+
+**Level of detail (advanced parameters):**
+
+Defines the level of detail of the resulting shape. Not all levels are available to all API keys.
+
+**Single shape (advanced parameters):**
+
+Enable to return only one shape from the search results. The returned shape will be approximately the biggest one among search results. Note that this will likely result in loss in accuracy.
+
+**No holes (advanced parameters):**
+
+Enable to remove holes from returned polygons. Note that this will likely result in loss in accuracy.
+
 ### ![](images/icons/timefilter_simple.svg#icon) Time filter (Simplified)
 
 This algorithm provides a simpified access to the time-filter endpoint.
@@ -286,6 +319,14 @@ It can be used to get filter a point layer using a time search.
 **Robust mode (advanced parameters):**
 
 By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
+
+**Searches ID (advanced parameters):**
+
+Used to identify this specific search in the results array. MUST be unique among all searches. By default, this is the feature ID. If your data contains some specific identifier column, you can select it here to make it easier to identify results.
+
+**Location ID (advanced parameters):**
+
+ Used to identify this specific location in the results array. MUST be unique among all locations. By default, this is the feature ID. If your data contains some specific identifier column, you can select it here to make it easier to identify results.
 
 ### ![](images/icons/route_simple.svg#icon) Route (Simplified)
 
@@ -324,6 +365,14 @@ It can be used to get the best routes between two sets of points.
 **Robust mode (advanced parameters):**
 
 By default, if any error happens, even on just one search, the algorithm fails and returns no result. In cases where partial results are still desired, you can enable robust mode. This will prevent batching and ignore failing requests, returning partial results. Note that this will consume your API quotas much faster.
+
+**Searches ID (advanced parameters):**
+
+Used to identify this specific search in the results array. MUST be unique among all searches. By default, this is the feature ID. If your data contains some specific identifier column, you can select it here to make it easier to identify results.
+
+**Location ID (advanced parameters):**
+
+ Used to identify this specific location in the results array. MUST be unique among all locations. By default, this is the feature ID. If your data contains some specific identifier column, you can select it here to make it easier to identify results.
 
 ### ![](images/icons/timemap_advanced.svg#icon) Time map (Advanced)
 
