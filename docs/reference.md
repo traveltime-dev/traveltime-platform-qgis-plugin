@@ -168,11 +168,7 @@ The main settings dialog can be open using the ![](../travel_time_platform_plugi
 
 ## Help dialog
 
-The online help dialog can be open using the ![](../travel_time_platform_plugin/resources/icons/help.svg#icon) icon.
-
-![](images/reference/help.png)
-
-This dialog shows the online help directly in QGIS.
+The online help dialog can be open using in your browser using the ![](../travel_time_platform_plugin/resources/icons/help.svg#icon) icon.
 
 **Return to help index** : returns to the home page of the online help in case you got lost.
 
