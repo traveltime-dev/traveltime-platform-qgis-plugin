@@ -96,6 +96,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - fix : hang when no QGIS master password was set
         - fix : exception when clicking on the map tiles button
         - fix : improved output style for the map filter algorithm
+    - 2023-09-15 : version 1.8.1
+        - no changes (added testing for 3.32 only)
 
 tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing,polygon,polygons,network analysis,shortest path
 homepage=https://docs.traveltime.com/qgis/
