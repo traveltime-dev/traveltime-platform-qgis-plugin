@@ -218,7 +218,12 @@ class TTPPlugin:
             "XYZ Tiles",
         )
         if len(xyz_tiles_group_idx) == 0:
-            # Shouldn't happen, but let's play safe
+            # Shouldn't happen, but let's not crash
+            self.iface.messageBar().pushMessage(
+                "Warning",
+                tr("Could not locate XYZ tiles in the browser"),
+                level=Qgis.Warning,
+            )
             return
 
         # Fold everything and display it
@@ -235,7 +240,12 @@ class TTPPlugin:
             "TravelTime - Lux",
         )
         if len(lux_tiles_idx) == 0:
-            # If not loaded (because missing API), good enough, we showed background tiles
+            # Shouldn't happen, but let's not crash
+            self.iface.messageBar().pushMessage(
+                "Warning",
+                tr("XYZ tiles were not added for an unknown reason"),
+                level=Qgis.Warning,
+            )
             return
 
         # Display it
@@ -246,7 +256,6 @@ class TTPPlugin:
         self.config_dialog.exec_()
 
     def run_tests(self):
-
         box = QMessageBox(
             QMessageBox.Question,
             "Run software tests",

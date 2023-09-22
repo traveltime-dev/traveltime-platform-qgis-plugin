@@ -1,5 +1,5 @@
 import requests
-from qgis.core import Qgis
+from qgis.core import Qgis, QgsSettings
 from qgis.PyQt.QtCore import QSettings
 
 from . import auth
@@ -7,7 +7,6 @@ from .utils import tr
 
 
 class TilesManager:
-
     tiles = {
         "lux": tr("Lux"),
     }
@@ -39,17 +38,23 @@ class TilesManager:
                 level=Qgis.Info,
             )
         else:
-
             for identifier, label in self.tiles.items():
                 url = self._get_url(identifier)
                 label = "TravelTime - " + label
 
-                settings_base = "qgis/connections-xyz/" + label
-
-                QSettings().setValue(settings_base + "/url", url)
-                QSettings().setValue(settings_base + "/zmax", 20)
-                QSettings().setValue(settings_base + "/zmin", 0)
-                QSettings().setValue(settings_base + "/tilePixelRatio", 2)
+                # Not too sure why this changed in 3.30, maybe we're supposed to used
+                # the settings registry, but QgsXyzConnectionSettings isn't in the pyqgis
+                # bindings...
+                if Qgis.QGIS_VERSION_INT < 33000:
+                    settings_path = f"qgis/connections-xyz"
+                else:
+                    settings_path = f"connections/xyz/items"
+                settings_path += f"/{label}"
+                s = QgsSettings()
+                s.setValue(f"{settings_path}/url", url)
+                s.setValue(f"{settings_path}/zmax", 20)
+                s.setValue(f"{settings_path}/zmin", 0)
+                s.setValue(f"{settings_path}/tilePixelRatio", 2)
 
                 # Update GUI
                 self.main.iface.reloadConnections()
