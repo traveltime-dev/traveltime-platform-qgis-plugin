@@ -1,18 +1,10 @@
 import os
 import webbrowser
 
-from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QDate, QDateTime, QSettings, Qt, QTime, QUrl
-from qgis.PyQt.QtWidgets import QDateTimeEdit, QDialog, QWidget
-
-try:
-    from qgis.PyQt.QtWebKitWidgets import QWebView
-
-    webkit_available = True
-except (ModuleNotFoundError, ImportError):
-    webkit_available = False
-
 from processing.gui.wrappers import WidgetWrapper
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import QDate, QDateTime, QSettings, Qt, QTime
+from qgis.PyQt.QtWidgets import QDateTimeEdit, QDialog
 
 from . import auth, cache, constants
 from .utils import tr
@@ -166,42 +158,6 @@ class SplashScreen(QDialog):
             self.dontShowAgainCheckBox.isChecked(),
         )
         super().accept(*args, **kwargs)
-
-
-class HelpWidget(QWidget):
-
-    home = "https://hubs.ly/H0rnCjY0"
-
-    def __init__(self, main, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        uic.loadUi(os.path.join(os.path.dirname(__file__), "ui", "HelpDialog.ui"), self)
-
-        self.closeButton.pressed.connect(self.close)
-        self.openBrowserButton.pressed.connect(self.open_in_browser)
-        self.homeButton.pressed.connect(self.reset_url)
-
-        self.main = main
-
-        if webkit_available:
-            self.webview = QWebView()
-            self.reset_url()
-            self.contentWidget.layout().addWidget(self.webview)
-        else:
-            self.webview = None
-
-    def show(self):
-        if self.webview:
-            self.raise_()
-            super().show()
-        else:
-            webbrowser.open(self.home)
-
-    def reset_url(self):
-        self.webview.setUrl(QUrl(self.home))
-
-    def open_in_browser(self):
-        webbrowser.open(self.webview.url().toString())
-        self.close()
 
 
 class IsoDateTimeWidgetWrapper(WidgetWrapper):
