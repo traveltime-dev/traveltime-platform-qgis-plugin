@@ -3,7 +3,7 @@ exclude: "^travel_time_platform_plugin/libraries"
 repos:
   # Fix end of files
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: trailing-whitespace
         exclude: .*\.md
@@ -14,7 +14,7 @@ repos:
 
   # Remove unused imports/variables
   - repo: https://github.com/myint/autoflake
-    rev: v2.0.0
+    rev: v2.2.1
     hooks:
       - id: autoflake
         args:
@@ -24,13 +24,13 @@ repos:
 
   # Sort imports
   - repo: https://github.com/pycqa/isort
-    rev: "v5.11.3"
+    rev: "5.12.0"
     hooks:
       - id: isort
         args: ["--profile", "black"]
 
   # Black formatting
   - repo: https://github.com/psf/black
-    rev: 22.12.0
+    rev: 23.11.0
     hooks:
       - id: black
