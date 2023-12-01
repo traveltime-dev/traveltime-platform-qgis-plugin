@@ -17,19 +17,22 @@ from ..utils import tr
 from .advanced import RoutesAlgorithm, TimeFilterAlgorithm, TimeMapAlgorithm
 from .base import THROTTLING_PER_SETTINGS, THROTTLING_STRATEGIES, AlgorithmBase
 
-TRANSPORTATION_TYPES = [
-    "cycling",
-    "driving",
-    "driving+train",
-    "public_transport",
-    "walking",
-    "coach",
-    "bus",
-    "train",
-    "ferry",
-    "driving+ferry",
-    "cycling+ferry",
-]
+TRANSPORTATION_TYPES_DICT = {
+    "cycling": "cycling",
+    "driving": "driving",
+    "driving+train": "driving+train",
+    "public_transport": "public_transport",
+    "cycling+public_transport": "cycling+public_transport (only in Netherlands)",
+    "walking": "walking",
+    "coach": "coach",
+    "bus": "bus",
+    "train": "train",
+    "ferry": "ferry",
+    "driving+ferry": "driving+ferry",
+    "cycling+ferry": "cycling+ferry",
+}
+TRANSPORTATION_TYPES = list(TRANSPORTATION_TYPES_DICT.keys())
+TRANSPORTATION_TYPES_LABELS = list(TRANSPORTATION_TYPES_DICT.values())
 SEARCH_TYPES = [
     "DEPARTURE",
     "ARRIVAL",
@@ -72,7 +75,7 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             QgsProcessingParameterEnum(
                 "INPUT_TRNSPT_TYPE",
                 tr("Transportation type"),
-                options=TRANSPORTATION_TYPES,
+                options=TRANSPORTATION_TYPES_LABELS,
                 # TODO: not the best default
                 defaultValue=TRANSPORTATION_TYPES.index("cycling"),
             )
