@@ -7,7 +7,6 @@ from .libraries import requests_cache
 
 class Cache:
     def __init__(self):
-
         base = QStandardPaths.writableLocation(QStandardPaths.CacheLocation)
 
         if not os.path.exists(base):

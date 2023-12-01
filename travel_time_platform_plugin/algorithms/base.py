@@ -74,7 +74,8 @@ class AlgorithmBase(QgsProcessingAlgorithm):
     def eval_expr(self, key):
         """Helper to evaluate an expression from the input.
 
-        Do not forget to call self.expressions_context.setFeature(feature) before using this."""
+        Do not forget to call self.expressions_context.setFeature(feature) before using this.
+        """
         if key in self.params:
             return self.params[key].evaluate(self.expressions_context)
         else:
@@ -401,7 +402,6 @@ class ProcessingAlgorithmBase(AlgorithmBase):
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
-
             nice_info = "\n".join(
                 "\t{}:\t{}".format(k, v)
                 for k, v in response_data["additional_info"].items()

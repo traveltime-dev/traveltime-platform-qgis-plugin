@@ -9,7 +9,6 @@ from .base import TestCaseBase
 
 class ExpressToolsTest(TestCaseBase):
     def test_express_time_map_action(self):
-
         # Use the action
         self.plugin.express_time_map_action.trigger()
         self._feedback()
@@ -24,7 +23,6 @@ class ExpressToolsTest(TestCaseBase):
         self.assertEqual(output_layer.featureCount(), 1)
 
     def test_express_time_filter_action(self):
-
         # Create a data layer
         vl = self._make_layer(
             [
@@ -47,7 +45,6 @@ class ExpressToolsTest(TestCaseBase):
         self.assertGreater(output_layer.featureCount(), 0)
 
     def test_express_route_action(self):
-
         # Configure the time
         self.plugin.express_route_action.menu.show()
         self._feedback()
@@ -72,7 +69,6 @@ class ExpressToolsTest(TestCaseBase):
         self.assertGreater(output_layer.featureCount(), 0)
 
     def test_geoclick(self):
-
         # Configure the time
         self.plugin.express_geoclick_lineedit.setText("London")
         self.plugin.express_geoclick_action.trigger()

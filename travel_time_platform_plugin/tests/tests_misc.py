@@ -8,7 +8,6 @@ class MiscTest(TestCaseBase):
     """Testing other features"""
 
     def test_loading_map_tiles(self):
-
         browser = iface.mainWindow().findChild(QDockWidget, "Browser")
         treeview = browser.findChild(QTreeView)
         model = treeview.model()

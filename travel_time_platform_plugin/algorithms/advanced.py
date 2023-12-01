@@ -475,7 +475,6 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
     RESULT_TYPE = ["NORMAL", "UNION", "INTERSECTION"]
 
     def initAlgorithm(self, config):
-
         # Define all common DEPARTURE and ARRIVAL parameters
         super().initAlgorithm(config)
 
@@ -580,7 +579,6 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         return data
 
     def doProcessAlgorithm(self, parameters, context, feedback):
-
         # Configure common expressions inputs
         self.processAlgorithmConfigureParams(parameters, context, feedback)
 
@@ -590,7 +588,6 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         # Make the query (in slices)
         results = []
         for slice_ in slices:
-
             slc_start = slice_["search_slice_start"]
             slc_end = slice_["search_slice_end"]
 
@@ -666,7 +663,6 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                         input_layer
                         and self.params["INPUT_" + DEPARR + "_EXISTING_FIELDS_TO_KEEP"]
                     ):
-
                         expr = QgsExpression(
                             "{expr} = '{id}'".format(
                                 expr=self.params[
@@ -732,7 +728,6 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
         return {"OUTPUT": sink_id}
 
     def postProcessAlgorithm(self, context, feedback):
-
         output_layer = QgsProcessingUtils.mapLayerFromString(self.sink_id, context)
 
         # Run fix geometries in place
@@ -784,7 +779,6 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
     ).format(url=_helpUrl)
 
     def initAlgorithm(self, config):
-
         # Define all common DEPARTURE and ARRIVAL parameters
         super().initAlgorithm(config)
 
@@ -814,7 +808,6 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         )
 
     def doProcessAlgorithm(self, parameters, context, feedback):
-
         # Configure common expressions inputs
         self.processAlgorithmConfigureParams(parameters, context, feedback)
 
@@ -824,7 +817,6 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         # Make the query (in slices)
         results = []
         for slice_ in slices:
-
             slc_start = slice_["search_slice_start"]
             slc_end = slice_["search_slice_end"]
 
@@ -865,7 +857,6 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         slc_end = slice_["loc_slice_end"]
 
         for i, feature in enumerate(locations.getFeatures()):
-
             if i < slc_start or i >= slc_end:
                 continue
 
@@ -934,7 +925,6 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
             )
 
         for result in results:
-
             for location in result["locations"]:
                 for properties in location["properties"]:
                     feature = clone_feature(location["id"])
@@ -1012,7 +1002,6 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
     RESULT_TYPE = ["BY_ROUTE", "BY_DURATION", "BY_TYPE"]
 
     def initAlgorithm(self, config):
-
         # Define all common DEPARTURE and ARRIVAL parameters
         super().initAlgorithm(config)
 
@@ -1059,7 +1048,6 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         )
 
     def doProcessAlgorithm(self, parameters, context, feedback):
-
         # Configure common expressions inputs
         self.processAlgorithmConfigureParams(parameters, context, feedback)
 
@@ -1069,7 +1057,6 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         # Make the query (in slices)
         results = []
         for slice_ in slices:
-
             slc_start = slice_["search_slice_start"]
             slc_end = slice_["search_slice_end"]
 
@@ -1110,7 +1097,6 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         slc_end = slice_["loc_slice_end"]
 
         for i, feature in enumerate(locations.getFeatures()):
-
             if i < slc_start or i >= slc_end:
                 continue
 
@@ -1181,9 +1167,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         for result in results:
             for location in result["locations"]:
                 for properties in location["properties"]:
-
                     if result_type == "BY_ROUTE" or result_type == "BY_DURATION":
-
                         # Create the geom
                         geom = QgsLineString()
                         for part in properties["route"]["parts"]:
@@ -1206,7 +1190,6 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
                         sink.addFeature(feature, QgsFeatureSink.FastInsert)
                     else:
                         for part in properties["route"]["parts"]:
-
                             # Create the geom
                             geom = QgsLineString()
                             for coord in part["coords"]:

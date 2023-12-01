@@ -219,7 +219,6 @@ class AlgorithmsFeaturesTest(TestCaseBase):
         # combinations = combinations[0:10]
 
         for lod, no_hole, single_shape in combinations:
-
             subcase_name = f"{lod=} / {no_hole=} / {single_shape=}"
 
             params_s = {**params_simple}

@@ -29,7 +29,6 @@ class GeocodingAlgorithmBase(ProcessingAlgorithmBase):
     RESULT_TYPE = ["ALL", "BEST_MATCH"]
 
     def initAlgorithm(self, config):
-
         super().initAlgorithm(config)
 
         self.addParameter(
@@ -68,7 +67,6 @@ class GeocodingAlgorithmBase(ProcessingAlgorithmBase):
         )
 
     def doProcessAlgorithm(self, parameters, context, feedback):
-
         # Configure common expressions inputs
         self.processAlgorithmConfigureParams(parameters, context, feedback)
 
@@ -110,7 +108,6 @@ class GeocodingAlgorithmBase(ProcessingAlgorithmBase):
         )
 
         for feature in source_data.getFeatures():
-
             # Set feature for expression context
             self.expressions_context.setFeature(feature)
 
@@ -201,7 +198,6 @@ class GeocodingAlgorithm(GeocodingAlgorithmBase):
     ).format(url=_helpUrl)
 
     def initAlgorithm(self, config):
-
         super().initAlgorithm(config)
         self.addParameter(
             QgsProcessingParameterExpression(

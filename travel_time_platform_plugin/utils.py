@@ -63,7 +63,6 @@ def tr(string):
 
 
 class Throttler:
-
     DURATION = 60
 
     def __init__(self):
@@ -95,7 +94,6 @@ class Throttler:
         # See if we must throttle
         recent_searches_count = sum(v[1] for v in self.queries)
         if recent_searches_count > max_searches_count:
-
             # See how long we must throttle
             tot = 0
             for q in self.queries:

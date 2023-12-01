@@ -41,7 +41,6 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
     _groupId = "simple"
 
     def initAlgorithm(self, config):
-
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 "INPUT_SEARCHES", tr("Searches"), [QgsProcessing.TypeVectorPoint]
@@ -113,7 +112,6 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
         return self.subalgorithm_instance.prepare({}, context, feedback)
 
     def processAlgorithmPrepareSubParameters(self, parameters, context, feedback):
-
         search_layer = self.params["INPUT_SEARCHES"].materialize(QgsFeatureRequest())
         search_id_expression = self.params["INPUT_ID"]
 
@@ -138,7 +136,6 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
         }
 
     def doProcessAlgorithm(self, parameters, context, feedback):
-
         # Configure common expressions inputs
         self.processAlgorithmConfigureParams(parameters, context, feedback)
 
@@ -213,7 +210,6 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         return params
 
     def initAlgorithm(self, config):
-
         super().initAlgorithm(config)
 
         self.addParameter(
@@ -329,7 +325,6 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         return params
 
     def initAlgorithm(self, config):
-
         super().initAlgorithm(config)
 
         self.addParameter(
@@ -409,7 +404,6 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
         return params
 
     def initAlgorithm(self, config):
-
         super().initAlgorithm(config)
 
         self.addParameter(

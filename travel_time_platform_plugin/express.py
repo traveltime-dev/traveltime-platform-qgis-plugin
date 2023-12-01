@@ -115,7 +115,6 @@ class ExpressActionToolBase(ExpressActionBase):
         self.main.iface.mapCanvas().setMapTool(self.tool)
 
     def make_params(self, point):
-
         DEPARR = (
             "DEPARTURE" if self.widget.deparrComboBox.currentIndex() == 0 else "ARRIVAL"
         )
@@ -240,7 +239,6 @@ class ExpressGeoclickAction(ExpressActionBase):
         self.lineEdit.returnPressed.connect(self.start_tool)
 
     def start_tool(self):
-
         address = self.lineEdit.text()
 
         # create a temporary memory layer with 1 feature

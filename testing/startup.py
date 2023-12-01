@@ -20,7 +20,6 @@ print("Waiting for initialisation...")
 
 
 def run_tests():
-
     print("Starting tests...")
 
     # Show output

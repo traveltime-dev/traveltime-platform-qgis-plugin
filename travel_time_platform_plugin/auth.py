@@ -2,7 +2,6 @@ from qgis.core import QgsApplication
 
 
 def set_app_id_and_api_key(app_id, api_key):
-
     manager = QgsApplication.instance().authManager()
 
     ok1 = manager.storeAuthSetting("TTP_APP_ID", app_id, True)
@@ -12,7 +11,6 @@ def set_app_id_and_api_key(app_id, api_key):
 
 
 def get_app_id_and_api_key():
-
     manager = QgsApplication.instance().authManager()
 
     app_id = manager.authSetting("TTP_APP_ID", None, True)

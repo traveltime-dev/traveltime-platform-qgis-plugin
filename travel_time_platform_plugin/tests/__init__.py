@@ -10,7 +10,6 @@ from qgis.utils import pluginMetadata
 
 
 def run_suite(stream) -> unittest.TestResult:
-
     loader = unittest.TestLoader()
     suite = loader.loadTestsFromNames(
         [

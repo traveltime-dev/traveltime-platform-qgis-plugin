@@ -169,7 +169,6 @@ class SplashScreen(QDialog):
 
 
 class HelpWidget(QWidget):
-
     home = "https://hubs.ly/H0rnCjY0"
 
     def __init__(self, main, *args, **kwargs):
