@@ -502,6 +502,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 help_text=tr(
                     "Set which fields should be joined back in the output layer."
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -515,6 +516,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 help_text=tr(
                     "Specifies level of detail of returned shape using scale type `simple`. Allowed values: lowest, low, medium, high, highest."
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -528,6 +530,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 help_text=tr(
                     "Enable to return only one shape from the search results. The returned shape will be approximately the biggest one among search results. Note that this will likely result in loss in accuracy."
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -541,6 +544,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                 help_text=tr(
                     "Enable to remove holes from returned polygons. Note that this will likely result in loss in accuracy."
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
 
         # Define additional input parameters
