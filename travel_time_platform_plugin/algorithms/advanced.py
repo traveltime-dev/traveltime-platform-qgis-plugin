@@ -103,6 +103,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 help_text=tr(
                     "Used to identify this specific search in the results array. MUST be unique among all searches."
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             # Transportation
             self.addParameter(
@@ -116,6 +117,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 help_text=tr(
                     "cycling, driving, driving+train (only in Great Britain), public_transport, walking, coach, bus, train, ferry, driving+ferry, cycling+ferry or cycling+public_transport (only in Netherlands)"
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -129,6 +131,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 help_text=tr(
                     "Time (in seconds) needed to board public transportation vehicle. Default is 0. Cannot be higher than travel_time. Used in public_transport, coach, bus, train, driving+train and cycling+public_transport transportation modes"
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -142,6 +145,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 help_text=tr(
                     "Maximum time (in seconds) of walking from source to a station/stop and from station/stop to destination. Default value is 900. Cannot be higher than travel_time. Used in public_transport, coach, bus, train, driving+train and cycling+public_transport transportation modes"
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -157,6 +161,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 help_text=tr(
                     "Maximum time (in seconds) of driving from source to train station. Default value is 1800. Cannot be higher than travel_time. Used in driving+train transportation mode"
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -172,6 +177,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 help_text=tr(
                     "Maximum time (in seconds) of cycling (including any ferry transfers) from source to a station or stop. Default value is 900. Cannot be higher than travel_time. Used in cycling+public_transport transportation mode"
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -185,6 +191,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 help_text=tr(
                     "Time (in seconds) required to park a car or a bike. Default is 300. Cannot be higher than travel_time. Used in driving+train and cycling+public_transport transportation modes."
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -198,6 +205,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 help_text=tr(
                     "Time (in seconds) required to board a ferry. Default is 0. Cannot be higher than travel_time. Used in public_transport, ferry, driving+ferry, cycling+ferry and cycling+public_transport transportation modes. For public_transport mode, pt_change_delay is used instead"
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -211,6 +219,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 help_text=tr(
                     "Search range width in seconds. width along with departure_time specify departure interval. For example, if you set departure_time to 9am and width to 1 hour, we will return a combined shape of all possible journeys that have departure time between 9am and 10am. Range width is limited to 12 hours"
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -223,6 +232,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 help_text=tr(
                     "Leave departure location at no earlier than given time. Example - 2017-10-18T08:00:00Z"
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
             self.addParameter(
                 QgsProcessingParameterExpression(
@@ -235,6 +245,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 help_text=tr(
                     "Travel time in seconds. Maximum value is 14400 (4 hours)"
                 ),
+                depends_on="INPUT_" + DEPARR + "_SEARCHES",
             )
         self.addParameter(
             QgsProcessingParameterNumber(

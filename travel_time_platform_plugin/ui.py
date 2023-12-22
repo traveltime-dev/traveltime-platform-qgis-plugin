@@ -224,32 +224,21 @@ class IsoDateTimeWidgetWrapper(WidgetWrapper):
 class AlgorithmDialogWithSkipLogic(AlgorithmDialog):
     def getParametersPanel(self, alg, parent):
         panel = ParametersPanel(parent, alg, self.in_place, self.active_layer)
-        main_wrapper: Wrapper = panel.wrappers["INPUT_DEPARTURE_SEARCHES"]
+        skip_logic = self.algorithm().skip_logic
+        for field_name, wrapper in panel.wrappers.items():
+            depends_on_field_name = skip_logic[field_name]
+            if depends_on_field_name:
+                depends_on_wrapper = panel.wrappers[depends_on_field_name]
 
-        for dependant_wrapper_name in [
-            "INPUT_DEPARTURE_ID",
-            "INPUT_DEPARTURE_TRNSPT_TYPE",
-            "INPUT_DEPARTURE_TRNSPT_PT_CHANGE_DELAY",
-            "INPUT_DEPARTURE_TRNSPT_WALKING_TIME",
-            "INPUT_DEPARTURE_TRNSPT_DRIVING_TIME_TO_STATION",
-            "INPUT_DEPARTURE_TRNSPT_CYCLING_TIME_TO_STATION",
-            "INPUT_DEPARTURE_TRNSPT_PARKING_TIME",
-            "INPUT_DEPARTURE_TRNSPT_BOARDING_TIME",
-            "INPUT_DEPARTURE_RANGE_WIDTH",
-            "INPUT_DEPARTURE_TIME",
-            "INPUT_DEPARTURE_TRAVEL_TIME",
-        ]:
-            wrapper: Wrapper = panel.wrappers[dependant_wrapper_name]
+                def toggler(wrapper: Wrapper, depends_on: Wrapper):
+                    truthy = bool(depends_on.widgetValue())
+                    wrapper.wrappedLabel().setVisible(truthy)
+                    wrapper.wrappedWidget().setVisible(truthy)
 
-            def toggler(wrapper: Wrapper, depends_on: Wrapper):
-                truthy = bool(depends_on.widgetValue())
-                wrapper.wrappedLabel().setVisible(truthy)
-                wrapper.wrappedWidget().setVisible(truthy)
-
-            main_wrapper.widgetValueHasChanged.connect(
-                lambda main_wrapper, wrapper=wrapper: toggler(
-                    wrapper, depends_on=main_wrapper
+                depends_on_wrapper.widgetValueHasChanged.connect(
+                    lambda depends_on_wrapper, wrapper=wrapper: toggler(
+                        wrapper, depends_on=depends_on_wrapper
+                    )
                 )
-            )
-            toggler(wrapper, depends_on=main_wrapper)
+                toggler(wrapper, depends_on=depends_on_wrapper)
         return panel
