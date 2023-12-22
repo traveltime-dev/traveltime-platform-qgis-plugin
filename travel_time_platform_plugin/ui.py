@@ -225,20 +225,39 @@ class AlgorithmDialogWithSkipLogic(AlgorithmDialog):
     def getParametersPanel(self, alg, parent):
         panel = ParametersPanel(parent, alg, self.in_place, self.active_layer)
         skip_logic = self.algorithm().skip_logic
+
+        # callable that toggles visibility of a field's widget depending on another field
+        def toggler(wrapper: Wrapper, depends_on: Wrapper):
+            truthy = bool(depends_on.widgetValue())
+            wrapper.wrappedLabel().setVisible(truthy)
+            wrapper.wrappedWidget().setVisible(truthy)
+
+        # callable that toggles all the fields for initialisation
+        def toggle_all():
+            for field_name, depends_on_name in skip_logic.items():
+                if not depends_on_name:
+                    continue
+                wrapper = panel.wrappers[field_name]
+                depends_on = panel.wrappers[depends_on_name]
+                toggler(wrapper, depends_on=depends_on)
+
+        # connect signals on source fields for skip logic
         for field_name, wrapper in panel.wrappers.items():
-            depends_on_field_name = skip_logic[field_name]
-            if depends_on_field_name:
-                depends_on_wrapper = panel.wrappers[depends_on_field_name]
-
-                def toggler(wrapper: Wrapper, depends_on: Wrapper):
-                    truthy = bool(depends_on.widgetValue())
-                    wrapper.wrappedLabel().setVisible(truthy)
-                    wrapper.wrappedWidget().setVisible(truthy)
-
-                depends_on_wrapper.widgetValueHasChanged.connect(
-                    lambda depends_on_wrapper, wrapper=wrapper: toggler(
-                        wrapper, depends_on=depends_on_wrapper
-                    )
+            depends_on_name = skip_logic[field_name]
+            if not depends_on_name:
+                continue
+            depends_on = panel.wrappers[depends_on_name]
+            depends_on.widgetValueHasChanged.connect(
+                lambda depends_on, wrapper=wrapper: toggler(
+                    wrapper, depends_on=depends_on
                 )
-                toggler(wrapper, depends_on=depends_on_wrapper)
+            )
+
+        # toggling groupbox resets it's children visibility, so we reinitialise it
+        advanced_groupbox = panel.findChild(QWidget, "grpAdvanced")
+        advanced_groupbox.collapsedStateChanged.connect(lambda _: toggle_all())
+
+        # initialise for opening state
+        toggle_all()
+
         return panel
