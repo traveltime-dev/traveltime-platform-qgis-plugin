@@ -27,19 +27,6 @@ from ..libraries import iso3166
 from ..utils import log, throttler, tr
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
-TRANSPORTATION_TYPES = [
-    "cycling",
-    "driving",
-    "driving+train",
-    "public_transport",
-    "walking",
-    "coach",
-    "bus",
-    "train",
-    "ferry",
-    "driving+ferry",
-    "cycling+ferry",
-]
 THROTTLING_PER_SETTINGS = "PER_SETTINGS"
 THROTTLING_DISABLED = "DISABLED"
 THROTTLING_STRATEGIES = [THROTTLING_PER_SETTINGS, THROTTLING_DISABLED]
