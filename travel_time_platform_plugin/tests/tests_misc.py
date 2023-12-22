@@ -38,3 +38,6 @@ class MiscTest(TestCaseBase):
             model.data(treeview.currentIndex()),
             "TravelTime - Lux",
         )
+
+    def test_skip_logic(self):
+        raise Exception("DO THIS")
