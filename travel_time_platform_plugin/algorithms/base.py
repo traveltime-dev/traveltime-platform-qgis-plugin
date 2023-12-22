@@ -21,9 +21,11 @@ from qgis.core import (
 )
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtTest import QTest
+from qgis.utils import iface
 
 from .. import auth, cache, constants
 from ..libraries import iso3166
+from ..ui import AlgorithmDialogWithSkipLogic
 from ..utils import log, throttler, tr
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
@@ -174,6 +176,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return self.__class__()
+
+    def createCustomParametersWidget(self, parent):
+        if parent is None:
+            parent = iface.mainWindow()
+        return AlgorithmDialogWithSkipLogic(self, parent=parent)
 
     # Cosmetic methods to allow less verbose definition of these propreties in child classes
 

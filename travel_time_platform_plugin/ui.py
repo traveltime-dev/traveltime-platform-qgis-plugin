@@ -1,6 +1,9 @@
 import os
 import webbrowser
 
+from processing.gui.AlgorithmDialog import AlgorithmDialog
+from processing.gui.ParametersPanel import ParametersPanel
+from qgis.gui import QgsAbstractProcessingParameterWidgetWrapper as Wrapper
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QDate, QDateTime, QSettings, Qt, QTime, QUrl
 from qgis.PyQt.QtWidgets import QDateTimeEdit, QDialog, QWidget
@@ -216,3 +219,37 @@ class IsoDateTimeWidgetWrapper(WidgetWrapper):
 
     def value(self):
         return self.widget.dateTime().toString(Qt.ISODate)
+
+
+class AlgorithmDialogWithSkipLogic(AlgorithmDialog):
+    def getParametersPanel(self, alg, parent):
+        panel = ParametersPanel(parent, alg, self.in_place, self.active_layer)
+        main_wrapper: Wrapper = panel.wrappers["INPUT_DEPARTURE_SEARCHES"]
+
+        for dependant_wrapper_name in [
+            "INPUT_DEPARTURE_ID",
+            "INPUT_DEPARTURE_TRNSPT_TYPE",
+            "INPUT_DEPARTURE_TRNSPT_PT_CHANGE_DELAY",
+            "INPUT_DEPARTURE_TRNSPT_WALKING_TIME",
+            "INPUT_DEPARTURE_TRNSPT_DRIVING_TIME_TO_STATION",
+            "INPUT_DEPARTURE_TRNSPT_CYCLING_TIME_TO_STATION",
+            "INPUT_DEPARTURE_TRNSPT_PARKING_TIME",
+            "INPUT_DEPARTURE_TRNSPT_BOARDING_TIME",
+            "INPUT_DEPARTURE_RANGE_WIDTH",
+            "INPUT_DEPARTURE_TIME",
+            "INPUT_DEPARTURE_TRAVEL_TIME",
+        ]:
+            wrapper: Wrapper = panel.wrappers[dependant_wrapper_name]
+
+            def toggler(wrapper: Wrapper, depends_on: Wrapper):
+                truthy = bool(depends_on.widgetValue())
+                wrapper.wrappedLabel().setVisible(truthy)
+                wrapper.wrappedWidget().setVisible(truthy)
+
+            main_wrapper.widgetValueHasChanged.connect(
+                lambda main_wrapper, wrapper=wrapper: toggler(
+                    wrapper, depends_on=main_wrapper
+                )
+            )
+            toggler(wrapper, depends_on=main_wrapper)
+        return panel
