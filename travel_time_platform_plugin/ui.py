@@ -234,10 +234,10 @@ class AlgorithmDialogWithSkipLogic(AlgorithmDialog):
 
         # callable that toggles all the fields for initialisation
         def toggle_all():
-            for field_name, depends_on_name in skip_logic.items():
+            for field_name, wrapper in panel.wrappers.items():
+                depends_on_name = skip_logic.get(field_name, None)
                 if not depends_on_name:
                     continue
-                wrapper = panel.wrappers[field_name]
                 depends_on = panel.wrappers[depends_on_name]
                 toggler(wrapper, depends_on=depends_on)
 
