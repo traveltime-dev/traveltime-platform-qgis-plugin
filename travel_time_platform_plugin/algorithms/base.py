@@ -21,9 +21,11 @@ from qgis.core import (
 )
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtTest import QTest
+from qgis.utils import iface
 
 from .. import auth, cache, constants
 from ..libraries import iso3166
+from ..ui import AlgorithmDialogWithSkipLogic
 from ..utils import log, throttler, tr
 
 EPSG4326 = QgsCoordinateReferenceSystem("EPSG:4326")
@@ -42,14 +44,24 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             True: collections.OrderedDict(),
             False: collections.OrderedDict(),
         }
+        self.skip_logic = {}
 
-    def addParameter(self, parameter, advanced=False, help_text=None, *args, **kwargs):
-        """Helper to add parameters with help texts"""
+    def addParameter(
+        self,
+        parameter,
+        advanced=False,
+        help_text=None,
+        depends_on=None,
+        *args,
+        **kwargs,
+    ):
+        """Helper to add parameters with help texts and skip logic"""
         if advanced:
             parameter.setFlags(
                 parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced
             )
         self.parameters_help[advanced][parameter.description()] = help_text
+        self.skip_logic[parameter.name()] = depends_on
 
         return super().addParameter(parameter, *args, **kwargs)
 
@@ -174,6 +186,11 @@ class AlgorithmBase(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return self.__class__()
+
+    def createCustomParametersWidget(self, parent):
+        if parent is None:
+            parent = iface.mainWindow()
+        return AlgorithmDialogWithSkipLogic(self, parent=parent)
 
     # Cosmetic methods to allow less verbose definition of these propreties in child classes
 

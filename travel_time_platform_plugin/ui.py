@@ -1,6 +1,9 @@
 import os
 import webbrowser
 
+from processing.gui.AlgorithmDialog import AlgorithmDialog
+from processing.gui.ParametersPanel import ParametersPanel
+from qgis.gui import QgsAbstractProcessingParameterWidgetWrapper as Wrapper
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QDate, QDateTime, QSettings, Qt, QTime, QUrl
 from qgis.PyQt.QtWidgets import QDateTimeEdit, QDialog, QWidget
@@ -216,3 +219,45 @@ class IsoDateTimeWidgetWrapper(WidgetWrapper):
 
     def value(self):
         return self.widget.dateTime().toString(Qt.ISODate)
+
+
+class AlgorithmDialogWithSkipLogic(AlgorithmDialog):
+    def getParametersPanel(self, alg, parent):
+        panel = ParametersPanel(parent, alg, self.in_place, self.active_layer)
+        skip_logic = self.algorithm().skip_logic
+
+        # callable that toggles visibility of a field's widget depending on another field
+        def toggler(wrapper: Wrapper, depends_on: Wrapper):
+            truthy = bool(depends_on.widgetValue())
+            wrapper.wrappedLabel().setVisible(truthy)
+            wrapper.wrappedWidget().setVisible(truthy)
+
+        # callable that toggles all the fields for initialisation
+        def toggle_all():
+            for field_name, wrapper in panel.wrappers.items():
+                depends_on_name = skip_logic.get(field_name, None)
+                if not depends_on_name:
+                    continue
+                depends_on = panel.wrappers[depends_on_name]
+                toggler(wrapper, depends_on=depends_on)
+
+        # connect signals on source fields for skip logic
+        for field_name, wrapper in panel.wrappers.items():
+            depends_on_name = skip_logic[field_name]
+            if not depends_on_name:
+                continue
+            depends_on = panel.wrappers[depends_on_name]
+            depends_on.widgetValueHasChanged.connect(
+                lambda depends_on, wrapper=wrapper: toggler(
+                    wrapper, depends_on=depends_on
+                )
+            )
+
+        # toggling groupbox resets it's children visibility, so we reinitialise it
+        advanced_groupbox = panel.findChild(QWidget, "grpAdvanced")
+        advanced_groupbox.collapsedStateChanged.connect(lambda _: toggle_all())
+
+        # initialise for opening state
+        toggle_all()
+
+        return panel
