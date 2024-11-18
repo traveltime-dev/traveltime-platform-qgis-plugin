@@ -918,6 +918,7 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
 
         output_fields = QgsFields(locations.fields())
         output_fields.append(QgsField("search_id", QVariant.String, "text"))
+        output_fields.append(QgsField("location_id", QVariant.String, "text"))
         output_fields.append(QgsField("reachable", QVariant.Int, "int"))
 
         for prop in self.enabled_properties():
@@ -944,6 +945,7 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
                 for properties in location["properties"]:
                     feature = clone_feature(location["id"])
                     feature.setAttribute("search_id", result["search_id"])
+                    feature.setAttribute("location_id", location["id"])
                     feature.setAttribute("reachable", 1)
                     for prop in self.enabled_properties():
                         feature.setAttribute(
@@ -953,6 +955,7 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
             for id_ in result["unreachable"]:
                 feature = clone_feature(id_)
                 feature.setAttribute("search_id", result["search_id"])
+                feature.setAttribute("location_id", id_)
                 feature.setAttribute("reachable", 0)
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
