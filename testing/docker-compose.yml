@@ -14,6 +14,7 @@ services:
       # mount artifacts folder
       - ../testing/artifacts:/tmp/ttp_tests
     environment:
+      QT_QPA_PLATFORM: offscreen
       TEST_MODE: HEADLESS
       API_APP_ID: ${API_APP_ID:?}
       API_KEY: ${API_KEY:?}
@@ -28,6 +29,7 @@ services:
       # mount the x11 socket to forward display to host
       - /tmp/.X11-unix:/tmp/.X11-unix
     environment:
+      QT_QPA_PLATFORM: xcb
       TEST_MODE: HEADFULL
       DISPLAY: :0
     init: false
