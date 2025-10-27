@@ -14,7 +14,6 @@ jobs:
         qgis_image:
           - qgis/qgis:3.44-bookworm
           - qgis/qgis:3.40-bookworm
-          - qgis/qgis:3.34-bookworm
 
     env:
       QGIS_IMAGE: ${{ matrix.qgis_image }}
