@@ -12,12 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         qgis_image:
-          - opengisch/qgis:3.34-jammy
-          - opengisch/qgis:3.32-jammy
-          - opengisch/qgis:3.30-jammy
-          - opengisch/qgis:3.28-jammy
-          - opengisch/qgis:3.22-focal
-          - opengisch/qgis:focal-3.16
+          - qgis/qgis:3.44-bookworm
+          - qgis/qgis:3.40-bookworm
 
     env:
       QGIS_IMAGE: ${{ matrix.qgis_image }}

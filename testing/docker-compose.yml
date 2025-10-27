@@ -1,7 +1,6 @@
 version: "3"
 
 services:
-
   # Runs tests (headless)
   tests:
     image: ${QGIS_IMAGE:?}
@@ -11,18 +10,17 @@ services:
       # include default config (enabling the plugin)
       - ../testing/QGIS3.ini:/root/.local/share/QGIS/QGIS3/profiles/default/QGIS/QGIS3.ini
       # include initialisation script (test launcher in QGIS)
-      - ../testing/startup.py:/root/.local/share/QGIS/QGIS3/startup.py
-      # include entrypoint script (test launcher in QGIS)
-      - ../testing/runner.py:/runner.py
+      - ../testing/run_tests.py:/run_tests.py
       # mount artifacts folder
       - ../testing/artifacts:/tmp/ttp_tests
     environment:
+      QT_QPA_PLATFORM: offscreen
       TEST_MODE: HEADLESS
       API_APP_ID: ${API_APP_ID:?}
       API_KEY: ${API_KEY:?}
     init: true # not sure why, but this is necessary for xvfb (see https://stackoverflow.com/a/72017110)
     entrypoint: xvfb-run
-    command: python3 /runner.py
+    command: qgis --code /run_tests.py
 
   # Runs tests (with visual feedback)
   tests-gui:
@@ -31,6 +29,7 @@ services:
       # mount the x11 socket to forward display to host
       - /tmp/.X11-unix:/tmp/.X11-unix
     environment:
+      QT_QPA_PLATFORM: xcb
       TEST_MODE: HEADFULL
       DISPLAY: :0
     init: false

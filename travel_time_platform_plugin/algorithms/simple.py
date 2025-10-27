@@ -219,7 +219,7 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             QgsProcessingParameterNumber(
                 "INPUT_TRAVEL_TIME",
                 tr("Travel time (in minutes)"),
-                type=0,
+                type=QgsProcessingParameterNumber.Integer,
                 defaultValue=15,
                 minValue=0,
                 maxValue=240,
@@ -334,7 +334,7 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             QgsProcessingParameterNumber(
                 "INPUT_TRAVEL_TIME",
                 tr("Travel time (in minutes)"),
-                type=0,
+                type=QgsProcessingParameterNumber.Integer,
                 defaultValue=15,
                 minValue=0,
                 maxValue=240,
