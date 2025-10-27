@@ -46,6 +46,9 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         }
         self.skip_logic = {}
 
+    def flags(self):
+        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
+
     def addParameter(
         self,
         parameter,
