@@ -1,7 +1,7 @@
 import processing
 from qgis.core import (
+    Qgis,
     QgsFeatureRequest,
-    QgsProcessing,
     QgsProcessingParameterBoolean,
     QgsProcessingParameterEnum,
     QgsProcessingParameterExpression,
@@ -46,7 +46,9 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFeatureSource(
-                "INPUT_SEARCHES", tr("Searches"), [QgsProcessing.TypeVectorPoint]
+                "INPUT_SEARCHES",
+                tr("Searches"),
+                [Qgis.ProcessingSourceType.VectorPoint],
             )
         )
         self.addParameter(
@@ -122,7 +124,7 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
 
         trnspt_type = TRANSPORTATION_TYPES[self.params["INPUT_TRNSPT_TYPE"]]
 
-        time = QDateTime.fromString(self.params["INPUT_TIME"], Qt.ISODate)
+        time = QDateTime.fromString(self.params["INPUT_TIME"], Qt.DateFormat.ISODate)
         timezone_code = utils.timezones[self.params["SETTINGS_TIMEZONE"]]
         time.setTimeZone(QTimeZone(timezone_code.encode("ascii")))
 
@@ -130,7 +132,9 @@ class _SimpleSearchAlgorithmBase(AlgorithmBase):
             "INPUT_{}_SEARCHES".format(mode): search_layer,
             "INPUT_{}_ID".format(mode): search_id_expression.expression(),
             "INPUT_{}_TRNSPT_TYPE".format(mode): "'" + trnspt_type + "'",
-            "INPUT_{}_TIME".format(mode): "'" + time.toString(Qt.ISODate) + "'",
+            "INPUT_{}_TIME".format(mode): "'"
+            + time.toString(Qt.DateFormat.ISODate)
+            + "'",
             "INPUT_THROTTLING_STRATEGY": THROTTLING_STRATEGIES.index(
                 THROTTLING_PER_SETTINGS
             ),
@@ -219,7 +223,7 @@ class TimeMapSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             QgsProcessingParameterNumber(
                 "INPUT_TRAVEL_TIME",
                 tr("Travel time (in minutes)"),
-                type=QgsProcessingParameterNumber.Integer,
+                type=Qgis.ProcessingNumberParameterType.Integer,
                 defaultValue=15,
                 minValue=0,
                 maxValue=240,
@@ -334,7 +338,7 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
             QgsProcessingParameterNumber(
                 "INPUT_TRAVEL_TIME",
                 tr("Travel time (in minutes)"),
-                type=QgsProcessingParameterNumber.Integer,
+                type=Qgis.ProcessingNumberParameterType.Integer,
                 defaultValue=15,
                 minValue=0,
                 maxValue=240,
@@ -343,7 +347,9 @@ class TimeFilterSimpleAlgorithm(_SimpleSearchAlgorithmBase):
 
         self.addParameter(
             QgsProcessingParameterFeatureSource(
-                "INPUT_LOCATIONS", tr("Locations"), [QgsProcessing.TypeVectorPoint]
+                "INPUT_LOCATIONS",
+                tr("Locations"),
+                [Qgis.ProcessingSourceType.VectorPoint],
             )
         )
         self.addParameter(
@@ -411,7 +417,9 @@ class RoutesSimpleAlgorithm(_SimpleSearchAlgorithmBase):
 
         self.addParameter(
             QgsProcessingParameterFeatureSource(
-                "INPUT_LOCATIONS", tr("Locations"), [QgsProcessing.TypeVectorPoint]
+                "INPUT_LOCATIONS",
+                tr("Locations"),
+                [Qgis.ProcessingSourceType.VectorPoint],
             )
         )
         self.addParameter(

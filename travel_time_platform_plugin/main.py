@@ -183,7 +183,7 @@ class TTPPlugin:
                 tr(
                     "The Travel Time Platfrom plugin requires the Processing plugin. Please enable the processing plugin in the plugin manager."
                 ),
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
             )
             return
         toolBox.setVisible(True)
@@ -214,7 +214,7 @@ class TTPPlugin:
         model = treeview.model()
         xyz_tiles_group_idx = model.match(
             model.index(0, 0),
-            Qt.DisplayRole,
+            Qt.ItemDataRole.DisplayRole,
             "XYZ Tiles",
         )
         if len(xyz_tiles_group_idx) == 0:
@@ -222,7 +222,7 @@ class TTPPlugin:
             self.iface.messageBar().pushMessage(
                 "Warning",
                 tr("Could not locate XYZ tiles in the browser"),
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
             )
             return
 
@@ -236,7 +236,7 @@ class TTPPlugin:
         # If tiles were loaded, selected it
         lux_tiles_idx = model.match(
             model.index(0, 0, xyz_tiles_group_idx[0]),
-            Qt.DisplayRole,
+            Qt.ItemDataRole.DisplayRole,
             "TravelTime - Lux",
         )
         if len(lux_tiles_idx) == 0:
@@ -244,7 +244,7 @@ class TTPPlugin:
             self.iface.messageBar().pushMessage(
                 "Warning",
                 tr("XYZ tiles were not added for an unknown reason"),
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
             )
             return
 
@@ -253,11 +253,11 @@ class TTPPlugin:
         treeview.scrollTo(lux_tiles_idx[0])
 
     def show_config(self):
-        self.config_dialog.exec_()
+        self.config_dialog.exec()
 
     def run_tests(self):
         box = QMessageBox(
-            QMessageBox.Question,
+            QMessageBox.Icon.Question,
             "Run software tests",
             "You are about to run automated software tests. There is usually no reason to run them, unless you want to share a report to track down issues that you may encounter.\n\n"
             "Warning:\n"
@@ -267,9 +267,11 @@ class TTPPlugin:
             "- do not interact with QGIS while the tests run",
         )
         box.setInformativeText("Do you want to proceed ?")
-        box.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+        box.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel
+        )
 
-        if box.exec_() != QMessageBox.Yes:
+        if box.exec() != QMessageBox.StandardButton.Yes:
             return
 
         with io.StringIO() as buf:
@@ -284,20 +286,22 @@ class TTPPlugin:
 
         if success:
             box = QMessageBox(
-                QMessageBox.Information,
+                QMessageBox.Icon.Information,
                 "Success",
                 f"All {result.testsRun} tests succeeded.",
             )
         else:
             box = QMessageBox(
-                QMessageBox.Critical,
+                QMessageBox.Icon.Critical,
                 "Failure",
                 f"{len(result.errors) + len(result.failures)} tests failed out of {result.testsRun}.",
             )
         box.setInformativeText("Do you want to copy the report to the clipboard ?")
-        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        box.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
 
-        if box.exec_() == QMessageBox.Yes:
+        if box.exec() == QMessageBox.StandardButton.Yes:
             QGuiApplication.clipboard().setText(f"{tests.system_info()}\n{output}")
 
     def show_splash(self):

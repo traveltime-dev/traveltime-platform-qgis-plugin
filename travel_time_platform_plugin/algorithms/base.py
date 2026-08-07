@@ -14,7 +14,6 @@ from qgis.core import (
     QgsProcessingAlgorithm,
     QgsProcessingException,
     QgsProcessingOutputLayerDefinition,
-    QgsProcessingParameterDefinition,
     QgsProcessingParameterEnum,
     QgsProcessingParameterNumber,
     QgsProcessingUtils,
@@ -47,7 +46,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         self.skip_logic = {}
 
     def flags(self):
-        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
+        return super().flags() | Qgis.ProcessingAlgorithmFlag.NoThreading
 
     def addParameter(
         self,
@@ -61,7 +60,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         """Helper to add parameters with help texts and skip logic"""
         if advanced:
             parameter.setFlags(
-                parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced
+                parameter.flags() | Qgis.ProcessingParameterFlag.Advanced
             )
         self.parameters_help[advanced][parameter.description()] = help_text
         self.skip_logic[parameter.name()] = depends_on

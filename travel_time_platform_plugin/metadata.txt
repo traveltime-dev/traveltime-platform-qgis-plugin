@@ -2,7 +2,7 @@
 [general]
 name=TravelTime Plugin
 qgisMinimumVersion=3.40
-qgisMaximumVersion=3.99
+qgisMaximumVersion=4.99
 description=Get travel time polygons from the TravelTime API directly from QGIS
 about=This plugin adds a toolbar and processing algorithms allowing to query the TravelTime API directly from QGIS. The TravelTime API allows to obtain polygons based on actual travel time using several transport modes rather, allowing for much more accurate results than simple distance calculations.
 category=Vector
@@ -103,6 +103,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - feature : importe UI for advanced algorithm (skip logic)
     - 2025-10-27 : version 1.10.0
         - fix: make the plugin compatible with QGIS 3.40+ (and remove support for older versions)
+    - 2026-08-07 : version 1.11.0
+        - feature : QGIS 4 / Qt6 compatibility (still compatible with QGIS 3.40+)
 
 tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing,polygon,polygons,network analysis,shortest path
 homepage=https://docs.traveltime.com/qgis/
