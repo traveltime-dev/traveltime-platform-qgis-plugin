@@ -12,6 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         qgis_image:
+          - qgis/qgis:4.2-trixie
+          - qgis/qgis:4.0-trixie
           - qgis/qgis:3.44-bookworm
           - qgis/qgis:3.40-bookworm
 
