@@ -15,7 +15,6 @@ from qgis.core import (
     QgsProcessingException,
     QgsProcessingOutputLayerDefinition,
     QgsProcessingParameterEnum,
-    QgsProcessingParameterNumber,
     QgsProcessingUtils,
 )
 from qgis.PyQt.QtCore import QSettings
@@ -128,7 +127,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                     )
                     param = xform.transform(param)
             elif p.type() == "number":
-                if p.dataType() == QgsProcessingParameterNumber.Type.Integer:
+                if p.dataType() == Qgis.ProcessingNumberParameterType.Integer:
                     param = self.parameterAsInt(parameters, p.name(), context)
                 else:
                     param = self.parameterAsDouble(parameters, p.name(), context)
