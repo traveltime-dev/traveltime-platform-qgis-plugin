@@ -12,8 +12,12 @@ jobs:
       fail-fast: false
       matrix:
         qgis_image:
-          - qgis/qgis:4.2-trixie
-          - qgis/qgis:4.0-trixie
+          # NB: the -trixie QGIS 4 images cannot run the suite - they bundle a
+          # QtWebEngine that refuses to start as root ("Running as root without
+          # --no-sandbox is not supported"), which kills QGIS before it reaches
+          # the --code script. The -questing images are unaffected.
+          - qgis/qgis:4.2-questing
+          - qgis/qgis:4.0-questing
           - qgis/qgis:3.44-bookworm
           - qgis/qgis:3.40-bookworm
 

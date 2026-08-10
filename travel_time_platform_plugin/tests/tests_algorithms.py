@@ -36,20 +36,20 @@ class AlgorithmsBasicTest(TestCaseBase):
         )
 
         # Assert TTP_ALGORITHM metadata
-        self.assertEquals(
+        self.assertEqual(
             output_layer.metadata().keywords("TTP_ALGORITHM")[0],
             algorithm_name,
         )
 
         # Assert TTP_PARAMS metadata
-        self.assertEquals(
+        self.assertEqual(
             json.loads(output_layer.metadata().keywords("TTP_PARAMS")[0]),
             parameters,
             f"{output_layer.metadata().keywords('TTP_PARAMS')[0]}\n\n\nIS DIFFERNT FROM\n\n\n{parameters}",
         )
 
         # Assert TTP_VERSION metadata
-        self.assertEquals(
+        self.assertEqual(
             output_layer.metadata().keywords("TTP_VERSION")[0],
             TTP_VERSION,
         )
