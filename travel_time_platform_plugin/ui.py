@@ -2,8 +2,7 @@ import os
 import webbrowser
 
 try:
-    # QGIS >= 4.2 home of the algorithm dialog; getParametersPanel below needs
-    # in_place and active_layer, which both classes set in __init__
+    # QGIS >= 4.2 home of the algorithm dialog; both expose in_place and active_layer
     from processing.gui.algorithm_widget import AlgorithmWidget as AlgorithmDialog
 except ImportError:
     from processing.gui.AlgorithmDialog import AlgorithmDialog

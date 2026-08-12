@@ -11,8 +11,6 @@ PURGED_SETTING = "traveltime_platform/cache_credentials_purged"
 
 
 class CredentialFreeCache(DbCache):
-    """Sqlite cache that keeps API credentials out of the cache file."""
-
     def _picklable_field(self, response, name):
         value = super()._picklable_field(response, name)
         if name == "request":

@@ -3,8 +3,8 @@ on:
   schedule:
     - cron:  '0 6 * * 1'  # weekly check
 
-# One shared API key, so runs must not overlap. The schedule keeps its own lane,
-# so a push cannot cancel the weekly run - the canary for upstream image drift.
+# The schedule keeps its own lane, so a push cannot cancel the weekly run - the
+# canary for upstream image drift.
 concurrency:
   group: tests-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
@@ -16,7 +16,6 @@ jobs:
 
     strategy:
       fail-fast: false
-      max-parallel: 2
       matrix:
         qgis_image:
           # qgis/qgis:4.0-questing is left out: it never reaches the --code script
