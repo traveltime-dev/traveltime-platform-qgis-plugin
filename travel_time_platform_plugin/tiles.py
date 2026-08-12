@@ -42,14 +42,7 @@ class TilesManager:
                 url = self._get_url(identifier)
                 label = "TravelTime - " + label
 
-                # Not too sure why this changed in 3.30, maybe we're supposed to used
-                # the settings registry, but QgsXyzConnectionSettings isn't in the pyqgis
-                # bindings...
-                if Qgis.QGIS_VERSION_INT < 33000:
-                    settings_path = f"qgis/connections-xyz"
-                else:
-                    settings_path = f"connections/xyz/items"
-                settings_path += f"/{label}"
+                settings_path = f"connections/xyz/items/{label}"
                 s = QgsSettings()
                 s.setValue(f"{settings_path}/url", url)
                 s.setValue(f"{settings_path}/zmax", 20)

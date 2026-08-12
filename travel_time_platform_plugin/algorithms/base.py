@@ -318,10 +318,9 @@ class ProcessingAlgorithmBase(AlgorithmBase):
         print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
         if print_query:
             headers_for_logs = dict(headers)
-            if headers_for_logs["X-Application-Id"]:
-                headers_for_logs["X-Application-Id"] = "*hidden*"
-            if headers_for_logs["X-Api-Key"]:
-                headers_for_logs["X-Api-Key"] = "*hidden*"
+            for header in constants.CREDENTIAL_HEADERS:
+                if headers_for_logs[header]:
+                    headers_for_logs[header] = "*hidden*"
 
             log("Making request")
             log("url: {}".format(full_url))
@@ -404,20 +403,24 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             log(e)
             raise QgsProcessingException("Could not decode response") from None
 
+        # The API answers with an object; a gateway in front of it may not
+        if not isinstance(response_data, dict):
+            response_data = {}
+
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
             nice_info = "\n".join(
                 "\t{}:\t{}".format(k, v)
-                for k, v in response_data["additional_info"].items()
+                for k, v in response_data.get("additional_info", {}).items()
             )
             feedback.reportError(
                 tr(
                     "Received error from the API.\nError code : {}\nDescription : {}\nSee : {}\nAddtionnal info :\n{}"
                 ).format(
-                    response_data["error_code"],
-                    response_data["description"],
-                    response_data["documentation_link"],
+                    response_data.get("error_code", response.status_code),
+                    response_data.get("description", response.reason),
+                    response_data.get("documentation_link", ""),
                     nice_info,
                 ),
                 fatalError=True,

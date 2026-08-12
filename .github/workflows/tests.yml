@@ -3,21 +3,24 @@ on:
   schedule:
     - cron:  '0 6 * * 1'  # weekly check
 
+# The suite calls the live API on one shared key, so a branch's own in-flight run
+# is superseded. The schedule gets its own lane: a push must not kill the weekly
+# run, which is the canary for upstream image drift.
+concurrency:
+  group: tests-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     strategy:
       fail-fast: false
+      max-parallel: 2
       matrix:
         qgis_image:
-          # NB: -questing is the variant the unsuffixed qgis/qgis:4.x tags point
-          # at. The -trixie variants cannot run the suite as-is: they bundle a
-          # QtWebEngine that refuses to start as root ("Running as root without
-          # --no-sandbox is not supported"), which kills QGIS before it reaches
-          # the --code script. Should we ever need them, setting
-          # QTWEBENGINE_CHROMIUM_FLAGS=--no-sandbox works around it.
+          # -trixie variants need QTWEBENGINE_CHROMIUM_FLAGS=--no-sandbox to start as root
           - qgis/qgis:4.2-questing
           - qgis/qgis:4.0-questing
           - qgis/qgis:3.44-bookworm

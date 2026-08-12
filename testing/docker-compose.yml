@@ -5,15 +5,11 @@ services:
   tests:
     image: ${QGIS_IMAGE:?}
     volumes:
-      # mount the plugin and default config (enabling the plugin) into both the
-      # QGIS 3 and QGIS 4 profile locations, so the same service works with
-      # both qgis/qgis:3.x and qgis/qgis:4.x images. QGIS 4 renamed both the
-      # profile folder (QGIS3 -> QGIS4) and the settings ini, but the settings
-      # we need are identical, so qgis-profile.ini serves both under the name
-      # each generation expects. Each generation ignores the other's tree.
+      # mount the plugin into both profile trees; each generation ignores the other's
       - ../travel_time_platform_plugin:/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/travel_time_platform_plugin
-      - ../testing/qgis-profile.ini:/root/.local/share/QGIS/QGIS3/profiles/default/QGIS/QGIS3.ini
       - ../travel_time_platform_plugin:/root/.local/share/QGIS/QGIS4/profiles/default/python/plugins/travel_time_platform_plugin
+      # default config (enabling the plugin), under the name each generation expects
+      - ../testing/qgis-profile.ini:/root/.local/share/QGIS/QGIS3/profiles/default/QGIS/QGIS3.ini
       - ../testing/qgis-profile.ini:/root/.local/share/QGIS/QGIS4/profiles/default/QGIS/QGIS4.ini
       # include initialisation script (test launcher in QGIS)
       - ../testing/run_tests.py:/run_tests.py

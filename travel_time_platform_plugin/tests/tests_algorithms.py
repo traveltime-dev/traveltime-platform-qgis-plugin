@@ -2,8 +2,16 @@ import itertools
 import json
 
 import processing
-from qgis.core import QgsFeature, QgsProcessingUtils, QgsProject
+from qgis.core import (
+    Qgis,
+    QgsFeature,
+    QgsGeometry,
+    QgsPointXY,
+    QgsProcessingUtils,
+    QgsProject,
+)
 
+from ..algorithms.advanced import TimeMapAlgorithm
 from ..algorithms.simple import TRANSPORTATION_TYPES, TimeMapSimpleAlgorithm
 from ..constants import TTP_VERSION
 from ..utils import timezones
@@ -53,6 +61,8 @@ class AlgorithmsBasicTest(TestCaseBase):
             output_layer.metadata().keywords("TTP_VERSION")[0],
             TTP_VERSION,
         )
+
+        return output_layer
 
     def test_processing_time_map_simple(self):
         input_lyr = self._make_layer(["POINT(-3.1 55.9)"])
@@ -111,6 +121,37 @@ class AlgorithmsBasicTest(TestCaseBase):
             },
             expected_result_count=1,
         )
+
+    def test_processing_time_map_union(self):
+        # Far apart, so the union can only cover both if the searches were combined
+        london, edinburgh = QgsPointXY(-0.13, 51.5), QgsPointXY(-3.19, 55.95)
+        input_lyr_a = self._make_layer(
+            [
+                f"POINT({london.x()} {london.y()})",
+                f"POINT({edinburgh.x()} {edinburgh.y()})",
+            ]
+        )
+        output_layer = self._test_algorithm(
+            "ttp_v4:time_map",
+            {
+                "INPUT_DEPARTURE_SEARCHES": input_lyr_a.id(),
+                "INPUT_DEPARTURE_TIME": self._today_at_noon().isoformat(),
+                "INPUT_DEPARTURE_TRAVEL_TIME": "900",
+                "OUTPUT_RESULT_TYPE": TimeMapAlgorithm.RESULT_TYPE.index("UNION"),
+                "OUTPUT": "memory:",
+            },
+            expected_result_count=1,
+        )
+
+        # The aggregate must survive convertGeometryCollectionToSubclass as a polygon
+        feature = next(output_layer.getFeatures())
+        self.assertEqual(feature.attribute("id"), "UNION")
+        self.assertEqual(feature.geometry().type(), Qgis.GeometryType.Polygon)
+        for point in (london, edinburgh):
+            self.assertTrue(
+                feature.geometry().contains(QgsGeometry.fromPointXY(point)),
+                f"union does not cover {point.asWkt()}",
+            )
 
     def test_processing_time_filter(self):
         input_lyr_a = self._make_layer(["POINT(0.0 51.5)"], name="a")
