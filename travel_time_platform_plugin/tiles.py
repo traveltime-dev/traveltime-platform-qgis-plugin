@@ -8,18 +8,23 @@ from .utils import log, tr
 
 class TilesManager:
     tiles = {
-        "lux": tr("Lux"),
+        "osm-bright": tr("OSM Bright"),
+        "positron": tr("Positron"),
     }
 
     def __init__(self, main):
         self.main = main
+
+    def browser_label(self, identifier):
+        """Name the browser entry carries, and what callers locate it by"""
+        return "TravelTime - " + self.tiles[identifier]
 
     def _get_url(self, identifier):
         app_id, _ = auth.get_app_id_and_api_key()
         disable_https = QSettings().value(
             "traveltime_platform/disable_https", False, type=bool
         )
-        return "https://tiles.traveltime.com/{identifier}/{{z}}/{{x}}/{{y}}.png?key={app_id}&client=QGIS".format(
+        return "https://tiles.traveltimeapp.com/{identifier}/{{z}}/{{x}}/{{y}}.png?key={app_id}&client=QGIS".format(
             app_id=app_id, identifier=identifier, verify=not disable_https
         )
 
@@ -44,9 +49,9 @@ class TilesManager:
                 level=Qgis.MessageLevel.Info,
             )
         else:
-            for identifier, label in self.tiles.items():
+            for identifier in self.tiles:
                 url = self._get_url(identifier)
-                label = "TravelTime - " + label
+                label = self.browser_label(identifier)
 
                 settings_path = f"connections/xyz/items/{label}"
                 s = QgsSettings()
