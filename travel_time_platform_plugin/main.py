@@ -234,11 +234,10 @@ class TTPPlugin:
         treeview.scrollTo(xyz_tiles_group_idx[0])
 
         # If tiles were loaded, selected it
-        first_identifier = next(iter(self.tilesManager.tiles))
         ttp_tiles_idx = model.match(
             model.index(0, 0, xyz_tiles_group_idx[0]),
             Qt.ItemDataRole.DisplayRole,
-            self.tilesManager.browser_label(first_identifier),
+            self.tilesManager.default_browser_label(),
         )
         if len(ttp_tiles_idx) == 0:
             if tiles_added:

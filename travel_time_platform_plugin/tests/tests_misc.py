@@ -40,8 +40,7 @@ class MiscTest(TestCaseBase):
         browser = iface.mainWindow().findChild(QDockWidget, "Browser")
         treeview = browser.findChild(QTreeView)
         model = treeview.model()
-        tiles_manager = self.plugin.tilesManager
-        expected_label = tiles_manager.browser_label(next(iter(tiles_manager.tiles)))
+        expected_label = self.plugin.tilesManager.default_browser_label()
 
         # Hide the browser
         browser.setVisible(False)

@@ -315,7 +315,9 @@ class ProcessingAlgorithmBase(AlgorithmBase):
         full_url = endpoint + self.url
 
         feedback.pushDebugInfo("Making request to API endpoint...")
-        print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
+        print_query = QSettings().value(
+            "traveltime_platform/log_calls", False, type=bool
+        )
         if print_query:
             headers_for_logs = {
                 k: "*hidden*" if k in constants.CREDENTIAL_HEADERS else v

@@ -14,7 +14,7 @@ class CredentialFreeCache(DbCache):
     def _picklable_field(self, response, name):
         value = super()._picklable_field(response, name)
         if name == "request":
-            # copy rather than mutate: the copy shares the live request's headers
+            # super() only shallow-copies, so these are still the live request's headers
             value.headers = value.headers.copy()
             for header in CREDENTIAL_HEADERS:
                 value.headers.pop(header, None)
@@ -60,9 +60,7 @@ class Cache:
         self._purge_credentials_once()
 
     def _purge_credentials_once(self):
-        """Entries written before CredentialFreeCache hold the credentials, and
-        nothing evicts them: an expired entry goes only when its key is asked for again.
-        """
+        """Entries from earlier versions hold credentials, and nothing else evicts them"""
         settings = QSettings()
         if settings.value(PURGED_SETTING, False, type=bool):
             return
