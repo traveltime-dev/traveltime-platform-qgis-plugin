@@ -1,17 +1,16 @@
 from qgis.core import (
+    Qgis,
     QgsCoordinateTransform,
     QgsFeature,
     QgsFeatureSink,
     QgsField,
     QgsFields,
     QgsPoint,
-    QgsProcessing,
     QgsProcessingParameterEnum,
     QgsProcessingParameterExpression,
     QgsProcessingParameterFeatureSink,
     QgsProcessingParameterFeatureSource,
     QgsProcessingParameterPoint,
-    QgsWkbTypes,
 )
 from qgis.PyQt.QtCore import QVariant
 
@@ -24,7 +23,7 @@ COUNTRIES = [(None, "-")] + list([(c.alpha2, c.name) for c in iso3166.countries]
 
 
 class GeocodingAlgorithmBase(ProcessingAlgorithmBase):
-    input_type = QgsProcessing.TypeVector
+    input_type = Qgis.ProcessingSourceType.Vector
 
     RESULT_TYPE = ["ALL", "BEST_MATCH"]
 
@@ -62,7 +61,7 @@ class GeocodingAlgorithmBase(ProcessingAlgorithmBase):
         # Define output parameters
         self.addParameter(
             QgsProcessingParameterFeatureSink(
-                "OUTPUT", tr("Output"), type=QgsProcessing.TypeVectorPoint
+                "OUTPUT", tr("Output"), type=Qgis.ProcessingSourceType.VectorPoint
             )
         )
 
@@ -104,7 +103,7 @@ class GeocodingAlgorithmBase(ProcessingAlgorithmBase):
             output_fields.append(QgsField("geocoded_" + attr, QVariant.String, "text"))
 
         (sink, sink_id) = self.parameterAsSink(
-            parameters, "OUTPUT", context, output_fields, QgsWkbTypes.Point, EPSG4326
+            parameters, "OUTPUT", context, output_fields, Qgis.WkbType.Point, EPSG4326
         )
 
         for feature in source_data.getFeatures():
@@ -170,7 +169,7 @@ class GeocodingAlgorithmBase(ProcessingAlgorithmBase):
                         )
                     )
 
-                sink.addFeature(newfeature, QgsFeatureSink.FastInsert)
+                sink.addFeature(newfeature, QgsFeatureSink.Flag.FastInsert)
 
         # to get hold of the layer in post processing
         self.sink_id = sink_id
@@ -183,7 +182,7 @@ class GeocodingAlgorithmBase(ProcessingAlgorithmBase):
 
 
 class GeocodingAlgorithm(GeocodingAlgorithmBase):
-    input_type = QgsProcessing.TypeVector
+    input_type = Qgis.ProcessingSourceType.Vector
     url = "/v4/geocoding/search"
     method = "GET"
 
@@ -233,7 +232,7 @@ class GeocodingAlgorithm(GeocodingAlgorithmBase):
 
 
 class ReverseGeocodingAlgorithm(GeocodingAlgorithmBase):
-    input_type = QgsProcessing.TypeVectorPoint
+    input_type = Qgis.ProcessingSourceType.VectorPoint
     url = "/v4/geocoding/reverse"
     method = "GET"
 

@@ -1,7 +1,11 @@
 import os
 import webbrowser
 
-from processing.gui.AlgorithmDialog import AlgorithmDialog
+try:
+    # QGIS >= 4.2 home of the algorithm dialog; both expose in_place and active_layer
+    from processing.gui.algorithm_widget import AlgorithmWidget as AlgorithmDialog
+except ImportError:
+    from processing.gui.AlgorithmDialog import AlgorithmDialog
 from processing.gui.ParametersPanel import ParametersPanel
 from qgis.gui import QgsAbstractProcessingParameterWidgetWrapper as Wrapper
 from qgis.PyQt import uic
@@ -12,7 +16,7 @@ try:
     from qgis.PyQt.QtWebKitWidgets import QWebView
 
     webkit_available = True
-except (ModuleNotFoundError, ImportError):
+except ImportError:
     webkit_available = False
 
 from processing.gui.wrappers import WidgetWrapper
@@ -35,7 +39,9 @@ class ConfigDialog(QDialog):
         self.buttonBox.accepted.connect(self.accept)
         self.clearCacheButton.pressed.connect(self.clear_cache)
         self.endpointResetButton.pressed.connect(self.reset_endpoint)
-        self.apiKeyHelpLabel.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.apiKeyHelpLabel.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextBrowserInteraction
+        )
         self.apiKeyHelpLabel.setOpenExternalLinks(True)
         self.throttleCallsCheckBox.toggled.connect(self.throttleCallsSpinBox.setEnabled)
 
@@ -215,10 +221,12 @@ class IsoDateTimeWidgetWrapper(WidgetWrapper):
         return dateEdit
 
     def setValue(self, value):
-        return self.widget.setDateTime(QDateTime().fromString(value, Qt.ISODate))
+        return self.widget.setDateTime(
+            QDateTime().fromString(value, Qt.DateFormat.ISODate)
+        )
 
     def value(self):
-        return self.widget.dateTime().toString(Qt.ISODate)
+        return self.widget.dateTime().toString(Qt.DateFormat.ISODate)
 
 
 class AlgorithmDialogWithSkipLogic(AlgorithmDialog):

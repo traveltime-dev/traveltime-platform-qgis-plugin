@@ -7,14 +7,12 @@ from qgis.core import (
     QgsFeature,
     QgsField,
     QgsGeometry,
-    QgsMapLayer,
     QgsPointXY,
     QgsProcessingException,
     QgsProcessingFeedback,
     QgsProject,
     QgsReferencedPointXY,
     QgsVectorLayer,
-    QgsWkbTypes,
 )
 from qgis.gui import QgsMapMouseEvent, QgsMapToolEmitPoint, QgsVertexMarker
 from qgis.PyQt import uic
@@ -62,7 +60,10 @@ class Feedback(QgsProcessingFeedback):
     def pushToUser(self, exception):
         log(exception)
         self.iface.messageBar().pushMessage(
-            "Error", ", ".join(self.fatal_errors), level=Qgis.Critical, duration=0
+            "Error",
+            ", ".join(self.fatal_errors),
+            level=Qgis.MessageLevel.Critical,
+            duration=0,
         )
 
 
@@ -120,7 +121,9 @@ class ExpressActionToolBase(ExpressActionBase):
         )
 
         input_layer = pointToLayer(point)
-        time = self.widget.dateTimeEdit.dateTime().toUTC().toString(Qt.ISODate)
+        time = (
+            self.widget.dateTimeEdit.dateTime().toUTC().toString(Qt.DateFormat.ISODate)
+        )
 
         transpt_type = self.widget.transptTypeComboBox.currentText()
 
@@ -174,8 +177,8 @@ class ExpressTimeFilterAction(ExpressActionToolBase):
     def current_layer_changed(self, layer):
         self.setEnabled(
             layer is not None
-            and layer.type() == QgsMapLayer.LayerType.VectorLayer
-            and layer.geometryType() == QgsWkbTypes.PointGeometry
+            and layer.type() == Qgis.LayerType.Vector
+            and layer.geometryType() == Qgis.GeometryType.Point
         )
 
     def make_params(self, point):
@@ -293,9 +296,9 @@ class ExpressGeoclickAction(ExpressActionBase):
 
         event = QgsMapMouseEvent(
             self.main.iface.mapCanvas(),
-            QEvent.MouseButtonPress,
+            QEvent.Type.MouseButtonPress,
             mapTool.toCanvasCoordinates(point),
-            Qt.LeftButton,
+            Qt.MouseButton.LeftButton,
         )
         event.setMapPoint(point)
         mapTool.canvasPressEvent(event)

@@ -14,9 +14,7 @@ from qgis.core import (
     QgsProcessingAlgorithm,
     QgsProcessingException,
     QgsProcessingOutputLayerDefinition,
-    QgsProcessingParameterDefinition,
     QgsProcessingParameterEnum,
-    QgsProcessingParameterNumber,
     QgsProcessingUtils,
 )
 from qgis.PyQt.QtCore import QSettings
@@ -47,7 +45,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         self.skip_logic = {}
 
     def flags(self):
-        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
+        return super().flags() | Qgis.ProcessingAlgorithmFlag.NoThreading
 
     def addParameter(
         self,
@@ -61,7 +59,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         """Helper to add parameters with help texts and skip logic"""
         if advanced:
             parameter.setFlags(
-                parameter.flags() | QgsProcessingParameterDefinition.FlagAdvanced
+                parameter.flags() | Qgis.ProcessingParameterFlag.Advanced
             )
         self.parameters_help[advanced][parameter.description()] = help_text
         self.skip_logic[parameter.name()] = depends_on
@@ -129,7 +127,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                     )
                     param = xform.transform(param)
             elif p.type() == "number":
-                if p.dataType() == QgsProcessingParameterNumber.Type.Integer:
+                if p.dataType() == Qgis.ProcessingNumberParameterType.Integer:
                     param = self.parameterAsInt(parameters, p.name(), context)
                 else:
                     param = self.parameterAsDouble(parameters, p.name(), context)
@@ -317,13 +315,14 @@ class ProcessingAlgorithmBase(AlgorithmBase):
         full_url = endpoint + self.url
 
         feedback.pushDebugInfo("Making request to API endpoint...")
-        print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
+        print_query = QSettings().value(
+            "traveltime_platform/log_calls", False, type=bool
+        )
         if print_query:
-            headers_for_logs = dict(headers)
-            if headers_for_logs["X-Application-Id"]:
-                headers_for_logs["X-Application-Id"] = "*hidden*"
-            if headers_for_logs["X-Api-Key"]:
-                headers_for_logs["X-Api-Key"] = "*hidden*"
+            headers_for_logs = {
+                k: "*hidden*" if k in constants.CREDENTIAL_HEADERS else v
+                for k, v in headers.items()
+            }
 
             log("Making request")
             log("url: {}".format(full_url))
@@ -384,6 +383,17 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             response = cache.instance.cached_requests.send(
                 request, verify=not disable_https
             )
+        except requests.exceptions.SSLError as e:
+            feedback.reportError(
+                tr(
+                    "Could not connect to the API because of an SSL certificate error. You can disable SSL verification in the plugin settings. See log for more details."
+                ),
+                fatalError=True,
+            )
+            log(e)
+            raise QgsProcessingException(
+                "Got an SSL error when connecting to the API"
+            ) from None
         except requests.exceptions.RequestException as e:
             feedback.reportError(
                 tr(
@@ -409,17 +419,19 @@ class ProcessingAlgorithmBase(AlgorithmBase):
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
+            # a gateway in front of the API may not answer with an object
+            error_data = response_data if isinstance(response_data, dict) else {}
             nice_info = "\n".join(
                 "\t{}:\t{}".format(k, v)
-                for k, v in response_data["additional_info"].items()
+                for k, v in error_data.get("additional_info", {}).items()
             )
             feedback.reportError(
                 tr(
                     "Received error from the API.\nError code : {}\nDescription : {}\nSee : {}\nAddtionnal info :\n{}"
                 ).format(
-                    response_data["error_code"],
-                    response_data["description"],
-                    response_data["documentation_link"],
+                    error_data.get("error_code", response.status_code),
+                    error_data.get("description", response.reason),
+                    error_data.get("documentation_link", ""),
                     nice_info,
                 ),
                 fatalError=True,
@@ -429,24 +441,6 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             raise QgsProcessingException(
                 "Got error {} from API".format(response.status_code)
             ) from None
-        except requests.exceptions.SSLError as e:
-            feedback.reportError(
-                tr(
-                    "Could not connect to the API because of an SSL certificate error. You can disable SSL verification in the plugin settings. See log for more details."
-                ),
-                fatalError=True,
-            )
-            log(e)
-            raise QgsProcessingException(
-                "Got an SSL error when connecting to the API"
-            ) from None
-        except requests.exceptions.RequestException as e:
-            feedback.reportError(
-                tr("Could not connect to the API. See log for more details."),
-                fatalError=True,
-            )
-            log(e)
-            raise QgsProcessingException("Could not connect to API") from None
 
         if response.from_cache:
             feedback.pushDebugInfo("Got response from cache...")

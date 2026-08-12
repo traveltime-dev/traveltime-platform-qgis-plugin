@@ -136,13 +136,19 @@ class TestCaseBase(unittest.TestCase):
         # Do the click
         tool = canvas.mapTool()
         tool.canvasMoveEvent(
-            QgsMapMouseEvent(canvas, QEvent.MouseMove, pixel, Qt.NoButton)
+            QgsMapMouseEvent(
+                canvas, QEvent.Type.MouseMove, pixel, Qt.MouseButton.NoButton
+            )
         )
         tool.canvasPressEvent(
-            QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, pixel, Qt.LeftButton)
+            QgsMapMouseEvent(
+                canvas, QEvent.Type.MouseButtonPress, pixel, Qt.MouseButton.LeftButton
+            )
         )
         tool.canvasReleaseEvent(
-            QgsMapMouseEvent(canvas, QEvent.MouseButtonRelease, pixel, Qt.LeftButton)
+            QgsMapMouseEvent(
+                canvas, QEvent.Type.MouseButtonRelease, pixel, Qt.MouseButton.LeftButton
+            )
         )
 
         self._feedback()

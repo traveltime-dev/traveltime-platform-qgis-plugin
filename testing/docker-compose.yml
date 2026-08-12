@@ -5,10 +5,12 @@ services:
   tests:
     image: ${QGIS_IMAGE:?}
     volumes:
-      # mount the plugin
+      # mount the plugin into both profile trees; each generation ignores the other's
       - ../travel_time_platform_plugin:/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/travel_time_platform_plugin
-      # include default config (enabling the plugin)
-      - ../testing/QGIS3.ini:/root/.local/share/QGIS/QGIS3/profiles/default/QGIS/QGIS3.ini
+      - ../travel_time_platform_plugin:/root/.local/share/QGIS/QGIS4/profiles/default/python/plugins/travel_time_platform_plugin
+      # default config (enabling the plugin), under the name each generation expects
+      - ../testing/qgis-profile.ini:/root/.local/share/QGIS/QGIS3/profiles/default/QGIS/QGIS3.ini
+      - ../testing/qgis-profile.ini:/root/.local/share/QGIS/QGIS4/profiles/default/QGIS/QGIS4.ini
       # include initialisation script (test launcher in QGIS)
       - ../testing/run_tests.py:/run_tests.py
       # mount artifacts folder

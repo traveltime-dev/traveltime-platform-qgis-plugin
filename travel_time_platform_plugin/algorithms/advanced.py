@@ -6,6 +6,7 @@ import random
 from processing.gui.AlgorithmExecutor import execute_in_place
 from qgis.core import (
     NULL,
+    Qgis,
     QgsApplication,
     QgsCategorizedSymbolRenderer,
     QgsCoordinateTransform,
@@ -20,7 +21,6 @@ from qgis.core import (
     QgsLineString,
     QgsLineSymbol,
     QgsPoint,
-    QgsProcessing,
     QgsProcessingException,
     QgsProcessingParameterBoolean,
     QgsProcessingParameterEnum,
@@ -31,7 +31,6 @@ from qgis.core import (
     QgsProcessingParameterNumber,
     QgsProcessingUtils,
     QgsRendererCategory,
-    QgsWkbTypes,
 )
 from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtGui import QColor
@@ -85,7 +84,7 @@ class _SearchAlgorithmBase(ProcessingAlgorithmBase):
                 QgsProcessingParameterFeatureSource(
                     "INPUT_" + DEPARR + "_SEARCHES",
                     f"{spacing}<b>{DEPARR.title()}</b><br><br>{DEPARR.title()} / Searches",
-                    [QgsProcessing.TypeVectorPoint],
+                    [Qgis.ProcessingSourceType.VectorPoint],
                     optional=True,
                 ),
                 help_text=tr(
@@ -471,7 +470,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
     url = "/v4/time-map"
     accept_header = "application/vnd.wkt+json"
     available_properties = {"is_only_walking": PROPERTY_DEFAULT_YES}
-    output_type = QgsProcessing.TypeVectorPolygon
+    output_type = Qgis.ProcessingSourceType.VectorPolygon
 
     _name = "time_map"
     _displayName = "Time Map"
@@ -653,7 +652,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
             "OUTPUT",
             context,
             output_fields,
-            QgsWkbTypes.MultiPolygon,
+            Qgis.WkbType.MultiPolygon,
             EPSG4326,
         )
 
@@ -709,7 +708,7 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                             )
 
                 # Add a feature in the sink
-                sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                sink.addFeature(feature, QgsFeatureSink.Flag.FastInsert)
             else:
                 # Build the aggregated feature
                 geom = QgsGeometry.fromWkt(result["shape"])
@@ -726,14 +725,14 @@ class TimeMapAlgorithm(_SearchAlgorithmBase):
                     # If we got a geometry collection (probaby because of polygons just touching creating points or lines)
                     # we filter them out and only keep polygons
                     aggregate_geom.convertGeometryCollectionToSubclass(
-                        QgsWkbTypes.PolygonGeometry
+                        Qgis.GeometryType.Polygon
                     )
 
         if result_type != "NORMAL":
             feature = QgsFeature(output_fields)
             feature.setAttribute("id", result_type)
             feature.setGeometry(aggregate_geom)
-            sink.addFeature(feature, QgsFeatureSink.FastInsert)
+            sink.addFeature(feature, QgsFeatureSink.Flag.FastInsert)
 
         feedback.pushDebugInfo("TimeMapAlgorithm done !")
 
@@ -780,7 +779,7 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
         "fares": PROPERTY_DEFAULT_NO,
         "route": PROPERTY_DEFAULT_NO,
     }
-    output_type = QgsProcessing.TypeVectorPoint
+    output_type = Qgis.ProcessingSourceType.VectorPoint
     output_aliases = OUTPUT_ALIASES
 
     _name = "time_filter"
@@ -802,7 +801,7 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
             QgsProcessingParameterFeatureSource(
                 "INPUT_LOCATIONS",
                 f"<br><br><b>{tr('Locations')}</b><br><br>{tr('Locations')}",
-                [QgsProcessing.TypeVectorPoint],
+                [Qgis.ProcessingSourceType.VectorPoint],
                 optional=False,
             ),
             help_text=tr(
@@ -924,10 +923,10 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
             output_fields.append(QgsField("prop_" + prop, QVariant.String, "text"))
 
         output_crs = locations.sourceCrs()
-        output_type = locations.wkbType()
+        output_wkb_type = locations.wkbType()
 
         (sink, sink_id) = self.parameterAsSink(
-            parameters, "OUTPUT", context, output_fields, output_type, output_crs
+            parameters, "OUTPUT", context, output_fields, output_wkb_type, output_crs
         )
 
         def clone_feature(id_):
@@ -949,12 +948,12 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
                         feature.setAttribute(
                             "prop_" + prop, json.dumps(properties[prop])
                         )
-                    sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                    sink.addFeature(feature, QgsFeatureSink.Flag.FastInsert)
             for id_ in result["unreachable"]:
                 feature = clone_feature(id_)
                 feature.setAttribute("search_id", result["search_id"])
                 feature.setAttribute("reachable", 0)
-                sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                sink.addFeature(feature, QgsFeatureSink.Flag.FastInsert)
 
         feedback.pushDebugInfo("TimeFilterAlgorithm done !")
 
@@ -1001,7 +1000,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
         "fares": PROPERTY_DEFAULT_NO,
         "route": PROPERTY_ALWAYS,
     }
-    output_type = QgsProcessing.TypeVectorLine
+    output_type = Qgis.ProcessingSourceType.VectorLine
     output_aliases = OUTPUT_ALIASES
 
     _name = "routes"
@@ -1029,7 +1028,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
             QgsProcessingParameterFeatureSource(
                 "INPUT_LOCATIONS",
                 f"<br><br><b>{tr('Locations')}</b><br><br>{tr('Locations')}",
-                [QgsProcessing.TypeVectorPoint],
+                [Qgis.ProcessingSourceType.VectorPoint],
                 optional=False,
             ),
             help_text=tr(
@@ -1173,10 +1172,10 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
             output_fields.append(QgsField("part_travel_time", QVariant.Int, "int"))
 
         output_crs = EPSG4326
-        output_type = QgsWkbTypes.LineString
+        output_wkb_type = Qgis.WkbType.LineString
 
         (sink, sink_id) = self.parameterAsSink(
-            parameters, "OUTPUT", context, output_fields, output_type, output_crs
+            parameters, "OUTPUT", context, output_fields, output_wkb_type, output_crs
         )
 
         for result in results:
@@ -1202,7 +1201,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
                                 "prop_" + prop, json.dumps(properties[prop])
                             )
 
-                        sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                        sink.addFeature(feature, QgsFeatureSink.Flag.FastInsert)
                     else:
                         for part in properties["route"]["parts"]:
                             # Create the geom
@@ -1229,7 +1228,7 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
                                 "part_travel_time", part["travel_time"]
                             )
 
-                            sink.addFeature(feature_d, QgsFeatureSink.FastInsert)
+                            sink.addFeature(feature_d, QgsFeatureSink.Flag.FastInsert)
 
         feedback.pushDebugInfo("TimeFilterAlgorithm done !")
 
