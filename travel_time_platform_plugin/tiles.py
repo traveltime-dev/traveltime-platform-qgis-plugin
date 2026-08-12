@@ -5,6 +5,8 @@ from qgis.PyQt.QtCore import QSettings
 from . import auth
 from .utils import log, tr
 
+LABEL_PREFIX = "TravelTime - "
+
 
 class TilesManager:
     tiles = {
@@ -16,8 +18,7 @@ class TilesManager:
         self.main = main
 
     def browser_label(self, identifier):
-        """Name the browser entry carries, and what callers locate it by"""
-        return "TravelTime - " + self.tiles[identifier]
+        return LABEL_PREFIX + self.tiles[identifier]
 
     def _get_url(self, identifier):
         app_id, _ = auth.get_app_id_and_api_key()
@@ -31,12 +32,18 @@ class TilesManager:
         s = QgsSettings()
         s.beginGroup("connections/xyz/items")
         for label in s.childGroups():
-            if label.startswith("TravelTime - ") and label not in current:
+            if not label.startswith(LABEL_PREFIX) or label in current:
+                continue
+            # only ours: the user may have kept an entry of their own under the prefix
+            if "traveltime" in s.value(f"{label}/url", ""):
                 s.remove(label)
         s.endGroup()
 
     def add_tiles_to_browser(self):
+        """Returns False when the layers were not registered, so callers do not
+        add a second, contradictory reason for their absence."""
         self._drop_retired_entries()
+        self.main.iface.reloadConnections()
 
         # We test access to tiles with API
         test_url = self._get_url(next(iter(self.tiles)))
@@ -47,16 +54,15 @@ class TilesManager:
             response = requests.get(
                 test_url.format(z=12, x=2048, y=1361), timeout=10, verify=verify
             )
-        except (requests.exceptions.RequestException, OSError) as e:
-            # Callers go on to reveal the browser panel, so this must not abort them.
-            # Only the class name: the exception stringifies the app id in the url.
+        except OSError as e:
+            # Not the exception itself: it stringifies the app id in the url
             log("Could not reach the tiles service ({})".format(type(e).__name__))
             self.main.iface.messageBar().pushMessage(
                 "Warning",
                 tr("Could not reach the TravelTime tiles service."),
                 level=Qgis.MessageLevel.Warning,
             )
-            return
+            return False
 
         # A proxy block page answers 200, so require an actual image
         has_tiles = response.ok and response.content[:4] == b"\x89PNG"
@@ -69,17 +75,15 @@ class TilesManager:
                 ),
                 level=Qgis.MessageLevel.Info,
             )
-        else:
-            for identifier in self.tiles:
-                url = self._get_url(identifier)
-                label = self.browser_label(identifier)
+            return False
 
-                settings_path = f"connections/xyz/items/{label}"
-                s = QgsSettings()
-                s.setValue(f"{settings_path}/url", url)
-                s.setValue(f"{settings_path}/zmax", 20)
-                s.setValue(f"{settings_path}/zmin", 0)
-                s.setValue(f"{settings_path}/tilePixelRatio", 2)
+        s = QgsSettings()
+        for identifier in self.tiles:
+            settings_path = f"connections/xyz/items/{self.browser_label(identifier)}"
+            s.setValue(f"{settings_path}/url", self._get_url(identifier))
+            s.setValue(f"{settings_path}/zmax", 20)
+            s.setValue(f"{settings_path}/zmin", 0)
+            s.setValue(f"{settings_path}/tilePixelRatio", 2)
 
-                # Update GUI
-                self.main.iface.reloadConnections()
+        self.main.iface.reloadConnections()
+        return True

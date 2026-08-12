@@ -105,6 +105,8 @@ changelog=- 2019-02-12 : version 0.1-alpha
         - fix: make the plugin compatible with QGIS 3.40+ (and remove support for older versions)
     - 2026-08-10 : version 1.11.0
         - feature : QGIS 4 / Qt6 compatibility (still compatible with QGIS 3.40+)
+        - fix : background maps work again (the tiles service moved), and the button now says why when they are unavailable
+        - fix : API credentials are no longer kept in the response cache, which is cleared once when you upgrade
 
 tags=travel,time,platform,api,distance,matrix,geocoder,geocode,geocoding,isochrone,isochrones,routing,polygon,polygons,network analysis,shortest path
 homepage=https://docs.traveltime.com/qgis/

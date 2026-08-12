@@ -203,7 +203,7 @@ class TTPPlugin:
         self._dlg.show()
 
     def show_tiles(self):
-        self.tilesManager.add_tiles_to_browser()
+        tiles_added = self.tilesManager.add_tiles_to_browser()
 
         browser = self.iface.mainWindow().findChild(QDockWidget, "Browser")
         browser.setVisible(True)
@@ -241,12 +241,13 @@ class TTPPlugin:
             self.tilesManager.browser_label(first_identifier),
         )
         if len(ttp_tiles_idx) == 0:
-            # Shouldn't happen, but let's not crash
-            self.iface.messageBar().pushMessage(
-                "Warning",
-                tr("XYZ tiles were not added for an unknown reason"),
-                level=Qgis.MessageLevel.Warning,
-            )
+            if tiles_added:
+                # Shouldn't happen, but let's not crash
+                self.iface.messageBar().pushMessage(
+                    "Warning",
+                    tr("XYZ tiles were not added for an unknown reason"),
+                    level=Qgis.MessageLevel.Warning,
+                )
             return
 
         # Display it

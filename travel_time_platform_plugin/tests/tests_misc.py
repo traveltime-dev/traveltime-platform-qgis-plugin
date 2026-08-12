@@ -1,14 +1,36 @@
+import pickle
+
+import processing
 import requests
 from processing import createAlgorithmDialog
-from qgis.core import Qgis, QgsPointXY, QgsProcessingContext, QgsProject, QgsSettings
+from qgis.core import (
+    QgsPointXY,
+    QgsProcessingContext,
+    QgsProcessingException,
+    QgsProcessingFeedback,
+    QgsProject,
+    QgsSettings,
+)
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtWidgets import QApplication, QDockWidget, QTreeView, QWidget
 from qgis.utils import iface
 
-from .. import cache
+from .. import auth, cache
+from ..algorithms import base
 from ..constants import CREDENTIAL_HEADERS
 from ..utils import log
 from .base import TestCaseBase
+
+
+class _CollectingFeedback(QgsProcessingFeedback):
+    """Keeps what the algorithm reported, which run() otherwise only logs"""
+
+    def __init__(self):
+        super().__init__()
+        self.errors = []
+
+    def reportError(self, error, fatalError=False):
+        self.errors.append(error)
 
 
 class MiscTest(TestCaseBase):
@@ -85,11 +107,81 @@ class MiscTest(TestCaseBase):
 
                 reduced = cache.instance.cached_requests.cache.reduce_response(response)
 
+                # what reaches the file is the pickle, not just this one field
+                pickled = pickle.dumps(reduced)
                 for header in CREDENTIAL_HEADERS:
                     self.assertNotIn(header, reduced.request.headers)
+                    self.assertNotIn(f"secret-{header}".encode(), pickled)
                     # the live request must keep them, or the call itself would fail
                     self.assertIn(header, request.headers)
                 self.assertEqual(reduced.request.headers["Accept"], "application/json")
+
+    def test_gateway_error_is_reported(self):
+        # A gateway in front of the API answers with a body the plugin does not expect
+        for body in (b'{"message":"upstream"}', b"[]"):
+            with self.subTest(body=body):
+                response = requests.Response()
+                response.status_code = 502
+                response.reason = "Bad Gateway"
+                response.url = "https://api.traveltimeapp.com/v4/time-map"
+                response._content = body
+                response.from_cache = False
+
+                session = cache.instance.cached_requests
+                original_send = session.send
+                session.send = lambda request, **kwargs: response
+                feedback = _CollectingFeedback()
+                try:
+                    with self.assertRaises(QgsProcessingException):
+                        processing.run(
+                            "ttp_v4:time_map",
+                            {
+                                "INPUT_DEPARTURE_SEARCHES": self._make_layer(
+                                    ["POINT(0.0 51.5)"]
+                                ).id(),
+                                "INPUT_DEPARTURE_TIME": self._today_at_noon().isoformat(),
+                                "INPUT_DEPARTURE_TRAVEL_TIME": "900",
+                                "OUTPUT": "memory:",
+                            },
+                            feedback=feedback,
+                        )
+                finally:
+                    session.send = original_send
+
+                # The status must reach the user rather than a KeyError or TypeError
+                joined = "\n".join(feedback.errors)
+                self.assertIn("502", joined)
+                self.assertIn("Bad Gateway", joined)
+
+    def test_log_calls_redacts_credentials(self):
+        settings = QSettings()
+        keys = {
+            "traveltime_platform/log_calls": True,
+            "traveltime_platform/custom_endpoint": "http://127.0.0.1:1",
+        }
+        previous = {k: settings.value(k) for k in keys}
+        for key, value in keys.items():
+            settings.setValue(key, value)
+
+        messages = []
+        original_log = base.log
+        base.log = lambda msg, *args, **kwargs: messages.append(str(msg))
+        try:
+            self.plugin.express_time_map_action.trigger()
+            self._feedback()
+            self._click(QgsPointXY(-0.13, 51.5))
+        finally:
+            base.log = original_log
+            for key, value in previous.items():
+                if value is None:
+                    settings.remove(key)
+                else:
+                    settings.setValue(key, value)
+
+        joined = "\n".join(messages)
+        self.assertIn("*hidden*", joined)
+        for secret in auth.get_app_id_and_api_key():
+            self.assertNotIn(secret, joined)
 
     def test_express_reports_api_error(self):
         settings = QSettings()
@@ -106,11 +198,10 @@ class MiscTest(TestCaseBase):
             else:
                 settings.setValue(endpoint_key, previous_endpoint)
 
-        # The failure must reach the message bar rather than escaping the tool
         item = iface.messageBar().currentItem()
-        self.assertIsNotNone(item)
         self.assertEqual(item.title(), "Error")
-        self.assertEqual(item.level(), Qgis.MessageLevel.Critical)
+        # an empty critical bubble is the failure this guards against
+        self.assertIn("Error while connecting to the API", item.text())
         self.assertEqual(QgsProject.instance().mapLayersByName("Output"), [])
 
     def test_skip_logic(self):

@@ -317,10 +317,10 @@ class ProcessingAlgorithmBase(AlgorithmBase):
         feedback.pushDebugInfo("Making request to API endpoint...")
         print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
         if print_query:
-            headers_for_logs = dict(headers)
-            for header in constants.CREDENTIAL_HEADERS:
-                if headers_for_logs[header]:
-                    headers_for_logs[header] = "*hidden*"
+            headers_for_logs = {
+                k: "*hidden*" if k in constants.CREDENTIAL_HEADERS else v
+                for k, v in headers.items()
+            }
 
             log("Making request")
             log("url: {}".format(full_url))
@@ -381,6 +381,17 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             response = cache.instance.cached_requests.send(
                 request, verify=not disable_https
             )
+        except requests.exceptions.SSLError as e:
+            feedback.reportError(
+                tr(
+                    "Could not connect to the API because of an SSL certificate error. You can disable SSL verification in the plugin settings. See log for more details."
+                ),
+                fatalError=True,
+            )
+            log(e)
+            raise QgsProcessingException(
+                "Got an SSL error when connecting to the API"
+            ) from None
         except requests.exceptions.RequestException as e:
             feedback.reportError(
                 tr(
@@ -430,24 +441,6 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             raise QgsProcessingException(
                 "Got error {} from API".format(response.status_code)
             ) from None
-        except requests.exceptions.SSLError as e:
-            feedback.reportError(
-                tr(
-                    "Could not connect to the API because of an SSL certificate error. You can disable SSL verification in the plugin settings. See log for more details."
-                ),
-                fatalError=True,
-            )
-            log(e)
-            raise QgsProcessingException(
-                "Got an SSL error when connecting to the API"
-            ) from None
-        except requests.exceptions.RequestException as e:
-            feedback.reportError(
-                tr("Could not connect to the API. See log for more details."),
-                fatalError=True,
-            )
-            log(e)
-            raise QgsProcessingException("Could not connect to API") from None
 
         if response.from_cache:
             feedback.pushDebugInfo("Got response from cache...")

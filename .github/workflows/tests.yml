@@ -3,9 +3,8 @@ on:
   schedule:
     - cron:  '0 6 * * 1'  # weekly check
 
-# The suite calls the live API on one shared key, so a branch's own in-flight run
-# is superseded. The schedule gets its own lane: a push must not kill the weekly
-# run, which is the canary for upstream image drift.
+# One shared API key, so runs must not overlap. The schedule keeps its own lane,
+# so a push cannot cancel the weekly run - the canary for upstream image drift.
 concurrency:
   group: tests-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
@@ -20,9 +19,7 @@ jobs:
       max-parallel: 2
       matrix:
         qgis_image:
-          # -trixie variants need QTWEBENGINE_CHROMIUM_FLAGS=--no-sandbox to start as root.
-          # qgis/qgis:4.0-questing is left out: it never reaches the --code script and
-          # burns the whole timeout instead of reporting anything.
+          # qgis/qgis:4.0-questing is left out: it never reaches the --code script
           - qgis/qgis:4.2-questing
           - qgis/qgis:3.44-bookworm
           - qgis/qgis:3.40-bookworm

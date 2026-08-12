@@ -62,10 +62,8 @@ class Cache:
         self._purge_credentials_once()
 
     def _purge_credentials_once(self):
-        """Entries written before CredentialFreeCache still hold the credentials.
-
-        Nothing evicts them on its own: expired entries go only when the same key
-        is requested again, so a one-off search would keep them indefinitely.
+        """Entries written before CredentialFreeCache hold the credentials, and
+        nothing evicts them: an expired entry goes only when its key is asked for again.
         """
         settings = QSettings()
         if settings.value(PURGED_SETTING, False, type=bool):
