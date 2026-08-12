@@ -416,24 +416,22 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             log(e)
             raise QgsProcessingException("Could not decode response") from None
 
-        # The API answers with an object; a gateway in front of it may not
-        if not isinstance(response_data, dict):
-            response_data = {}
-
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
+            # a gateway in front of the API may not answer with an object
+            error_data = response_data if isinstance(response_data, dict) else {}
             nice_info = "\n".join(
                 "\t{}:\t{}".format(k, v)
-                for k, v in response_data.get("additional_info", {}).items()
+                for k, v in error_data.get("additional_info", {}).items()
             )
             feedback.reportError(
                 tr(
                     "Received error from the API.\nError code : {}\nDescription : {}\nSee : {}\nAddtionnal info :\n{}"
                 ).format(
-                    response_data.get("error_code", response.status_code),
-                    response_data.get("description", response.reason),
-                    response_data.get("documentation_link", ""),
+                    error_data.get("error_code", response.status_code),
+                    error_data.get("description", response.reason),
+                    error_data.get("documentation_link", ""),
                     nice_info,
                 ),
                 fatalError=True,

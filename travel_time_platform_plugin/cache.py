@@ -79,11 +79,22 @@ class Cache:
             log(f"Could not clear another QGIS generation's response cache: {e}")
         settings.setValue(PURGED_SETTING, True)
 
+    def _generations_root(self):
+        """Splits our cache path into the dir holding one entry per QGIS generation
+        and the part below it, which Windows nests under an extra "cache" level."""
+        relative = os.path.basename(self.path)
+        generation = os.path.dirname(self.path)
+        if os.path.basename(generation).lower() == "cache":
+            relative = os.path.join(os.path.basename(generation), relative)
+            generation = os.path.dirname(generation)
+        return os.path.dirname(generation), relative
+
     def _sibling_cache_paths(self):
         """CacheLocation is per QGIS generation, so the other generation's file is ours"""
-        name = os.path.basename(self.path)
-        generations = os.path.dirname(os.path.dirname(self.path))
-        paths = (os.path.join(generations, d, name) for d in os.listdir(generations))
+        generations, relative = self._generations_root()
+        paths = (
+            os.path.join(generations, d, relative) for d in os.listdir(generations)
+        )
         return [p for p in paths if p != self.path and os.path.isfile(p)]
 
 

@@ -102,10 +102,16 @@ class MiscTest(TestCaseBase):
         ).prepare()
         return response
 
-    def test_cache_finds_the_other_generations_file(self):
-        generations = os.path.dirname(os.path.dirname(cache.instance.path))
+    def _make_sibling_cache_dir(self):
+        """A stand-in for the other QGIS generation, wherever this platform puts it"""
+        generations, relative = cache.instance._generations_root()
         sibling_dir = tempfile.mkdtemp(dir=generations)
-        sibling = os.path.join(sibling_dir, os.path.basename(cache.instance.path))
+        sibling = os.path.join(sibling_dir, relative)
+        os.makedirs(os.path.dirname(sibling), exist_ok=True)
+        return sibling_dir, sibling
+
+    def test_cache_finds_the_other_generations_file(self):
+        sibling_dir, sibling = self._make_sibling_cache_dir()
         try:
             open(sibling, "wb").close()
             self.assertIn(sibling, cache.instance._sibling_cache_paths())
@@ -116,9 +122,7 @@ class MiscTest(TestCaseBase):
     def test_cache_purges_once(self):
         backend = cache.instance.cached_requests.cache
         settings = QSettings()
-        generations = os.path.dirname(os.path.dirname(cache.instance.path))
-        sibling_dir = tempfile.mkdtemp(dir=generations)
-        sibling = os.path.join(sibling_dir, os.path.basename(cache.instance.path))
+        sibling_dir, sibling = self._make_sibling_cache_dir()
         other = DbCache(os.path.splitext(sibling)[0])
         # only the synthetic one: a real other generation may be running
         original_siblings = cache.instance._sibling_cache_paths
