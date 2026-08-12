@@ -78,15 +78,6 @@ class TilesManager:
             )
         )
 
-        # A proxy block page answers 200, so an entitled account still needs an image
-        if response.ok and response.content[:4] != b"\x89PNG":
-            self.main.iface.messageBar().pushMessage(
-                "Warning",
-                tr("Unexpected answer from the TravelTime tiles service."),
-                level=Qgis.MessageLevel.Warning,
-            )
-            return False
-
         if not response.ok:
             self.main.iface.messageBar().pushMessage(
                 "Info",
@@ -94,6 +85,15 @@ class TilesManager:
                     "TravelTime also offers some background maps for their users. <a href='https://docs.traveltime.com/api/tiles/getting-started'>Click here to request access !</a>"
                 ),
                 level=Qgis.MessageLevel.Info,
+            )
+            return False
+
+        # A proxy block page answers 200, so an entitled account still needs an image
+        if response.content[:4] != b"\x89PNG":
+            self.main.iface.messageBar().pushMessage(
+                "Warning",
+                tr("Unexpected answer from the TravelTime tiles service."),
+                level=Qgis.MessageLevel.Warning,
             )
             return False
 

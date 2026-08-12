@@ -1,6 +1,7 @@
 import os
 import pickle
 import shutil
+import tempfile
 
 import processing
 import requests
@@ -20,6 +21,7 @@ from qgis.utils import iface
 from .. import auth, cache, tiles
 from ..algorithms import base
 from ..constants import CREDENTIAL_HEADERS
+from ..libraries.requests_cache.backends import DbCache
 from ..utils import log
 from .base import TestCaseBase
 
@@ -94,26 +96,50 @@ class MiscTest(TestCaseBase):
         response.status_code = 200
         response._content = b"{}"
         response.request = requests.Request(
-            "POST", "https://api.traveltimeapp.com/v4/time-map"
+            "POST",
+            "https://api.traveltimeapp.com/v4/time-map",
+            headers={"X-Api-Key": "secret-legacy-key"},
         ).prepare()
         return response
+
+    def _make_sibling_cache_dir(self):
+        """A stand-in for the other QGIS generation, wherever this platform puts it"""
+        generations, relative = cache.instance._generations_root()
+        sibling_dir = tempfile.mkdtemp(dir=generations)
+        sibling = os.path.join(sibling_dir, relative)
+        os.makedirs(os.path.dirname(sibling), exist_ok=True)
+        return sibling_dir, sibling
+
+    def test_cache_finds_the_other_generations_file(self):
+        sibling_dir, sibling = self._make_sibling_cache_dir()
+        try:
+            open(sibling, "wb").close()
+            self.assertIn(sibling, cache.instance._sibling_cache_paths())
+            self.assertNotIn(cache.instance.path, cache.instance._sibling_cache_paths())
+        finally:
+            shutil.rmtree(sibling_dir, ignore_errors=True)
 
     def test_cache_purges_once(self):
         backend = cache.instance.cached_requests.cache
         settings = QSettings()
-        # the cache dir is per QGIS generation, so the other generation's file is ours
-        generations = os.path.dirname(os.path.dirname(cache.instance.path))
-        sibling_dir = os.path.join(generations, "QGIS_other")
-        os.makedirs(sibling_dir, exist_ok=True)
-        sibling = os.path.join(sibling_dir, os.path.basename(cache.instance.path))
+        sibling_dir, sibling = self._make_sibling_cache_dir()
+        other = DbCache(os.path.splitext(sibling)[0])
+        # only the synthetic one: a real other generation may be running
+        original_siblings = cache.instance._sibling_cache_paths
+        cache.instance._sibling_cache_paths = lambda: [sibling]
         try:
-            with open(sibling, "wb") as f:
-                f.write(b"pretend this holds X-Api-Key")
+            other.save_response("legacy-key", self._legacy_cache_entry())
             backend.save_response("legacy-key", self._legacy_cache_entry())
             settings.remove(cache.PURGED_SETTING)
+            settings.remove(cache.SIBLINGS_PURGED_SETTING)
             cache.instance._purge_credentials_once()
+
             self.assertFalse(backend.has_key("legacy-key"))
-            self.assertFalse(os.path.exists(sibling))
+            # the other generation loses its entries but keeps usable tables,
+            # or its running QGIS would raise on every request from then on
+            self.assertFalse(other.has_key("legacy-key"))
+            with open(sibling, "rb") as f:
+                self.assertNotIn(b"secret-legacy-key", f.read())
             self.assertTrue(settings.value(cache.PURGED_SETTING, False, type=bool))
 
             # having run once, it must not wipe a healthy cache on every start
@@ -130,8 +156,22 @@ class MiscTest(TestCaseBase):
             finally:
                 cache.instance.clear = original_clear
             self.assertFalse(settings.value(cache.PURGED_SETTING, False, type=bool))
+
+            # a sibling we cannot clear — one another QGIS holds open — must be
+            # retried, not recorded as done
+            settings.remove(cache.SIBLINGS_PURGED_SETTING)
+            unclearable = os.path.join(sibling_dir, "not-a-database.sqlite")
+            with open(unclearable, "wb") as f:
+                f.write(b"definitely not sqlite")
+            cache.instance._sibling_cache_paths = lambda: [unclearable]
+            cache.instance._purge_credentials_once()
+            self.assertFalse(
+                settings.value(cache.SIBLINGS_PURGED_SETTING, False, type=bool)
+            )
         finally:
+            cache.instance._sibling_cache_paths = original_siblings
             settings.setValue(cache.PURGED_SETTING, True)
+            settings.setValue(cache.SIBLINGS_PURGED_SETTING, True)
             shutil.rmtree(sibling_dir, ignore_errors=True)
 
     def test_tiles_keeps_live_entries_when_probe_fails(self):
@@ -156,13 +196,12 @@ class MiscTest(TestCaseBase):
                 tiles.requests.get = fake_get
                 try:
                     self.assertFalse(tiles_manager.add_tiles_to_browser())
+                    self.assertIsNone(settings.value(f"{retired}/url"))
+                    # the user may have kept an entry of their own under the prefix
+                    self.assertIsNotNone(settings.value(f"{mine}/url"))
                 finally:
                     tiles.requests.get = original_get
-
-                # ours and retired goes; the user's own entry under the prefix stays
-                self.assertIsNone(settings.value(f"{retired}/url"))
-                self.assertIsNotNone(settings.value(f"{mine}/url"))
-                settings.remove(mine)
+                    settings.remove(mine)
 
         # a failed probe must not have cost the user their working entries
         tiles_manager.add_tiles_to_browser()
