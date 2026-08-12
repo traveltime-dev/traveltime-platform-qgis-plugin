@@ -66,20 +66,23 @@ class Cache:
             return
         try:
             self.clear()
-            for path in self._sibling_cache_paths():
-                os.remove(path)
         except Exception as e:
             # runs during plugin import, and vacuum needs the file to itself
             log(f"Could not purge the response cache, will retry next start: {e}")
             return
+        # Separately, so a file another QGIS holds open cannot make the clear repeat.
+        # Cleared, not unlinked: that QGIS creates its tables only at startup.
+        try:
+            for path in self._sibling_cache_paths():
+                DbCache(os.path.splitext(path)[0]).clear()
+        except Exception as e:
+            log(f"Could not clear another QGIS generation's response cache: {e}")
         settings.setValue(PURGED_SETTING, True)
 
     def _sibling_cache_paths(self):
         """CacheLocation is per QGIS generation, so the other generation's file is ours"""
         name = os.path.basename(self.path)
         generations = os.path.dirname(os.path.dirname(self.path))
-        if not os.path.isdir(generations):
-            return []
         paths = (os.path.join(generations, d, name) for d in os.listdir(generations))
         return [p for p in paths if p != self.path and os.path.isfile(p)]
 
