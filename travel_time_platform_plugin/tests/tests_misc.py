@@ -1,6 +1,6 @@
 import requests
 from processing import createAlgorithmDialog
-from qgis.core import Qgis, QgsPointXY, QgsProcessingContext, QgsProject
+from qgis.core import Qgis, QgsPointXY, QgsProcessingContext, QgsProject, QgsSettings
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtWidgets import QApplication, QDockWidget, QTreeView, QWidget
 from qgis.utils import iface
@@ -47,6 +47,24 @@ class MiscTest(TestCaseBase):
             model.data(treeview.currentIndex()),
             expected_label,
         )
+
+    def test_tiles_drops_retired_entries(self):
+        tiles_manager = self.plugin.tilesManager
+        settings = QgsSettings()
+        retired = "connections/xyz/items/TravelTime - Lux"
+        settings.setValue(
+            f"{retired}/url", "https://tiles.traveltime.com/lux/1/2/3.png"
+        )
+
+        tiles_manager.add_tiles_to_browser()
+
+        # An upgrade must not leave the old style behind in the browser
+        self.assertIsNone(settings.value(f"{retired}/url"))
+        for identifier in tiles_manager.tiles:
+            label = tiles_manager.browser_label(identifier)
+            self.assertIsNotNone(
+                settings.value(f"connections/xyz/items/{label}/url"), label
+            )
 
     def test_cache_omits_credentials(self):
         # lower case too: headers are matched case-insensitively over the wire
