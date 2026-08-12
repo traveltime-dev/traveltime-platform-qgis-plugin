@@ -2,9 +2,9 @@ import os
 import webbrowser
 
 try:
-    # QGIS >= 4 (replaces processing.gui.AlgorithmDialog, same interface)
+    # QGIS >= 4.2 home of the algorithm dialog; both expose in_place and active_layer
     from processing.gui.algorithm_widget import AlgorithmWidget as AlgorithmDialog
-except (ModuleNotFoundError, ImportError):
+except ImportError:
     from processing.gui.AlgorithmDialog import AlgorithmDialog
 from processing.gui.ParametersPanel import ParametersPanel
 from qgis.gui import QgsAbstractProcessingParameterWidgetWrapper as Wrapper
@@ -16,7 +16,7 @@ try:
     from qgis.PyQt.QtWebKitWidgets import QWebView
 
     webkit_available = True
-except (ModuleNotFoundError, ImportError):
+except ImportError:
     webkit_available = False
 
 from processing.gui.wrappers import WidgetWrapper

@@ -203,7 +203,7 @@ class TTPPlugin:
         self._dlg.show()
 
     def show_tiles(self):
-        self.tilesManager.add_tiles_to_browser()
+        tiles_added = self.tilesManager.add_tiles_to_browser()
 
         browser = self.iface.mainWindow().findChild(QDockWidget, "Browser")
         browser.setVisible(True)
@@ -234,23 +234,24 @@ class TTPPlugin:
         treeview.scrollTo(xyz_tiles_group_idx[0])
 
         # If tiles were loaded, selected it
-        lux_tiles_idx = model.match(
+        ttp_tiles_idx = model.match(
             model.index(0, 0, xyz_tiles_group_idx[0]),
             Qt.ItemDataRole.DisplayRole,
-            "TravelTime - Lux",
+            self.tilesManager.default_browser_label(),
         )
-        if len(lux_tiles_idx) == 0:
-            # Shouldn't happen, but let's not crash
-            self.iface.messageBar().pushMessage(
-                "Warning",
-                tr("XYZ tiles were not added for an unknown reason"),
-                level=Qgis.MessageLevel.Warning,
-            )
+        if len(ttp_tiles_idx) == 0:
+            if tiles_added:
+                # Shouldn't happen, but let's not crash
+                self.iface.messageBar().pushMessage(
+                    "Warning",
+                    tr("XYZ tiles were not added for an unknown reason"),
+                    level=Qgis.MessageLevel.Warning,
+                )
             return
 
         # Display it
-        treeview.setCurrentIndex(lux_tiles_idx[0])
-        treeview.scrollTo(lux_tiles_idx[0])
+        treeview.setCurrentIndex(ttp_tiles_idx[0])
+        treeview.scrollTo(ttp_tiles_idx[0])
 
     def show_config(self):
         self.config_dialog.exec()

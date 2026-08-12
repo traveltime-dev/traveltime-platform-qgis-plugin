@@ -3,33 +3,91 @@ from qgis.core import Qgis, QgsSettings
 from qgis.PyQt.QtCore import QSettings
 
 from . import auth
-from .utils import tr
+from .utils import log, tr
+
+LABEL_PREFIX = "TravelTime - "
 
 
 class TilesManager:
     tiles = {
-        "lux": tr("Lux"),
+        "osm-bright": tr("OSM Bright"),
+        "positron": tr("Positron"),
     }
 
     def __init__(self, main):
         self.main = main
 
+    def browser_label(self, identifier):
+        return LABEL_PREFIX + self.tiles[identifier]
+
+    def default_browser_label(self):
+        """The entry the toolbar button probes for and selects"""
+        return self.browser_label(next(iter(self.tiles)))
+
     def _get_url(self, identifier):
         app_id, _ = auth.get_app_id_and_api_key()
-        disable_https = QSettings().value(
-            "traveltime_platform/disable_https", False, type=bool
+        return "https://tiles.traveltimeapp.com/{identifier}/{{z}}/{{x}}/{{y}}.png?key={app_id}&client=QGIS".format(
+            app_id=app_id, identifier=identifier
         )
-        return "https://tiles.traveltime.com/{identifier}/{{z}}/{{x}}/{{y}}.png?key={app_id}&client=QGIS".format(
-            app_id=app_id, identifier=identifier, verify=not disable_https
-        )
+
+    def _drop_retired_entries(self):
+        """A renamed or retired style would otherwise leave a dead browser entry"""
+        current = {self.browser_label(identifier) for identifier in self.tiles}
+        s = QgsSettings()
+        s.beginGroup("connections/xyz/items")
+        retired = [
+            label
+            for label in s.childGroups()
+            if label.startswith(LABEL_PREFIX) and label not in current
+            # only ours: the user may have kept an entry of their own under the prefix
+            and "traveltime" in s.value(f"{label}/url", "")
+        ]
+        for label in retired:
+            s.remove(label)
+        s.endGroup()
+        if retired:
+            self.main.iface.reloadConnections()
 
     def add_tiles_to_browser(self):
-        # We test access to tiles with API
-        test_url = self._get_url(list(self.tiles.keys())[0])
-        response = requests.get(test_url.format(z=12, x=2048, y=1361))
-        has_tiles = response.ok
+        """Returns False when the layers were not registered, so callers do not
+        add a second, contradictory reason for their absence."""
+        self._drop_retired_entries()
 
-        if not has_tiles:
+        # We test access to tiles with API
+        test_url = self._get_url(next(iter(self.tiles)))
+        verify = not QSettings().value(
+            "traveltime_platform/disable_https", False, type=bool
+        )
+        try:
+            response = requests.get(
+                test_url.format(z=12, x=2048, y=1361), timeout=10, verify=verify
+            )
+        except OSError as e:
+            # Not the exception itself: it stringifies the app id in the url
+            log("Could not reach the tiles service ({})".format(type(e).__name__))
+            self.main.iface.messageBar().pushMessage(
+                "Warning",
+                tr("Could not reach the TravelTime tiles service."),
+                level=Qgis.MessageLevel.Warning,
+            )
+            return False
+
+        log(
+            "Tiles probe answered {} ({} bytes)".format(
+                response.status_code, len(response.content)
+            )
+        )
+
+        # A proxy block page answers 200, so an entitled account still needs an image
+        if response.ok and response.content[:4] != b"\x89PNG":
+            self.main.iface.messageBar().pushMessage(
+                "Warning",
+                tr("Unexpected answer from the TravelTime tiles service."),
+                level=Qgis.MessageLevel.Warning,
+            )
+            return False
+
+        if not response.ok:
             self.main.iface.messageBar().pushMessage(
                 "Info",
                 tr(
@@ -37,24 +95,15 @@ class TilesManager:
                 ),
                 level=Qgis.MessageLevel.Info,
             )
-        else:
-            for identifier, label in self.tiles.items():
-                url = self._get_url(identifier)
-                label = "TravelTime - " + label
+            return False
 
-                # Not too sure why this changed in 3.30, maybe we're supposed to used
-                # the settings registry, but QgsXyzConnectionSettings isn't in the pyqgis
-                # bindings...
-                if Qgis.QGIS_VERSION_INT < 33000:
-                    settings_path = f"qgis/connections-xyz"
-                else:
-                    settings_path = f"connections/xyz/items"
-                settings_path += f"/{label}"
-                s = QgsSettings()
-                s.setValue(f"{settings_path}/url", url)
-                s.setValue(f"{settings_path}/zmax", 20)
-                s.setValue(f"{settings_path}/zmin", 0)
-                s.setValue(f"{settings_path}/tilePixelRatio", 2)
+        s = QgsSettings()
+        for identifier in self.tiles:
+            settings_path = f"connections/xyz/items/{self.browser_label(identifier)}"
+            s.setValue(f"{settings_path}/url", self._get_url(identifier))
+            s.setValue(f"{settings_path}/zmax", 20)
+            s.setValue(f"{settings_path}/zmin", 0)
+            s.setValue(f"{settings_path}/tilePixelRatio", 2)
 
-                # Update GUI
-                self.main.iface.reloadConnections()
+        self.main.iface.reloadConnections()
+        return True

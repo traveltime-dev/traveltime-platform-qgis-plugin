@@ -923,10 +923,10 @@ class TimeFilterAlgorithm(_SearchAlgorithmBase):
             output_fields.append(QgsField("prop_" + prop, QVariant.String, "text"))
 
         output_crs = locations.sourceCrs()
-        output_type = locations.wkbType()
+        output_wkb_type = locations.wkbType()
 
         (sink, sink_id) = self.parameterAsSink(
-            parameters, "OUTPUT", context, output_fields, output_type, output_crs
+            parameters, "OUTPUT", context, output_fields, output_wkb_type, output_crs
         )
 
         def clone_feature(id_):
@@ -1172,10 +1172,10 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
             output_fields.append(QgsField("part_travel_time", QVariant.Int, "int"))
 
         output_crs = EPSG4326
-        output_type = Qgis.WkbType.LineString
+        output_wkb_type = Qgis.WkbType.LineString
 
         (sink, sink_id) = self.parameterAsSink(
-            parameters, "OUTPUT", context, output_fields, output_type, output_crs
+            parameters, "OUTPUT", context, output_fields, output_wkb_type, output_crs
         )
 
         for result in results:

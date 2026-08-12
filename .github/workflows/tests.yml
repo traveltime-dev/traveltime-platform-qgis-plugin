@@ -3,6 +3,12 @@ on:
   schedule:
     - cron:  '0 6 * * 1'  # weekly check
 
+# The schedule keeps its own lane, so a push cannot cancel the weekly run - the
+# canary for upstream image drift.
+concurrency:
+  group: tests-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -12,14 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         qgis_image:
-          # NB: -questing is the variant the unsuffixed qgis/qgis:4.x tags point
-          # at. The -trixie variants cannot run the suite as-is: they bundle a
-          # QtWebEngine that refuses to start as root ("Running as root without
-          # --no-sandbox is not supported"), which kills QGIS before it reaches
-          # the --code script. Should we ever need them, setting
-          # QTWEBENGINE_CHROMIUM_FLAGS=--no-sandbox works around it.
+          # qgis/qgis:4.0-questing is left out: it never reaches the --code script
           - qgis/qgis:4.2-questing
-          - qgis/qgis:4.0-questing
           - qgis/qgis:3.44-bookworm
           - qgis/qgis:3.40-bookworm
 

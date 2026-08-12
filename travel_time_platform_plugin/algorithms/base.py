@@ -315,13 +315,14 @@ class ProcessingAlgorithmBase(AlgorithmBase):
         full_url = endpoint + self.url
 
         feedback.pushDebugInfo("Making request to API endpoint...")
-        print_query = bool(QSettings().value("traveltime_platform/log_calls", False))
+        print_query = QSettings().value(
+            "traveltime_platform/log_calls", False, type=bool
+        )
         if print_query:
-            headers_for_logs = dict(headers)
-            if headers_for_logs["X-Application-Id"]:
-                headers_for_logs["X-Application-Id"] = "*hidden*"
-            if headers_for_logs["X-Api-Key"]:
-                headers_for_logs["X-Api-Key"] = "*hidden*"
+            headers_for_logs = {
+                k: "*hidden*" if k in constants.CREDENTIAL_HEADERS else v
+                for k, v in headers.items()
+            }
 
             log("Making request")
             log("url: {}".format(full_url))
@@ -382,6 +383,17 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             response = cache.instance.cached_requests.send(
                 request, verify=not disable_https
             )
+        except requests.exceptions.SSLError as e:
+            feedback.reportError(
+                tr(
+                    "Could not connect to the API because of an SSL certificate error. You can disable SSL verification in the plugin settings. See log for more details."
+                ),
+                fatalError=True,
+            )
+            log(e)
+            raise QgsProcessingException(
+                "Got an SSL error when connecting to the API"
+            ) from None
         except requests.exceptions.RequestException as e:
             feedback.reportError(
                 tr(
@@ -404,20 +416,24 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             log(e)
             raise QgsProcessingException("Could not decode response") from None
 
+        # The API answers with an object; a gateway in front of it may not
+        if not isinstance(response_data, dict):
+            response_data = {}
+
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
             nice_info = "\n".join(
                 "\t{}:\t{}".format(k, v)
-                for k, v in response_data["additional_info"].items()
+                for k, v in response_data.get("additional_info", {}).items()
             )
             feedback.reportError(
                 tr(
                     "Received error from the API.\nError code : {}\nDescription : {}\nSee : {}\nAddtionnal info :\n{}"
                 ).format(
-                    response_data["error_code"],
-                    response_data["description"],
-                    response_data["documentation_link"],
+                    response_data.get("error_code", response.status_code),
+                    response_data.get("description", response.reason),
+                    response_data.get("documentation_link", ""),
                     nice_info,
                 ),
                 fatalError=True,
@@ -427,24 +443,6 @@ class ProcessingAlgorithmBase(AlgorithmBase):
             raise QgsProcessingException(
                 "Got error {} from API".format(response.status_code)
             ) from None
-        except requests.exceptions.SSLError as e:
-            feedback.reportError(
-                tr(
-                    "Could not connect to the API because of an SSL certificate error. You can disable SSL verification in the plugin settings. See log for more details."
-                ),
-                fatalError=True,
-            )
-            log(e)
-            raise QgsProcessingException(
-                "Got an SSL error when connecting to the API"
-            ) from None
-        except requests.exceptions.RequestException as e:
-            feedback.reportError(
-                tr("Could not connect to the API. See log for more details."),
-                fatalError=True,
-            )
-            log(e)
-            raise QgsProcessingException("Could not connect to API") from None
 
         if response.from_cache:
             feedback.pushDebugInfo("Got response from cache...")
