@@ -3,7 +3,7 @@ from qgis.core import Qgis, QgsSettings
 from qgis.PyQt.QtCore import QSettings
 
 from . import auth
-from .utils import tr
+from .utils import log, tr
 
 
 class TilesManager:
@@ -26,8 +26,14 @@ class TilesManager:
     def add_tiles_to_browser(self):
         # We test access to tiles with API
         test_url = self._get_url(list(self.tiles.keys())[0])
-        response = requests.get(test_url.format(z=12, x=2048, y=1361))
-        has_tiles = response.ok
+        try:
+            response = requests.get(test_url.format(z=12, x=2048, y=1361), timeout=30)
+            has_tiles = response.ok
+        except requests.exceptions.RequestException as e:
+            # callers go on to reveal the browser panel, so this must not abort them.
+            # Only the class name: the exception stringifies the app id in the url.
+            log("Could not reach the tiles endpoint ({})".format(type(e).__name__))
+            has_tiles = False
 
         if not has_tiles:
             self.main.iface.messageBar().pushMessage(
