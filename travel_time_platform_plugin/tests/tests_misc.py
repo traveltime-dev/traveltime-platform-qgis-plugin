@@ -131,6 +131,7 @@ class MiscTest(TestCaseBase):
             other.save_response("legacy-key", self._legacy_cache_entry())
             backend.save_response("legacy-key", self._legacy_cache_entry())
             settings.remove(cache.PURGED_SETTING)
+            settings.remove(cache.SIBLINGS_PURGED_SETTING)
             cache.instance._purge_credentials_once()
 
             self.assertFalse(backend.has_key("legacy-key"))
@@ -155,9 +156,22 @@ class MiscTest(TestCaseBase):
             finally:
                 cache.instance.clear = original_clear
             self.assertFalse(settings.value(cache.PURGED_SETTING, False, type=bool))
+
+            # a sibling we cannot clear — one another QGIS holds open — must be
+            # retried, not recorded as done
+            settings.remove(cache.SIBLINGS_PURGED_SETTING)
+            unclearable = os.path.join(sibling_dir, "not-a-database.sqlite")
+            with open(unclearable, "wb") as f:
+                f.write(b"definitely not sqlite")
+            cache.instance._sibling_cache_paths = lambda: [unclearable]
+            cache.instance._purge_credentials_once()
+            self.assertFalse(
+                settings.value(cache.SIBLINGS_PURGED_SETTING, False, type=bool)
+            )
         finally:
             cache.instance._sibling_cache_paths = original_siblings
             settings.setValue(cache.PURGED_SETTING, True)
+            settings.setValue(cache.SIBLINGS_PURGED_SETTING, True)
             shutil.rmtree(sibling_dir, ignore_errors=True)
 
     def test_tiles_keeps_live_entries_when_probe_fails(self):

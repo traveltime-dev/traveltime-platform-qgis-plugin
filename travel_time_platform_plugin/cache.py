@@ -8,6 +8,7 @@ from .libraries.requests_cache.backends import DbCache
 from .utils import log
 
 PURGED_SETTING = "traveltime_platform/cache_credentials_purged"
+SIBLINGS_PURGED_SETTING = "traveltime_platform/sibling_caches_purged"
 
 
 class CredentialFreeCache(DbCache):
@@ -60,24 +61,33 @@ class Cache:
         self._purge_credentials_once()
 
     def _purge_credentials_once(self):
-        """Entries from earlier versions hold credentials, and nothing else evicts them"""
+        """Entries from earlier versions hold credentials, and nothing else evicts them.
+
+        Tracked per cache file: a sibling another QGIS holds open must be retried
+        without re-wiping this generation's healthy cache every start.
+        """
         settings = QSettings()
-        if settings.value(PURGED_SETTING, False, type=bool):
+        if not settings.value(PURGED_SETTING, False, type=bool):
+            try:
+                self.clear()
+            except Exception as e:
+                # runs during plugin import, and vacuum needs the file to itself
+                log(f"Could not purge the response cache, will retry next start: {e}")
+            else:
+                settings.setValue(PURGED_SETTING, True)
+
+        if settings.value(SIBLINGS_PURGED_SETTING, False, type=bool):
             return
-        try:
-            self.clear()
-        except Exception as e:
-            # runs during plugin import, and vacuum needs the file to itself
-            log(f"Could not purge the response cache, will retry next start: {e}")
-            return
-        # Separately, so a file another QGIS holds open cannot make the clear repeat.
-        # Cleared, not unlinked: that QGIS creates its tables only at startup.
-        try:
-            for path in self._sibling_cache_paths():
+        # Cleared, not unlinked: that QGIS creates its tables only at startup
+        cleared = True
+        for path in self._sibling_cache_paths():
+            try:
                 DbCache(os.path.splitext(path)[0]).clear()
-        except Exception as e:
-            log(f"Could not clear another QGIS generation's response cache: {e}")
-        settings.setValue(PURGED_SETTING, True)
+            except Exception as e:
+                log(f"Could not clear a cache of another QGIS generation: {e}")
+                cleared = False
+        if cleared:
+            settings.setValue(SIBLINGS_PURGED_SETTING, True)
 
     def _generations_root(self):
         """Splits our cache path into the dir holding one entry per QGIS generation
@@ -92,10 +102,16 @@ class Cache:
     def _sibling_cache_paths(self):
         """CacheLocation is per QGIS generation, so the other generation's file is ours"""
         generations, relative = self._generations_root()
+        # normalised: Qt reports / separators where os.path.join would write \
+        ours = os.path.normcase(os.path.normpath(self.path))
         paths = (
             os.path.join(generations, d, relative) for d in os.listdir(generations)
         )
-        return [p for p in paths if p != self.path and os.path.isfile(p)]
+        return [
+            p
+            for p in paths
+            if os.path.normcase(os.path.normpath(p)) != ours and os.path.isfile(p)
+        ]
 
 
 instance = Cache()
