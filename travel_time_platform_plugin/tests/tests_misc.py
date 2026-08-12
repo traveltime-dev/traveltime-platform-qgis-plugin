@@ -1,4 +1,6 @@
+import os
 import pickle
+import shutil
 
 import processing
 import requests
@@ -15,7 +17,7 @@ from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtWidgets import QApplication, QDockWidget, QTreeView, QWidget
 from qgis.utils import iface
 
-from .. import auth, cache
+from .. import auth, cache, tiles
 from ..algorithms import base
 from ..constants import CREDENTIAL_HEADERS
 from ..utils import log
@@ -86,6 +88,91 @@ class MiscTest(TestCaseBase):
             self.assertIsNotNone(
                 settings.value(f"connections/xyz/items/{label}/url"), label
             )
+
+    def _legacy_cache_entry(self):
+        response = requests.Response()
+        response.status_code = 200
+        response._content = b"{}"
+        response.request = requests.Request(
+            "POST", "https://api.traveltimeapp.com/v4/time-map"
+        ).prepare()
+        return response
+
+    def test_cache_purges_once(self):
+        backend = cache.instance.cached_requests.cache
+        settings = QSettings()
+        # the cache dir is per QGIS generation, so the other generation's file is ours
+        generations = os.path.dirname(os.path.dirname(cache.instance.path))
+        sibling_dir = os.path.join(generations, "QGIS_other")
+        os.makedirs(sibling_dir, exist_ok=True)
+        sibling = os.path.join(sibling_dir, os.path.basename(cache.instance.path))
+        try:
+            with open(sibling, "wb") as f:
+                f.write(b"pretend this holds X-Api-Key")
+            backend.save_response("legacy-key", self._legacy_cache_entry())
+            settings.remove(cache.PURGED_SETTING)
+            cache.instance._purge_credentials_once()
+            self.assertFalse(backend.has_key("legacy-key"))
+            self.assertFalse(os.path.exists(sibling))
+            self.assertTrue(settings.value(cache.PURGED_SETTING, False, type=bool))
+
+            # having run once, it must not wipe a healthy cache on every start
+            backend.save_response("kept-key", self._legacy_cache_entry())
+            cache.instance._purge_credentials_once()
+            self.assertTrue(backend.has_key("kept-key"))
+
+            # a failed purge must stay pending rather than report success
+            settings.remove(cache.PURGED_SETTING)
+            original_clear = cache.instance.clear
+            cache.instance.clear = lambda: (_ for _ in ()).throw(OSError("locked"))
+            try:
+                cache.instance._purge_credentials_once()
+            finally:
+                cache.instance.clear = original_clear
+            self.assertFalse(settings.value(cache.PURGED_SETTING, False, type=bool))
+        finally:
+            settings.setValue(cache.PURGED_SETTING, True)
+            shutil.rmtree(sibling_dir, ignore_errors=True)
+
+    def test_tiles_keeps_live_entries_when_probe_fails(self):
+        tiles_manager = self.plugin.tilesManager
+        settings = QgsSettings()
+        items = "connections/xyz/items"
+        mine = f"{items}/TravelTime - Mine"
+        retired = f"{items}/TravelTime - Lux"
+        current = tiles_manager.default_browser_label()
+
+        cases = {
+            "unreachable": lambda *a, **kw: (_ for _ in ()).throw(OSError("refused")),
+            "blocked": lambda *a, **kw: self._html_response(),
+        }
+        for name, fake_get in cases.items():
+            with self.subTest(probe=name):
+                settings.setValue(
+                    f"{retired}/url", "https://tiles.traveltime.com/lux/1/2/3.png"
+                )
+                settings.setValue(f"{mine}/url", "https://example.com/{z}/{x}/{y}.png")
+                original_get = tiles.requests.get
+                tiles.requests.get = fake_get
+                try:
+                    self.assertFalse(tiles_manager.add_tiles_to_browser())
+                finally:
+                    tiles.requests.get = original_get
+
+                # ours and retired goes; the user's own entry under the prefix stays
+                self.assertIsNone(settings.value(f"{retired}/url"))
+                self.assertIsNotNone(settings.value(f"{mine}/url"))
+                settings.remove(mine)
+
+        # a failed probe must not have cost the user their working entries
+        tiles_manager.add_tiles_to_browser()
+        self.assertIsNotNone(settings.value(f"{items}/{current}/url"))
+
+    def _html_response(self):
+        response = requests.Response()
+        response.status_code = 200
+        response._content = b"<html>blocked"
+        return response
 
     def test_cache_omits_credentials(self):
         # lower case too: headers are matched case-insensitively over the wire

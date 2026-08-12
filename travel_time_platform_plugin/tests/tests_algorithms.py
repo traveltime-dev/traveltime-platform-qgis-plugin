@@ -143,7 +143,7 @@ class AlgorithmsBasicTest(TestCaseBase):
             expected_result_count=1,
         )
 
-        # The aggregate must survive convertGeometryCollectionToSubclass as a polygon
+        # One polygon spanning both searches, not one search overwriting the other
         feature = next(output_layer.getFeatures())
         self.assertEqual(feature.attribute("id"), "UNION")
         self.assertEqual(feature.geometry().type(), Qgis.GeometryType.Polygon)
