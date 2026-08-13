@@ -8,12 +8,9 @@ def set_app_id_and_api_key(app_id, api_key):
     ok2 = manager.storeAuthSetting("TTP_API_KEY", api_key, True)
 
     if not (ok1 and ok2):
-        # Storing fails if the authentication database is unavailable, typically
-        # because the user dismissed the QGIS master password prompt. Raise rather
-        # than assert, so it still surfaces under `python -O`.
         raise RuntimeError(
-            "Could not store the TravelTime credentials in the QGIS "
-            "authentication database."
+            "Could not store the TravelTime credentials: the QGIS authentication "
+            "database is unavailable, e.g. its master password was not entered."
         )
 
 

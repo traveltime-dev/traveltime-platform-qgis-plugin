@@ -49,6 +49,7 @@ class DbDict(MutableMapping):
                           Tests showed that insertion order of records can be wrong with this option.
         """
         self.filename = filename
+        # sqlite cannot bind a table name; the only callers (sqlite.py) pass literals.
         self.table_name = table_name
         self.fast_save = fast_save
         
@@ -115,11 +116,6 @@ class DbDict(MutableMapping):
             if self._pending_connection is not None:
                 self._pending_connection.close()
                 self._pending_connection = None
-
-    # The `% self.table_name` interpolations below are table *identifiers*, which
-    # sqlite cannot bind as parameters. table_name is never user input: it is the
-    # hard-coded default 'data' for every cache this plugin creates. All actual
-    # values stay parameterised via `?`, so these are not injection vectors.
 
     def __getitem__(self, key):
         with self.connection() as con:
