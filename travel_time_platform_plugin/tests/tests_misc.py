@@ -1,5 +1,5 @@
 import os
-import pickle
+import pickle  # nosec B403
 import shutil
 import tempfile
 
@@ -233,6 +233,7 @@ class MiscTest(TestCaseBase):
                 reduced = cache.instance.cached_requests.cache.reduce_response(response)
 
                 # what reaches the file is the pickle, not just this one field
+                # (asserting on it is the only reason this module imports pickle)
                 pickled = pickle.dumps(reduced)
                 for header in CREDENTIAL_HEADERS:
                     self.assertNotIn(header, reduced.request.headers)

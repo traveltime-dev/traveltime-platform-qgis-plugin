@@ -1258,7 +1258,10 @@ class RoutesAlgorithm(_SearchAlgorithmBase):
             for value in sorted(values):
                 symbol = QgsLineSymbol()
                 symbol.setWidth(1)
-                symbol.setColor(QColor.fromHsl(random.randint(0, 359), 255, 127))
+                # Random hue only so categories get visually distinct colours;
+                # nothing security-sensitive depends on it.
+                hue = random.randint(0, 359)  # nosec B311
+                symbol.setColor(QColor.fromHsl(hue, 255, 127))
                 category = QgsRendererCategory(value, symbol, value)
                 categories.append(category)
 

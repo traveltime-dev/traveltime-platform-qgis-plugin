@@ -44,7 +44,7 @@ class CachedSession(OriginalSession):
 
                            for ``redis``: it's used as the namespace. This means all keys
                            are prefixed with ``'cache_name:'``
-        :param backend: cache backend name e.g ``'sqlite'``, ``'mongodb'``, ``'redis'``, ``'memory'``.
+        :param backend: cache backend name e.g ``'sqlite'``, ``'memory'``.
                         (see :ref:`persistence`). Or instance of backend implementation.
                         Default value is ``None``, which means use ``'sqlite'`` if available,
                         otherwise fallback to ``'memory'``.
