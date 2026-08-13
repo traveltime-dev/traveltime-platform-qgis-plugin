@@ -19,7 +19,7 @@ jobs:
           python-version: 3.13
 
       - name: Install qgis-plugin-ci
-        run: pip install qgis-plugin-ci==2.8.10
+        run: pip install qgis-plugin-ci==2.10.0
 
       - name: Deploy to QGIS plugin repository
         env:
