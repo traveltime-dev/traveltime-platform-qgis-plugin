@@ -21,8 +21,10 @@ jobs:
       - name: Install qgis-plugin-ci
         run: pip install qgis-plugin-ci==2.10.0
 
+      # A plugin-scoped token from plugins.qgis.org, not a person's login. Note
+      # that qgis-plugin-ci exits 2 if a token and OSGeo credentials are both
+      # passed, so --osgeo-username/--osgeo-password must stay gone.
       - name: Deploy to QGIS plugin repository
         env:
-          OSGEO_USERNAME: ${{ secrets.OSGEO_USERNAME }}
-          OSGEO_PASSWORD: ${{ secrets.OSGEO_PASSWORD }}
-        run: qgis-plugin-ci release --osgeo-username "$OSGEO_USERNAME" --osgeo-password "$OSGEO_PASSWORD" "${GITHUB_REF##*/}"
+          QGIS_TOKEN: ${{ secrets.QGIS_TOKEN }}
+        run: qgis-plugin-ci release --qgis-token "$QGIS_TOKEN" "${GITHUB_REF##*/}"
