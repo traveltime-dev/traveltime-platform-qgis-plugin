@@ -1,1 +1,3 @@
 Since pip dependencies is still not supported for QGIS plugins...
+
+`requests_cache` is a trimmed copy of 0.5.0: only the memory and sqlite backends are kept.

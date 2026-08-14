@@ -18,9 +18,9 @@ try:
 except ImportError:
     import dummy_threading as threading
 try:
-    import cPickle as pickle
+    import cPickle as pickle  # nosec B403
 except ImportError:
-    import pickle
+    import pickle  # nosec B403
 
 from ...compat import bytes
 
@@ -49,6 +49,7 @@ class DbDict(MutableMapping):
                           Tests showed that insertion order of records can be wrong with this option.
         """
         self.filename = filename
+        # sqlite cannot bind a table name; the only callers (sqlite.py) pass literals.
         self.table_name = table_name
         self.fast_save = fast_save
         
@@ -118,7 +119,7 @@ class DbDict(MutableMapping):
 
     def __getitem__(self, key):
         with self.connection() as con:
-            row = con.execute("select value from `%s` where key=?" %
+            row = con.execute("select value from `%s` where key=?" %  # nosec B608
                               self.table_name, (key,)).fetchone()
             if not row:
                 raise KeyError
@@ -131,20 +132,20 @@ class DbDict(MutableMapping):
 
     def __delitem__(self, key):
         with self.connection(True) as con:
-            cur = con.execute("delete from `%s` where key=?" %
+            cur = con.execute("delete from `%s` where key=?" %  # nosec B608
                               self.table_name, (key,))
             if not cur.rowcount:
                 raise KeyError
 
     def __iter__(self):
         with self.connection() as con:
-            for row in con.execute("select key from `%s`" %
+            for row in con.execute("select key from `%s`" %  # nosec B608
                                    self.table_name):
                 yield row[0]
 
     def __len__(self):
         with self.connection() as con:
-            return con.execute("select count(key) from `%s`" %
+            return con.execute("select count(key) from `%s`" %  # nosec B608
                                self.table_name).fetchone()[0]
 
     def clear(self):

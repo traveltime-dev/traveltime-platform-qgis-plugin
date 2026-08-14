@@ -29,8 +29,9 @@ from ..main import TTPPlugin
 # Set to true to save artifacts and add some delay for visual inspection
 SHOW_OUTPUT = False
 
-TEST_MODE = os.environ.get("TEST_MODE", "DESKTOP")  # HEADLESS | HEADFULL | DESKTOP
-assert TEST_MODE in ["HEADLESS", "HEADFULL", "DESKTOP"]
+TEST_MODE = os.environ.get("TEST_MODE", "DESKTOP")
+if TEST_MODE not in ["HEADLESS", "HEADFULL", "DESKTOP"]:
+    raise ValueError(f"Unsupported TEST_MODE: {TEST_MODE}")
 
 
 class TestCaseBase(unittest.TestCase):

@@ -16,9 +16,6 @@ registry = {
 
 _backend_dependencies = {
     'sqlite': 'sqlite3',
-    'mongo': 'pymongo',
-    'redis': 'redis',
-    'dynamodb': 'dynamodb'
 }
 
 try:
@@ -28,30 +25,6 @@ try:
 except ImportError:
     DbCache = None
 
-try:
-    from .mongo import MongoCache
-    registry['mongo'] = registry['mongodb'] = MongoCache
-except ImportError:
-    MongoCache = None
-
-
-try:
-    from .gridfs import GridFSCache
-    registry['gridfs'] = GridFSCache
-except ImportError:
-    GridFSCache = None
-
-try:
-    from .redis import RedisCache
-    registry['redis'] = RedisCache
-except ImportError:
-    RedisCache = None
-
-try:
-    from .dynamodb import DynamoDbCache
-    registry['dynamodb'] = DynamoDbCache
-except ImportError:
-    DynamoDbCache = None
 
 def create_backend(backend_name, cache_name, options):
     if isinstance(backend_name, BaseCache):
